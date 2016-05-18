@@ -218,8 +218,11 @@ method：表示允许的method，参数2标识参数1是字符串、list、正�
 hostname：表示匹配的host，规则同上
 
 > **"method": [["GET","POST"],"table"]==> 表示匹配的method是GET和POST**
+
 > **"method": ["^(get|post)$","jio"] ==> 表示匹配method是正则匹配**
+
 > **"hostname": ["\*",""] ==>表示匹配任意host（字符串匹配，非正则，非常快）**
+
 > **后面的很多规则都是使用该方式匹配的**
 
 
@@ -239,7 +242,9 @@ hostname：匹配的host
 url：匹配的url
 
 > **hostname 和 url 使用上面描述过的匹配规则，参数2标记、参数1内容**
+
 > **详细参见项目中的demo规则，多实验、多测试就知道效果了**
+
 > **各种高级功能基本就靠这个模块来实现了，需要你发挥想象**
 
 ## STEP 4：referer_Mod（黑、白名单）
@@ -253,6 +258,7 @@ hostname：匹配host
 referer：匹配referer
 
 > referer的匹配是白名单，注意一下即可
+
 > 这些匹配都是基于上面说过的2阶匹配法
 
 ## STEP 5：url_Mod（黑、白名单）
