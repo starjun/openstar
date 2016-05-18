@@ -175,31 +175,37 @@ config.json文件进行配置，主要是一些参数开关、目录设置
  - htmlPath
  该参数表示在app_Mod规则中一些文件、脚本存放路径
 
-## realIpFrom_Mod
+## STEP 0：realIpFrom_Mod
 
  - 说明：{"id.game.com":{"ips":["111.206.199.57"],"realipset":"CDN-R-IP"}}
+ 
  通过上面的例子，表示域名id.game.com,从ips来的直连ip，用户真实ip在CDN-R-IP中，ips是list，可以写多个，后续会增加使用正则或者ip段来匹配。（因为当时场景中ip没有多少，所有就用了list，）可以参考例子进行设置。
 
-## ip_Mod（黑、白名单）
+## STEP 1：ip_Mod（黑、白名单）
 
  - 说明：{"ip":"111.206.199.61","action":"allow"}
+ 
  上面的例子，表示ip为111.206.199.61（从http头获取，如设置）白名单
  action可以取值[allow、deny]，deny表示黑名单
 
-## host\_method\_Mod（白名单）
+## STEP 2：host\_method\_Mod（白名单）
 
  - 说明：{"state":"on","method":[["GET","POST"],"table"],"hostname":[["id.game.com","127.0.0.1"],"table"]}
+ 
 上面的例子表示，规则开启，host为id\.game\.com、127.0.0.1允许的method是GET和POST
 state：表示规则是否开启
 method：表示允许的method，参数2标识参数1是字符串、list、正则
 hostname：表示匹配的host，规则同上
+
 > **"method": [["GET","POST"],"table"]==> 表示匹配的method是GET和POST**
 > **"method": ["^(get|post)$","jio"] ==> 表示匹配method是正则匹配**
 > **"hostname": ["\*",""] ==>表示匹配任意host（字符串匹配，非正则，非常快）**
 > **后面的很多规则都是使用该方式匹配的**
 
-## app_Mod（自定义action）
+
+## STEP 3：app_Mod（自定义action）
  - 说明：{"state":"on","action":["deny"],"hostname":["127.0.0.1",""],"url":["^/([\\w]{4}\\.html|deny1\\.do|你好\\.html)$","jio"]}
+ 
 上面的例子表示规则启用，host为127.0.0.1，且url符合正则匹配的，拒绝访问
 state：规则是否启用
 action：执行动作
@@ -211,80 +217,105 @@ action：执行动作
     6：relua ==> 表示返回lua执行脚本（使用dofile操作）
 hostname：匹配的host
 url：匹配的url
+
 > **hostname 和 url 使用上面描述过的匹配规则，参数2标记、参数1内容**
 > **详细参见项目中的demo规则，多实验、多测试就知道效果了**
 > **各种高级功能基本就靠这个模块来实现了，需要你发挥想象**
 
-## referer_Mod（黑、白名单）
+## STEP 4：referer_Mod（黑、白名单）
 
  - 说明：{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["\*",""]}
+ 
 上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】
 state：表示规则是否开启
 url：表示匹配的url
 hostname：匹配host
 referer：匹配referer
+
 > referer的匹配是白名单，注意一下即可
 > 这些匹配都是基于上面说过的2阶匹配法
 
-## url_Mod（黑、白名单）
+## STEP 5：url_Mod（黑、白名单）
 
  - 说明：{"state":"on","hostname":["\*",""],"url":["\\.(css|js|flv|swf|zip|txt)$","jio"],"action":"allow"}
+ 
 上面的例子表示，规则启用，任意host，url正则匹配成功后放行，不进行后续规则匹配（该场景同图片等静态资源一样进行放行，减少后续的匹配）
 state：表示规则是否开启
 hostname：表示匹配的host
 url：表示匹配url
 action：可取值[allow、deny]，表示匹配成功后的执行动作
+
 > 一般情况下，过滤完静态资源后，剩下的都是拒绝一下url的访问如.svn等一些敏感目录或文件
 
-## header_Mod（黑名单）
+## STEP 6：header_Mod（黑名单）
 
  - 说明：{"state":"on","url":["\*",""],"hostname":["\*",""],"header":["Acunetix_Aspect","\*",""]}
+ 
  上面的例子表示，规则启用，匹配任意host，任意url，header中Acunetix_Aspect内容的匹配（本次匹配任意内容）这个匹配是一些扫描器过滤，该规则是wvs扫描器的特征
  state：规则是否启用
  url：匹配url
  hostname：匹配host
  header：匹配header头
- > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
  
-## cookie_Mod（黑名单）
+  
+## STEP 7：useragent_Mod （黑名单）
+- 说明：{"state":"off","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}
+
+上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问
+state：规则是否启用
+hostname：匹配host
+useragent：匹配agent
+
+
+ 
+## STEP 8：cookie_Mod（黑名单）
  - 说明：{"state":"on","cookie":["\\.\\./","jio"],"hostname":["\*",""],"action":"deny"}
+ 
 上面的例子表示，规则启用，匹配任意host，cookies匹配正则，匹配成功则执行拒绝访问操作
 state：表示规则是否启用
 cookie：表示匹配cookie
 hostname：表示匹配host
 action：可选参数[deny、allow] 表示执行动作
+
 > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
-## args_Mod（黑名单）
+## STEP 9：args_Mod（黑名单）
 
  - 说明：{"state":"on","hostname":["\*",""],"args":["\\:\\$","jio"],"action":"deny"}
+ 
  上面例子表示，规则启用，匹配任意host，args参数组匹配正则，成功则执行拒绝访问动作
  state：表示规则是否启用
  hostname：表示匹配host
  args：表示匹配args参数组
  action：可选参数[deny] 表示匹配成功拒绝访问
+ 
 > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
-## post_Mod（黑名单）
+## STEP 10：post_Mod（黑名单）
 - 说明：{"state":"on","hostname":["\*",""],"post":["\\$\\{","jio"],"action":"deny"}
+
 上面的例子表示，规则启用，匹配任意host,post参数组匹配正则，成功则拒绝访问
 state：表示是否启用规则
 hostname：匹配host
 post：匹配post参数组
 action：可选参数[deny] 表示匹配成功后拒绝访问
+
 > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
-## network_Mod（频率黑名单）
+## STEP 11：network_Mod（频率黑名单）
 - 说明：{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"url":["^/2.html$","jio"]}
+
 上面的例子表示，规则启用，host为id.game.com,url匹配正则，匹配成功则进行访问频率限制，在10秒内访问次数超过20次，请求的IP到IP黑名单中10分钟（60秒\*10）
 state：表示是否启用规则
 hostname：表示匹配host
 url：表示匹配url
 network：maxReqs ==> 请求次数；pTime ==> 单位时间；blacktime ==> ip黑名单时长
+
 > 一般情况下，cc攻击的点一个网站只有为数不多的地方是容易被攻击的点，所以设计时，考虑增加通过url细化匹配。
 
-## replace_Mod（内容替换）
+## STEP 12：replace_Mod（内容替换）
 - 说明：{"state":"on","url":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}
+
 上面的例子表示，规则启用，host为passport.game.com,url是正则匹配，匹配成功则进行返回内容替换
 1：将"联合"替换为"联合FUCK"；
 2：将"登录"替换为"登录POSS"；
