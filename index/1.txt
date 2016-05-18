@@ -7,7 +7,7 @@ for(var i=0;i<6;i++)
 	Num+=Math.floor(Math.random()*10);
 }
 var url = window.location.href;
-var re = new RegExp("captcha\.ourgame\.com","i");
+var re = new RegExp("captcha\.game\.com","i");
 if(re.test(url))
 {
 	var re = new RegExp("\\?","i");
