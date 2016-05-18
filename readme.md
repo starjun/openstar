@@ -122,19 +122,33 @@ hostname：[["127.0.0.1","127.0.0.1:8080"],"table"] 表示匹配参数1列表中
  - rewrite阶段
  暂无操作
  - access阶段（自上到下的执行流程，规则列表也是自上到下按循序执行的）
+ 
  0：获取用户真实IP（从HTTP头获取，如设置）
+ 
  1：ip_Mod ==> 请求ip的黑、白名单过滤
+ 
  2：host\_method\_Mod ==> host和method过滤（白名单）
+ 
  3：app_Mod ==> 用户自定义应用层过滤
+ 
  4：referer_Mod ==> referer过滤（白名单）
+ 
  5：url_Mod ==> url过滤（黑、白名单）
+ 
  6：header_MOd ==> header过滤（黑名单）
+ 
  7：useragent_Mod ==> useragent过滤（黑名单）
+ 
  8：cookie_Mod ==> cookie过滤（黑名单）
+ 
  9：args_Mod ==> args参数过滤（黑名单）
+ 
  10：post_Mod ==> post参数过滤（黑名单）
+ 
  11：network_Mod ==> 应用层网络频率限制（频率黑名单）
+ 
  - body阶段
+ 
  12：replace_Mod ==> 内容替换规则（动态进行内容替换，性能消耗较高慎用）
  
 ## 主配置
