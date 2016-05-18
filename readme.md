@@ -98,6 +98,8 @@ git clone
  这里不做过多重复描述，直接看链接[OpenResty][2]
  - 配置nginx.conf
  在http节点，引用waf.conf。注：原ngx相关配置基本不用修改，该优化优化、该做CPU亲缘绑定继续、该动静分离还继续、该IO、TIME等优化继续不要停。
+ - 配置waf.conf
+ 修改lua_package_path，使用正确的路径即可
  - 设置目录权限
  OpenStar目录建议放到OR下，方便操作，该目录ngx运行用户有读写执行权限即可。因为要写日志，暂时没有用ngx.log，后续可能会改动。
  - lua文件修改
