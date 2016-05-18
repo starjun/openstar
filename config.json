@@ -1,0 +1,44 @@
+
+{
+
+	"redis_Mod" : {"state":"off","ip":"127.0.0.1","Port" : 6379,"Password":"yesorno@123"},
+
+	"realIpFrom_Mod" : "on",
+
+	"ip_Mod" : "on",
+
+	"host_method_Mod" : "on",
+
+	"app_Mod" : "on",
+	
+	"referer_Mod" : "on",
+
+	"url_Mod" : "on",
+
+	"header_Mod" : "on",	
+
+	"agent_Mod" : "on",		
+
+	"cookie_Mod" : "on",
+
+	"args_Mod" : "on",
+
+	"post_Mod" : "on",	
+
+	"network_Mod" : "on",
+
+	"replace_Mod" : "on",
+
+	"debug_Mod" : true,
+
+	"baseDir" : "/opt/openresty/openstar/",
+
+	"logPath" : "/opt/openresty/openstar/logs/",
+
+	"jsonPath" : "/opt/openresty/openstar/conf_json/",
+
+	"htmlPath" : "/opt/openresty/openstar/index/",
+
+	"sayHtml" : "<html>request error!</html>"
+
+}

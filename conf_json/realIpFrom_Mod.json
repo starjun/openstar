@@ -1,0 +1,19 @@
+{
+    "id.game.com": {
+        "ips": [
+            "111.206.199.57"
+        ],
+        "realipset": "CDN-R-IP"
+    },
+    "101.200.122.200": {
+        "ips": [
+            "111.206.199.62",
+            "114.111.166.64"
+        ],
+        "realipset": "x-for-f"
+    },
+    "game.game.com": {
+        "ips": "",
+        "realipset": "x-forword-for"
+    }
+}

@@ -1,0 +1,41 @@
+<html>
+<head>
+<script>
+var Num="",re;
+for(var i=0;i<6;i++)
+{
+	Num+=Math.floor(Math.random()*10);
+}
+var url = window.location.href;
+var re = new RegExp("captcha\.ourgame\.com","i");
+if(re.test(url))
+{
+	var re = new RegExp("\\?","i");
+	var url = window.location.href;
+	if(re.test(url)){
+	window.location.href=url+"&bb="+@token@;
+	}
+	else
+	{
+	window.location.href=url+"?&bb="+Num;
+	}
+}
+else
+{
+	var re = new RegExp("\\?","i");
+	var url = window.location.href;
+	if(re.test(url)){
+	window.location.href=url+"&cc="+Num;
+	}
+	else
+	{
+	#window.location.href=url+"?&cc="+Num;
+	\d \d dddd
+	}
+}
+
+</script>
+</head>
+<h1>you</h1>
+</html>
+

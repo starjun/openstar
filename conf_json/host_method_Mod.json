@@ -1,0 +1,20 @@
+[
+
+    {
+        "state": "on",
+        "method": [["GET","POST"],"table"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"table"]
+
+    },
+    {
+        "state": "on",
+        "method": ["^(get|post)$","jio"],
+        "hostname": ["pass.game.com",""]
+
+    },
+    {
+        "state": "off",
+        "method": ["GET",""],
+        "hostname": ["*",""]
+    }
+]

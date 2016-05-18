@@ -1,0 +1,33 @@
+
+[
+    {
+        "state": "on",
+        "url": [
+            "^/abc.do$",
+            "jio"
+        ],
+        "hostname": [
+            "pass.game.com",
+            ""
+        ],
+        "referer": [
+            "^.*/(www\\.hao123\\.com|www3\\.hao123\\.com)$",
+            "jio"
+        ]
+    },
+    {
+        "state": "on",
+        "url": [
+            "\\.(gif|jpg|png|jpeg|bmp|ico)$",
+            "jio"
+        ],
+        "hostname": [
+            "101.200.122.200",
+            ""
+        ],
+        "referer": [
+            "*",
+            ""
+        ]
+    }
+]
