@@ -157,7 +157,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 
 config.json文件进行配置，主要是一些参数开关、目录设置
 注：以下表示法，"on"表示开启，"off"表示关闭。未来增加"log"表示仅记录日志
- - redis_Mod
+- redis_Mod
 该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
 说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
 - realIpFrom_Mod 
