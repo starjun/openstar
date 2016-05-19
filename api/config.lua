@@ -6,30 +6,15 @@ local function get_argByName(name)
     return _name
 end
 
-local _type = get_argByName("type")
+local _action = get_argByName("action")
 local _name = get_argByName("name")
-
+local config_dict = ngx.shared.config_dict
+local baseDir = config_dict:get("baseDir")
 local filepath = baseDir.."conf_json/"
 
 
-if _type == "dict" then
 
-	local _dict = ngx.shared[_name]
-	--sayHtml_ext({dict=type(_dict),name=_name,type=_type,file=_file})
-	if _dict ~= nil then
-		local _tb,tb_all = _dict:get_keys(0),{}
-		for i,v in ipairs(_tb) do
-			tb_all[v] = _dict:get(v)
-		end
-		local _msg = tableTojson(tb_all)
-		writefile(filepath.._name.."bak.json",_msg,"w+")
-		sayHtml_ext(_msg)
-	else
-		sayHtml_ext({dict=_dict})
-	end
-
-elseif _type == "table" then
-
+if _action == "save" then
 	local _tb = _G[_name]
 	if type(_tb) == "table" then
 		local _msg = tableTojson(_tb)
@@ -41,8 +26,12 @@ elseif _type == "table" then
 	else
 		sayHtml_ext({})
 	end
+elseif _action =="load" then
+
+	loadConfig()
 
 else
-	sayHtml_ext("type is null")
+    sayHtml_ext({action="error"})
 end
+
 

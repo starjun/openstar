@@ -6,7 +6,7 @@ grammar_cjkRuby: true
 ---
 
 
-欢迎使用 **{OpenStar}(WAF+)**，该项目是从实际需求中产生，用于解决当时实际出现的问题，经过多次的版本迭代到今天，非常不容易。感谢**春哥**，该项目是解决工作的实际问题一点一滴积累的经验，(==多多指导==) 特别感谢[春哥][1]为我们做好的一件神器（**OpenResty**）
+欢迎使用 **{OpenStar}(WAF+)**，该项目是从实际需求中产生，用于解决当时实际出现的问题，经过多次的版本迭代到今天，非常不容易。感谢**春哥**，该项目是解决工作的实际问题一点一滴积累的经验，(==多多指导==) 特别感谢[春哥][1]为我们做好的一件神器（**[OpenResty][2]**）
 
 # 概览
 
@@ -21,11 +21,11 @@ grammar_cjkRuby: true
 ----------
 
 
-在**OpenStar**中的WAF防护模块，采用传统的黑白名单、正则过滤的方式（*有人人会问现在不是流行自主学习，正则、黑白名单会有盲点、会被绕过......*）。这里我简单说明一下，自主分析学习引擎是我们的日志分析引擎做的，这里是高性能、高并发的点，就用简单粗暴的方法解决，根据业务实际调整好防护策略，可以解决绝大多数WEB安全1.0和WEB安全2.0类型的漏洞（90%+的问题）。
+在**OpenStar**中的WAF防护模块，采用传统的黑白名单、正则过滤的方式（*有人会问现在不是流行自主学习么；正则、黑白名单会有盲点、会被绕过......*）。这里我简单说明一下，自主分析学习引擎是我们的日志分析引擎做的，这里是高性能、高并发的点，就用简单粗暴的方法解决，根据业务实际调整好防护策略，可以解决绝大多数WEB安全1.0和WEB安全2.0类型的漏洞（90%+的问题）。
 WAF	防护从header,args,post,访问频率等层面分层进行防护，详细在后面的功能会详细说明
 
  - **WEB安全1.0**
-   在1.0时代下，攻击是通过服务器漏洞（IIS6溢出等）、WEB应用漏洞（SQL注入、文件上传、命令执行、文件包含等）属于服务器类的攻击，该类型漏洞虽然经历了这么多年，很遗憾，此类漏洞还是存在，并且重复犯错。
+   在1.0时代下，攻击是通过服务器漏洞（IIS6溢出等）、WEB应用漏洞（SQL注入、文件上传、命令执行、文件包含等）属于服务器类的攻击，该类型漏洞虽然经历了这么多年，很遗憾，此类漏洞还是存在，并且重复在犯相同的错误。
 
  - **WEB安全2.0**
    随着社交网络的兴起，原来不被重视的XSS、CSRF等漏洞逐渐进入人们的视野，那么在2.0时代，漏洞利用的思想将更重要，发挥你的想象，可以有太多可能。
@@ -110,20 +110,22 @@ git clone
 ## 配置规则
 
 一般情况下匹配某一规则由2个参数组成，第二个参数标识第一个参数类型
-hostname：["\*",""] 表示匹配所有域名（使用字符串匹配，非正则，非常快）
-hostname：["\*\\.game\\.com","jio"] 表示使用正则匹配host（**ngx.re.find($host,参数1，参数2)**）
-hostname：[["127.0.0.1","127.0.0.1:8080"],"table"] 表示匹配参数1列表中所有host
+hostname：`["\*",""]` 表示匹配所有域名（使用字符串匹配，非正则，非常快）
+hostname：`["\*\\.game\\.com","jio"]` 表示使用正则匹配host（**ngx.re.find($host,参数1，参数2)**）
+hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列表中所有host
 
 ## 执行流程
 
  - init阶段
- a：首先加载本地的config.json配置文件，将相关配置读取到dict和全局table中。
+ 
+ a：首先加载本地的config.json配置文件，将相关配置读取到dict和全局table中
+ 
  b：定义全局函数，记录日志记录、token生成等。
  - rewrite阶段
  暂无操作
  - access阶段（自上到下的执行流程，规则列表也是自上到下按循序执行的）
  
- 0：获取用户真实IP（从HTTP头获取，如设置）
+ 0：realIpFrom_Mod ==> 获取用户真实IP（从HTTP头获取，如设置）
  
  1：ip_Mod ==> 请求ip的黑、白名单过滤
  
@@ -162,18 +164,18 @@ config.json文件进行配置，主要是一些参数开关、目录设置
  该参数是否开启从http头中取用户真实IP，适用于CDN后端等
  - ip_Mod
  该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
- - app_Mod
- 该参数是否启用用户自定义应用层规则
- - host\_method\_Mod
+ - host_method_Mod
  该参数是否启用HOST、METHOD白名单
- - header_Mod
- 该参数是否启用HEADER头过滤黑名单
+  - app_Mod
+ 该参数是否启用用户自定义应用层规则
  - referer_Mod
  该参数是否启用REFERER过滤白名单
+  - url_Mod
+ 该参数是否启用URL过滤黑、白名单
+  - header_Mod
+ 该参数是否启用HEADER头过滤黑名单
  - agent_Mod
  该参数是否启用USERAGENT过滤黑名单
- - url_Mod
- 该参数是否启用URL过滤黑、白名单
  - cookie_Mod
  该参数是否启用COOKIE过滤黑名单
  - args_Mod
@@ -197,37 +199,37 @@ config.json文件进行配置，主要是一些参数开关、目录设置
 
 ## STEP 0：realIpFrom_Mod
 
- - 说明：{"id.game.com":{"ips":["111.206.199.57"],"realipset":"CDN-R-IP"}}
+ - 说明：`{"id.game.com":{"ips":["111.206.199.57"],"realipset":"CDN-R-IP"}}`
  
  通过上面的例子，表示域名id.game.com,从ips来的直连ip，用户真实ip在CDN-R-IP中，ips是list，可以写多个，后续会增加使用正则或者ip段来匹配。（因为当时场景中ip没有多少，所有就用了list，）可以参考例子进行设置。
 
 ## STEP 1：ip_Mod（黑、白名单）
 
- - 说明：{"ip":"111.206.199.61","action":"allow"}
+ - 说明：`{"ip":"111.206.199.61","action":"allow"}`
  
  上面的例子，表示ip为111.206.199.61（从http头获取，如设置）白名单
  action可以取值[allow、deny]，deny表示黑名单
 
 ## STEP 2：host\_method\_Mod（白名单）
 
- - 说明：{"state":"on","method":[["GET","POST"],"table"],"hostname":[["id.game.com","127.0.0.1"],"table"]}
+ - 说明：`{"state":"on","method":[["GET","POST"],"table"],"hostname":[["id.game.com","127.0.0.1"],"table"]}`
  
 上面的例子表示，规则开启，host为id\.game\.com、127.0.0.1允许的method是GET和POST
 state：表示规则是否开启
 method：表示允许的method，参数2标识参数1是字符串、list、正则
 hostname：表示匹配的host，规则同上
 
-> **"method": [["GET","POST"],"table"]==> 表示匹配的method是GET和POST**
+> **`"method": [["GET","POST"],"table"]`==> 表示匹配的method是GET和POST**
 
-> **"method": ["^(get|post)$","jio"] ==> 表示匹配method是正则匹配**
+> **`"method": ["^(get|post)$","jio"]` ==> 表示匹配method是正则匹配**
 
-> **"hostname": ["\*",""] ==>表示匹配任意host（字符串匹配，非正则，非常快）**
+> **`"hostname": ["\*",""]` ==>表示匹配任意host（字符串匹配，非正则，非常快）**
 
 > **后面的很多规则都是使用该方式匹配的**
 
 
 ## STEP 3：app_Mod（自定义action）
- - 说明：{"state":"on","action":["deny"],"hostname":["127.0.0.1",""],"url":["^/([\\w]{4}\\.html|deny1\\.do|你好\\.html)$","jio"]}
+ - 说明：`{"state":"on","action":["deny"],"hostname":["127.0.0.1",""],"url":["^/([\\w]{4}\\.html|deny1\\.do|你好\\.html)$","jio"]}`
  
 上面的例子表示规则启用，host为127.0.0.1，且url符合正则匹配的，拒绝访问
 state：规则是否启用
@@ -249,7 +251,7 @@ url：匹配的url
 
 ## STEP 4：referer_Mod（黑、白名单）
 
- - 说明：{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["\*",""]}
+ - 说明：`{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["\*",""]}`
  
 上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】
 state：表示规则是否开启
@@ -263,7 +265,7 @@ referer：匹配referer
 
 ## STEP 5：url_Mod（黑、白名单）
 
- - 说明：{"state":"on","hostname":["\*",""],"url":["\\.(css|js|flv|swf|zip|txt)$","jio"],"action":"allow"}
+ - 说明：`{"state":"on","hostname":["\*",""],"url":["\\.(css|js|flv|swf|zip|txt)$","jio"],"action":"allow"}`
  
 上面的例子表示，规则启用，任意host，url正则匹配成功后放行，不进行后续规则匹配（该场景同图片等静态资源一样进行放行，减少后续的匹配）
 state：表示规则是否开启
@@ -275,7 +277,7 @@ action：可取值[allow、deny]，表示匹配成功后的执行动作
 
 ## STEP 6：header_Mod（黑名单）
 
- - 说明：{"state":"on","url":["\*",""],"hostname":["\*",""],"header":["Acunetix_Aspect","\*",""]}
+ - 说明：`{"state":"on","url":["\*",""],"hostname":["\*",""],"header":["Acunetix_Aspect","\*",""]}`
  
  上面的例子表示，规则启用，匹配任意host，任意url，header中Acunetix_Aspect内容的匹配（本次匹配任意内容）这个匹配是一些扫描器过滤，该规则是wvs扫描器的特征
  state：规则是否启用
@@ -285,7 +287,7 @@ action：可取值[allow、deny]，表示匹配成功后的执行动作
  
   
 ## STEP 7：useragent_Mod （黑名单）
-- 说明：{"state":"off","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}
+- 说明：`{"state":"off","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
 
 上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问
 state：规则是否启用
@@ -295,7 +297,7 @@ useragent：匹配agent
 
  
 ## STEP 8：cookie_Mod（黑名单）
- - 说明：{"state":"on","cookie":["\\.\\./","jio"],"hostname":["\*",""],"action":"deny"}
+ - 说明：`{"state":"on","cookie":["\\.\\./","jio"],"hostname":["\*",""],"action":"deny"}`
  
 上面的例子表示，规则启用，匹配任意host，cookies匹配正则，匹配成功则执行拒绝访问操作
 state：表示规则是否启用
@@ -307,7 +309,7 @@ action：可选参数[deny、allow] 表示执行动作
 
 ## STEP 9：args_Mod（黑名单）
 
- - 说明：{"state":"on","hostname":["\*",""],"args":["\\:\\$","jio"],"action":"deny"}
+ - 说明：`{"state":"on","hostname":["\*",""],"args":["\\:\\$","jio"],"action":"deny"}`
  
  上面例子表示，规则启用，匹配任意host，args参数组匹配正则，成功则执行拒绝访问动作
  state：表示规则是否启用
@@ -318,7 +320,7 @@ action：可选参数[deny、allow] 表示执行动作
 > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 10：post_Mod（黑名单）
-- 说明：{"state":"on","hostname":["\*",""],"post":["\\$\\{","jio"],"action":"deny"}
+- 说明：`{"state":"on","hostname":["\*",""],"post":["\\$\\{","jio"],"action":"deny"}`
 
 上面的例子表示，规则启用，匹配任意host,post参数组匹配正则，成功则拒绝访问
 state：表示是否启用规则
@@ -329,7 +331,7 @@ action：可选参数[deny] 表示匹配成功后拒绝访问
 > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 11：network_Mod（频率黑名单）
-- 说明：{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"url":["^/2.html$","jio"]}
+- 说明：`{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"url":["^/2.html$","jio"]}`
 
 上面的例子表示，规则启用，host为id.game.com,url匹配正则，匹配成功则进行访问频率限制，在10秒内访问次数超过20次，请求的IP到IP黑名单中10分钟（60秒\*10）
 state：表示是否启用规则
@@ -340,12 +342,12 @@ network：maxReqs ==> 请求次数；pTime ==> 单位时间；blacktime ==> ip�
 > 一般情况下，cc攻击的点一个网站只有为数不多的地方是容易被攻击的点，所以设计时，考虑增加通过url细化匹配。
 
 ## STEP 12：replace_Mod（内容替换）
-- 说明：{"state":"on","url":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}
+- 说明：`{"state":"on","url":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}`
 
 上面的例子表示，规则启用，host为passport.game.com,url是正则匹配，匹配成功则进行返回内容替换
 1：将"联合"替换为"联合FUCK"；
 2：将"登录"替换为"登录POSS"；
-3：通过正则进行匹配（ngx.re.sub）其中@token@表示动态替换为服务器生成的一个唯一随机字符串
+3：通过正则进行匹配（`ngx.re.sub`）其中@token@表示动态替换为服务器生成的一个唯一随机字符串
 state：表示是否启用规则
 hostname：表示匹配的host
 url：表示匹配的url
@@ -353,8 +355,63 @@ replace_list：表示替换列表，参数1 ==> 被替换内容；参数2 ==> �
 
 # API相关
 
->|占位符   
+ - debug.lua
+ 
+对GET/POST进行原样返回，以及一些扩展信息，有时方便我测试使用。
 
+- ip_dict.lua
+api接口对dict进行操作的封装。可操作的dict（count_dict、config_dict、ip_dict、limit_ip_dict）
+**谨慎操作，未做严格校验**
+
+add ：**仅对ip_dict有效**，增加IP黑、白名单的。
+`http://*/api/ip_dict?action=add&dict=ip_dict&key=192.168.2.5&value=allow[deny]&time=60`
+value默认拒绝，time默认永久，上述就是向ngx.share.ip_dict增加信息，把该ip增加到白名单，时长是60秒
+
+del：表示删除操作
+`http://*/api/ip_dict?action=del&dict=ip_dict&key=192.168.2.56`
+key=all_key时，表示删除所有，其余情况删除指定key
+set：**仅对ip_dict有效**、表示修改ip黑白名单。
+`http://*/api/ip_dict?aciton=set&dict=ip_dict&key=192.168.2.56&value=deny`
+value默认就是deny。
+
+get：表示查询内容
+`http://*/api/ip_dict?action=get&dict=ip_dict&key=192.168.2.58`
+key=count_key时，表示查询该dict中key的总个数；key=all_key时，表示显示所有key和value（谨慎使用）；key=无参数，表示查询1024个key和value；key=$其他值时，表示仅查询该key的值。
+
+>关于返回信息，大家自行测试、看代码吧。
+
+- redis.lua
+
+api接口对redis进行相关操作
+
+set：表示将传递的数据存放到redis上
+`http://*/api/redis?action=set&key=aaa&value=it is a string`
+上面的操作就是将key(aaa)存放到redis上，值是"it is a string"（redis就是config.json中配置的）
+
+get：表示通过key查询redis中的值
+`http://*/api/redis?action=get&key=aaa`
+key=config_dict/count_dict时，返回的value进行json转换后显示。（redis作用就是保存这2个dict）
+
+sava：表示将config_dict或者count_dict存放到redis上
+`http://*/api/redis?action=save&key=config_dict`
+上面的操作就是将config_dict转成json字符串后存放到redis,key=count_dict表示把count_dict保存到redis。（覆盖保存，这里的count_dict计数的汇总，我们这边是python做的，这些接口都是我们的python程序调用使用的）
+
+- config.lua
+api接口对全局table（mod规则）进行保存到本地json文件中
+`http://*/api/config?action=save&name=app_Mod`
+上面的操作表示将app_Mod（全局table）规则保存到conf_json文件夹下，当前我在文件后增加了bak标记，还没有直接覆盖，原来的规则json文件（我在测试后会修改下的）。
+
+`http://*/api/config?action=load`
+上面的操作表示，重新载入所有规则文件
+
+- table.lua
+>占位符
+
+- test.lua
+>占位符
+
+- token.lua
+>占位符
 
 # 测试
 - 我在微软的Azure上，整了一些服务器进行性能上的测试。还在整理敬请期待......
