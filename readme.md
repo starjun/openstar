@@ -158,43 +158,43 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 config.json文件进行配置，主要是一些参数开关、目录设置
 注：以下表示法，"on"表示开启，"off"表示关闭。未来增加"log"表示仅记录日志
  - redis_Mod
- 该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
- 说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
- - realIpFrom_Mod 
- 该参数是否开启从http头中取用户真实IP，适用于CDN后端等
- - ip_Mod
- 该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
- - host_method_Mod 
+该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
+说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
+- realIpFrom_Mod 
+该参数是否开启从http头中取用户真实IP，适用于CDN后端等
+- ip_Mod
+该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
+- host_method_Mod 
 该参数是否启用HOST、METHOD白名单
-  - app_Mod 
- 该参数是否启用用户自定义应用层规则
- - referer_Mod 
+- app_Mod 
+该参数是否启用用户自定义应用层规则
+- referer_Mod 
 该参数是否启用REFERER过滤白名单
- - url_Mod 
+- url_Mod 
 该参数是否启用URL过滤黑、白名单
-  - header_Mod 
+- header_Mod 
 该参数是否启用HEADER头过滤黑名单
- - agent_Mod 
+- agent_Mod 
 该参数是否启用USERAGENT过滤黑名单
- - cookie_Mod 
+- cookie_Mod 
 该参数是否启用COOKIE过滤黑名单
- - args_Mod 
+- args_Mod 
 该参数是否启用ARGS过滤黑名单
- - post_Mod 
+- post_Mod 
 该参数是否启用POST过滤黑名单
- - network_Mod 
+- network_Mod 
 该参数是否启用NETWORK过滤频率黑名单规则
- - replace_Mod 
+- replace_Mod 
 该参数是否启用body内容替换规则
- - debug_Mod 
+- debug_Mod 
 该参数是否启用日志打印（true表示启用）
- - baseDir 
+- baseDir 
 该参数表示设置软件根路径（绝对路径）
- - logPath 
+- logPath 
 该参数表示配置log文件存放目录
- - jsonPath 
+- jsonPath 
 该参数表示过滤规则存放目录
- - htmlPath 
+- htmlPath 
 该参数表示在app_Mod规则中一些文件、脚本存放路径
 
 ## STEP 0：realIpFrom_Mod
