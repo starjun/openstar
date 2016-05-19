@@ -232,14 +232,15 @@ hostname：表示匹配的host，规则同上
  - 说明：`{"state":"on","action":["deny"],"hostname":["127.0.0.1",""],"url":["^/([\\w]{4}\\.html|deny1\\.do|你好\\.html)$","jio"]}`
  
 上面的例子表示规则启用，host为127.0.0.1，且url符合正则匹配的，拒绝访问
+
 state：规则是否启用
 action：执行动作
-    1：deny ==> 拒绝访问
-    2：allow ==> 允许访问
-    3：log ==> 仅记录日志
-    4：rehtnl ==> 表示返回自定义字符串
-    5：refile ==> 表示返回自定义文件（文件内容返回）
-    6：relua ==> 表示返回lua执行脚本（使用dofile操作）
+1：deny ==> 拒绝访问
+2：allow ==> 允许访问
+3：log ==> 仅记录日志
+4：rehtnl ==> 表示返回自定义字符串
+5：refile ==> 表示返回自定义文件（文件内容返回）
+6：relua ==> 表示返回lua执行脚本（使用dofile操作）
 hostname：匹配的host
 url：匹配的url
 
@@ -260,7 +261,6 @@ hostname：匹配host
 referer：匹配referer
 
 > referer的匹配是白名单，注意一下即可
-
 > 这些匹配都是基于上面说过的2阶匹配法
 
 ## STEP 5：url_Mod（黑、白名单）
