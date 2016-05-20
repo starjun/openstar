@@ -32,6 +32,15 @@
             "*",
             ""
         ],
+        "args": ["'*.*(and|or).+=.+","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": [
+            "*",
+            ""
+        ],
         "post": ["select.+(from|limit)","jio"],
         "action": "deny"
     },
