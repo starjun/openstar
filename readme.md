@@ -91,7 +91,8 @@ url添加的尾巴是服务器动态生成的token，而不是使用静态的正
 # 目录
 后续更新！~
 # 下载
-wget 
+wget
+
 git clone 
 # 安装
  - 安装OpenResty
@@ -137,7 +138,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  
  5：url_Mod ==> url过滤（黑、白名单）
  
- 6：header_MOd ==> header过滤（黑名单）
+ 6：header_Mod ==> header过滤（黑名单）
  
  7：useragent_Mod ==> useragent过滤（黑名单）
  
@@ -155,47 +156,47 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  
 ## 主配置
 
-config.json文件进行配置，主要是一些参数开关、目录设置
-注：以下表示法，"on"表示开启，"off"表示关闭。未来增加"log"表示仅记录日志
-- redis_Mod
-该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
-说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
-- realIpFrom_Mod 
-该参数是否开启从http头中取用户真实IP，适用于CDN后端等
-- ip_Mod
-该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
-- host_method_Mod 
-该参数是否启用HOST、METHOD白名单
-- app_Mod 
-该参数是否启用用户自定义应用层规则
-- referer_Mod 
-该参数是否启用REFERER过滤白名单
-- url_Mod 
-该参数是否启用URL过滤黑、白名单
-- header_Mod 
-该参数是否启用HEADER头过滤黑名单
-- agent_Mod 
-该参数是否启用USERAGENT过滤黑名单
-- cookie_Mod 
-该参数是否启用COOKIE过滤黑名单
-- args_Mod 
-该参数是否启用ARGS过滤黑名单
-- post_Mod 
-该参数是否启用POST过滤黑名单
-- network_Mod 
-该参数是否启用NETWORK过滤频率黑名单规则
-- replace_Mod 
-该参数是否启用body内容替换规则
-- debug_Mod 
-该参数是否启用日志打印（true表示启用）
-- baseDir 
-该参数表示设置软件根路径（绝对路径）
-- logPath 
-该参数表示配置log文件存放目录
-- jsonPath 
-该参数表示过滤规则存放目录
-- htmlPath 
-该参数表示在app_Mod规则中一些文件、脚本存放路径
+  config.json文件进行配置，主要是一些参数开关、目录设置
+  注：以下表示法，"on"表示开启，"off"表示关闭。未来增加"log"表示仅记录日志
+  + redis_Mod
+  该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
+  说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
+  + realIpFrom_Mod 
+  该参数是否开启从http头中取用户真实IP，适用于CDN后端等
+  + ip_Mod
+  该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
+  + host_method_Mod 
+  该参数是否启用HOST、METHOD白名单
+  + app_Mod 
+  该参数是否启用用户自定义应用层规则
+  + referer_Mod 
+  该参数是否启用REFERER过滤白名单
+  + url_Mod 
+  该参数是否启用URL过滤黑、白名单
+  + header_Mod 
+  该参数是否启用HEADER头过滤黑名单
+  + agent_Mod 
+  该参数是否启用USERAGENT过滤黑名单
+  + cookie_Mod 
+  该参数是否启用COOKIE过滤黑名单
+  + args_Mod 
+  该参数是否启用ARGS过滤黑名单
+  + post_Mod 
+  该参数是否启用POST过滤黑名单
+  + network_Mod 
+  该参数是否启用NETWORK过滤频率黑名单规则
+  + replace_Mod 
+  该参数是否启用body内容替换规则
+  + debug_Mod 
+  该参数是否启用日志打印（true表示启用）
+  + baseDir 
+  该参数表示设置软件根路径（绝对路径）
+  + logPath 
+  该参数表示配置log文件存放目录
+  + jsonPath 
+  该参数表示过滤规则存放目录
+  + htmlPath 
+  该参数表示在app_Mod规则中一些文件、脚本存放路径
 
 ## STEP 0：realIpFrom_Mod
 
@@ -213,67 +214,67 @@ config.json文件进行配置，主要是一些参数开关、目录设置
 ## STEP 2：host\_method\_Mod（白名单）
 
  - 说明：`{"state":"on","method":[["GET","POST"],"table"],"hostname":[["id.game.com","127.0.0.1"],"table"]}`
- 
-上面的例子表示，规则开启，host为id\.game\.com、127.0.0.1允许的method是GET和POST
-state：表示规则是否开启
-method：表示允许的method，参数2标识参数1是字符串、list、正则
-hostname：表示匹配的host，规则同上
+   
+  上面的例子表示，规则开启，host为id\.game\.com、127.0.0.1允许的method是GET和POST
+  state：表示规则是否开启
+  method：表示允许的method，参数2标识参数1是字符串、list、正则
+  hostname：表示匹配的host，规则同上
 
-> **`"method": [["GET","POST"],"table"]`==> 表示匹配的method是GET和POST**
+  > **`"method": [["GET","POST"],"table"]`==> 表示匹配的method是GET和POST**
 
-> **`"method": ["^(get|post)$","jio"]` ==> 表示匹配method是正则匹配**
+  > **`"method": ["^(get|post)$","jio"]` ==> 表示匹配method是正则匹配**
 
-> **`"hostname": ["\*",""]` ==>表示匹配任意host（字符串匹配，非正则，非常快）**
+  > **`"hostname": ["\*",""]` ==>表示匹配任意host（字符串匹配，非正则，非常快）**
 
-> **后面的很多规则都是使用该方式匹配的**
+  > **后面的很多规则都是使用该方式匹配的**
 
 
 ## STEP 3：app_Mod（自定义action）
  - 说明：`{"state":"on","action":["deny"],"hostname":["127.0.0.1",""],"url":["^/([\\w]{4}\\.html|deny1\\.do|你好\\.html)$","jio"]}`
- 
-上面的例子表示规则启用，host为127.0.0.1，且url符合正则匹配的，拒绝访问
+   
+  上面的例子表示规则启用，host为127.0.0.1，且url符合正则匹配的，拒绝访问
 
-state：规则是否启用
-action：执行动作
-1：deny ==> 拒绝访问
-2：allow ==> 允许访问
-3：log ==> 仅记录日志
-4：rehtnl ==> 表示返回自定义字符串
-5：refile ==> 表示返回自定义文件（文件内容返回）
-6：relua ==> 表示返回lua执行脚本（使用dofile操作）
-hostname：匹配的host
-url：匹配的url
+  state：规则是否启用
+  action：执行动作
+  1：deny ==> 拒绝访问
+  2：allow ==> 允许访问
+  3：log ==> 仅记录日志
+  4：rehtml ==> 表示返回自定义字符串
+  5：refile ==> 表示返回自定义文件（文件内容返回）
+  6：relua ==> 表示返回lua执行脚本（使用dofile操作）
+  hostname：匹配的host
+  url：匹配的url
 
-> **hostname 和 url 使用上面描述过的匹配规则，参数2标记、参数1内容**
+  > **hostname 和 url 使用上面描述过的匹配规则，参数2标记、参数1内容**
 
-> **详细参见项目中的demo规则，多实验、多测试就知道效果了**
+  > **详细参见项目中的demo规则，多实验、多测试就知道效果了**
 
-> **各种高级功能基本就靠这个模块来实现了，需要你发挥想象**
+  > **各种高级功能基本就靠这个模块来实现了，需要你发挥想象**
 
 ## STEP 4：referer_Mod（黑、白名单）
 
  - 说明：`{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["\*",""]}`
  
-上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】
-state：表示规则是否开启
-url：表示匹配的url
-hostname：匹配host
-referer：匹配referer
+  上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】
+  state：表示规则是否开启
+  url：表示匹配的url
+  hostname：匹配host
+  referer：匹配referer
 
-> referer的匹配是白名单，注意一下即可
-> 这些匹配都是基于上面说过的2阶匹配法
+  > referer的匹配是白名单，注意一下即可
+  > 这些匹配都是基于上面说过的2阶匹配法
 
 ## STEP 5：url_Mod（黑、白名单）
 
  - 说明：`{"state":"on","hostname":["\*",""],"url":["\\.(css|js|flv|swf|zip|txt)$","jio"],"action":"allow"}`
- 
-上面的例子表示，规则启用，任意host，url正则匹配成功后放行，不进行后续规则匹配（该场景同图片等静态资源一样进行放行，减少后续的匹配）
-state：表示规则是否开启
-hostname：表示匹配的host
-url：表示匹配url
-action：可取值[allow、deny]，表示匹配成功后的执行动作
+   
+  上面的例子表示，规则启用，任意host，url正则匹配成功后放行，不进行后续规则匹配（该场景同图片等静态资源一样进行放行，减少后续的匹配）
+  state：表示规则是否开启
+  hostname：表示匹配的host
+  url：表示匹配url
+  action：可取值[allow、deny]，表示匹配成功后的执行动作
 
-> 一般情况下，过滤完静态资源后，剩下的都是拒绝一下url的访问如.svn等一些敏感目录或文件
+  > 一般情况下，过滤完静态资源后，剩下的都是拒绝一下url的访问如.svn等一些敏感目录或文件
 
 ## STEP 6：header_Mod（黑名单）
 
@@ -284,28 +285,27 @@ action：可取值[allow、deny]，表示匹配成功后的执行动作
  url：匹配url
  hostname：匹配host
  header：匹配header头
- 
   
 ## STEP 7：useragent_Mod （黑名单）
-- 说明：`{"state":"off","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
+  - 说明：`{"state":"off","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
 
-上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问
-state：规则是否启用
-hostname：匹配host
-useragent：匹配agent
+  上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问
+  state：规则是否启用
+  hostname：匹配host
+  useragent：匹配agent
 
 
  
 ## STEP 8：cookie_Mod（黑名单）
  - 说明：`{"state":"on","cookie":["\\.\\./","jio"],"hostname":["\*",""],"action":"deny"}`
- 
-上面的例子表示，规则启用，匹配任意host，cookies匹配正则，匹配成功则执行拒绝访问操作
-state：表示规则是否启用
-cookie：表示匹配cookie
-hostname：表示匹配host
-action：可选参数[deny、allow] 表示执行动作
+   
+  上面的例子表示，规则启用，匹配任意host，cookies匹配正则，匹配成功则执行拒绝访问操作
+  state：表示规则是否启用
+  cookie：表示匹配cookie
+  hostname：表示匹配host
+  action：可选参数[deny、allow] 表示执行动作
 
-> action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
+  > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 9：args_Mod（黑名单）
 
@@ -316,51 +316,50 @@ action：可选参数[deny、allow] 表示执行动作
  hostname：表示匹配host
  args：表示匹配args参数组
  action：可选参数[deny] 表示匹配成功拒绝访问
- 
-> action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
+ > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 10：post_Mod（黑名单）
-- 说明：`{"state":"on","hostname":["\*",""],"post":["\\$\\{","jio"],"action":"deny"}`
+ - 说明：`{"state":"on","hostname":["\*",""],"post":["\\$\\{","jio"],"action":"deny"}`
 
-上面的例子表示，规则启用，匹配任意host,post参数组匹配正则，成功则拒绝访问
-state：表示是否启用规则
-hostname：匹配host
-post：匹配post参数组
-action：可选参数[deny] 表示匹配成功后拒绝访问
+  上面的例子表示，规则启用，匹配任意host,post参数组匹配正则，成功则拒绝访问
+  state：表示是否启用规则
+  hostname：匹配host
+  post：匹配post参数组
+  action：可选参数[deny] 表示匹配成功后拒绝访问
 
-> action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
+  > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 11：network_Mod（频率黑名单）
-- 说明：`{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"url":["^/2.html$","jio"]}`
+ - 说明：`{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"url":["^/2.html$","jio"]}`
 
-上面的例子表示，规则启用，host为id.game.com,url匹配正则，匹配成功则进行访问频率限制，在10秒内访问次数超过20次，请求的IP到IP黑名单中10分钟（60秒\*10）
-state：表示是否启用规则
-hostname：表示匹配host
-url：表示匹配url
-network：maxReqs ==> 请求次数；pTime ==> 单位时间；blacktime ==> ip黑名单时长
+  上面的例子表示，规则启用，host为id.game.com,url匹配正则，匹配成功则进行访问频率限制，在10秒内访问次数超过20次，请求的IP到IP黑名单中10分钟（60秒\*10）
+  state：表示是否启用规则
+  hostname：表示匹配host
+  url：表示匹配url
+  network：maxReqs ==> 请求次数；pTime ==> 单位时间；blacktime ==> ip黑名单时长
 
-> 一般情况下，cc攻击的点一个网站只有为数不多的地方是容易被攻击的点，所以设计时，考虑增加通过url细化匹配。
+  > 一般情况下，cc攻击的点一个网站只有为数不多的地方是容易被攻击的点，所以设计时，考虑增加通过url细化匹配。
 
 ## STEP 12：replace_Mod（内容替换）
-- 说明：`{"state":"on","url":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}`
+ - 说明：`{"state":"on","url":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}`
 
-上面的例子表示，规则启用，host为passport.game.com,url是正则匹配，匹配成功则进行返回内容替换
-1：将"联合"替换为"联合FUCK"；
-2：将"登录"替换为"登录POSS"；
-3：通过正则进行匹配（`ngx.re.sub`）其中@token@表示动态替换为服务器生成的一个唯一随机字符串
-state：表示是否启用规则
-hostname：表示匹配的host
-url：表示匹配的url
-replace_list：表示替换列表，参数1 ==> 被替换内容；参数2 ==> 匹配模式（正则、字符串）如例子中前2个替换列表就是字符串匹配，使用""即可，不能没有；参数3 ==> 被替换的内容
+  上面的例子表示，规则启用，host为passport.game.com,url是正则匹配，匹配成功则进行返回内容替换
+  1：将"联合"替换为"联合FUCK"；
+  2：将"登录"替换为"登录POSS"；
+  3：通过正则进行匹配（`ngx.re.sub`）其中@token@表示动态替换为服务器生成的一个唯一随机字符串
+  state：表示是否启用规则
+  hostname：表示匹配的host
+  url：表示匹配的url
+  replace_list：表示替换列表，参数1 ==> 被替换内容；参数2 ==> 匹配模式（正则、字符串）如例子中前2个替换列表就是字符串匹配，使用""即可，不能没有；参数3 ==> 被替换的内容
 
 # API相关
+>所有api相关都没有进行严格参数限制，后续有时间在添加了，请谨慎操作
 
  - debug.lua
+ 对GET/POST进行原样返回，以及一些扩展信息，有时方便我测试使用。
  
-对GET/POST进行原样返回，以及一些扩展信息，有时方便我测试使用。
-
-- ip_dict.lua
-api接口对dict进行操作的封装。可操作的dict（count_dict、config_dict、ip_dict、limit_ip_dict）
+ - ip_dict.lua
+  api接口对dict进行操作的封装。可操作的dict（count_dict、config_dict、ip_dict、limit_ip_dict）
 **谨慎操作，未做严格校验**
 
 add ：**仅对ip_dict有效**，增加IP黑、白名单的。
@@ -405,13 +404,41 @@ api接口对全局table（mod规则）进行保存到本地json文件中
 上面的操作表示，重新载入所有规则文件
 
 - table.lua
->占位符
+>对规则操作实时生效的
+
+api接口多全局规则进行操作的，各个xxx_Mod
+可操作table（`realIpFrom_Mod、ip_Mod、host_method_Mod、app_Mod、referer_Mod、url_Mod、header_Mod、useragent_Mod、cookie_Mod、args_Mod、post_Mod、network_Mod、replace_Mod`）
+
+set：对table进行增加/修改操作
+`http://*/api/table?action=set&table=app_Mod&key=1&value_type=table&value={some json date}`
+这个例子就是把app_Mod这个table的第3个值修改/添加为value的内容，value_type表示value的类型，默认是string，一般都是table，因为这些规则mod都是json的
+
+del：对table进行删除操作
+`http://*/api/table?action=del&table=app_Mod&key=1`
+这个就是删除app_Mod中key是1的值。
+
+get：查看table内容
+`http://*/api/table?action=get&table=app_Mod&key=1`
+这个表示查看app_Mod中可以为1的值，key=all_key表示查看所有，key=count_key表示查看个数
+
+- time.lua
+api对ngx对时间操作相关的调试，可以不用管
 
 - test.lua
->占位符
+api对全局规则进行测试调试使用的，批量添加垃圾规则，用于测试规则个数对性能影响的，对13个Mod调试使用的
+`http://*/api/test?mod=ip_Mod&count=99`
+这个表示对ip_Mod增加99个随机信息，其他的各类Mod大家看代码吧，特别是做调试的时候，最后的一个条目需要根据自己的情况去写
 
 - token.lua
->占位符
+api对token进行相关操作的，本来已经有了一个对dict相关操作的api，为了区分下， 我分离了。
+
+get：对token_list进行查询操作
+`http://*/api/token?action=get&key=key_dog`
+该请求就是查询token_list这个dict中key为key_dog的值，key=count_key时，表示查询该token_lis中key的总个数；key=all_key时，表示显示所有key和value（谨慎使用）；key=无参数，表示查询1024个key和value
+
+set：对token_list进行添加操作
+`http://*/api/token?action=set&key=abc&value=iooppp`
+该请求就是设置key=abc，value=iooppp，value没有传参数将自动生成一个，value在token_list中存在也将自动生成一个
 
 # 测试
 - 我在微软的Azure上，整了一些服务器进行性能上的测试。还在整理敬请期待......
@@ -430,6 +457,8 @@ api接口对全局table（mod规则）进行保存到本地json文件中
 >|占位符  
 
 # 变更历史
+
+## **next 1.1 增加app_Mod，丰富allow动作，支持的参数...**
 
 ## 0.9 - 1.0 修改了大量全局函数
 

@@ -90,6 +90,7 @@ elseif mod == "header_Mod" then
 	end
 
 	sayHtml_ext({count=cnt})
+
 elseif mod == "referer_Mod" then
 
 	local _tmptb =  _G["referer_Mod"]
@@ -127,9 +128,9 @@ elseif mod == "cookie_Mod" then
 	local _tmptb =  _G["cookie_Mod"]
 
 	for i=1,count do
-		_tmptb[i]= stringTojson([[{"state":"on","host":["*",""],"cookie":["]]..random.token(5)..[[","jio"],"action":"deny"}]])
+		_tmptb[i]= stringTojson([[{"state":"on","hostname":["*",""],"cookie":["]]..random.token(5)..[[","jio"],"action":"deny"}]])
 	end
-	_tmptb[count+1] = stringTojson([[{"state":"on","host":["*",""],"cookie":["select.+(from|limit)","jio"],"action":"deny"}]])
+	_tmptb[count+1] = stringTojson([[{"state":"on","hostname":["*",""],"cookie":["select.+(from|limit)","jio"],"action":"deny"}]])
 
 	local cnt = 0
 	for k in pairs(_tmptb) do
@@ -143,9 +144,9 @@ elseif mod == "url_Mod" then
 	local _tmptb =  _G["url_Mod"]
 
 	for i=1,count do
-		_tmptb[i]= stringTojson([[{"state":"on","host":["*",""],"url":["\\.(]]..random.token(5)..[[)","jio"],"action":"deny"}]])
+		_tmptb[i]= stringTojson([[{"state":"on","hostname":["*",""],"url":["\\.(]]..random.token(5)..[[)","jio"],"action":"deny"}]])
 	end
-	_tmptb[count+1] = stringTojson([[{"state":"on","host":["*",""],"url":["\\.(svn|git|htaccess|bash_history)","jio"],"action":"deny"}]])
+	_tmptb[count+1] = stringTojson([[{"state":"on","hostname":["*",""],"url":["\\.(svn|git|htaccess|bash_history)","jio"],"action":"deny"}]])
 
 	local cnt = 0
 	for k in pairs(_tmptb) do
@@ -159,9 +160,9 @@ elseif mod == "args_Mod" then
 	local _tmptb =  _G["args_Mod"]
 
 	for i=1,count do
-		_tmptb[i]= stringTojson([[{"state":"on","host":["*",""],"args":["]]..random.token(5)..[[","jio"],"action":"deny"}]])
+		_tmptb[i]= stringTojson([[{"state":"on","hostname":["*",""],"args":["]]..random.token(5)..[[","jio"],"action":"deny"}]])
 	end
-	_tmptb[count+1] = stringTojson([[{"state":"on","host":["*",""],"args":["select.+(from|limit)","jio"],"action":"deny"}]])
+	_tmptb[count+1] = stringTojson([[{"state":"on","hostname":["*",""],"args":["select.+(from|limit)","jio"],"action":"deny"}]])
 
 	local cnt = 0
 	for k in pairs(_tmptb) do
@@ -175,9 +176,9 @@ elseif mod == "post_Mod" then
 	local _tmptb =  _G["post_Mod"]
 
 	for i=1,count do
-		_tmptb[i]= stringTojson([[{"state":"on","host":["*",""],"post":["]]..random.token(5)..[[","jio"],"action":"deny"}]])
+		_tmptb[i]= stringTojson([[{"state":"on","hostname":["*",""],"post":["]]..random.token(5)..[[","jio"],"action":"deny"}]])
 	end
-	_tmptb[count+1] = stringTojson([[{"state":"on","host":["*",""],"post":["select.+(from|limit)","jio"],"action":"deny"}]])
+	_tmptb[count+1] = stringTojson([[{"state":"on","hostname":["*",""],"post":["select.+(from|limit)","jio"],"action":"deny"}]])
 
 	local cnt = 0
 	for k in pairs(_tmptb) do
