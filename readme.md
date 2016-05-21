@@ -14,7 +14,7 @@ grammar_cjkRuby: true
 ----------
 
 
-**OpenStar**是一个基于[OpenResty][2]的，高性能web平台，不仅仅包含了传统WAF的功能模块，还相应增加了其他灵活、友好、实用的功能，是增强的WAF、WEB扩展、CC防护的集合。
+**OpenStar**是一个基于[OpenResty][3]的，高性能web平台，不仅仅包含了传统WAF的功能模块，还相应增加了其他灵活、友好、实用的功能，是增强的WAF、WEB扩展、CC防护的集合。
 # WAF防护
 
 
@@ -96,7 +96,7 @@ wget
 git clone 
 # 安装
  - 安装OpenResty
- 这里不做过多重复描述，直接看链接[OpenResty][2]
+ 这里不做过多重复描述，直接看链接[OpenResty][4]
  - 配置nginx.conf
  在http节点，引用waf.conf。注：原ngx相关配置基本不用修改，该优化优化、该做CPU亲缘绑定继续、该动静分离还继续、该IO、TIME等优化继续不要停。
  - 配置waf.conf
@@ -116,6 +116,8 @@ hostname：`["*\\.game\\.com","jio"]` 表示使用正则匹配host（**ngx.re.fi
 hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列表中所有host
 
 ## 执行流程
+
+![enter description here][5]
 
  - init阶段
  
@@ -462,7 +464,7 @@ set：对token_list进行添加操作
 
 ## 0.9 - 1.0 修改了大量全局函数
 
-在学习完[OpenResty最佳实践][4]后，代码太不专业，修改了大量全局变量、函数
+在学习完[OpenResty最佳实践][6]后，代码太不专业，修改了大量全局变量、函数
 
 ## 0.8 优化一下算法
 
@@ -482,7 +484,7 @@ set：对token_list进行添加操作
 
 ## 0.3 增加waf防护模块
 
-- 随着cc防护成功后，我陆续增加了waf相关的功能，规则参考了[modsecurity][5]、[loveshell][6]防护模块、以及互联网搜集的一些过滤点
+- 随着cc防护成功后，我陆续增加了waf相关的功能，规则参考了[modsecurity][7]、[loveshell][8]防护模块、以及互联网搜集的一些过滤点
 
 ## 0.2 CC防护应用层版
 
@@ -500,8 +502,12 @@ set：对token_list进行添加操作
 GPL（GNU General Public License）
 Copyright (C) 20011-2016, by zj 
 
+
   [1]: https://github.com/agentzh
   [2]: http://openresty.org/cn/
-  [4]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
-  [5]: http://www.modsecurity.org/
-  [6]: https://github.com/loveshell/ngx_lua_waf
+  [3]: http://openresty.org/cn/
+  [4]: http://openresty.org/cn/
+  [5]: ./images/OpenStar.png "OpenStar.png"
+  [6]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
+  [7]: http://www.modsecurity.org/
+  [8]: https://github.com/loveshell/ngx_lua_waf
