@@ -507,7 +507,7 @@ Copyright (C) 20011-2016, by zj
   [2]: http://openresty.org/cn/
   [3]: http://openresty.org/cn/
   [4]: http://openresty.org/cn/
-  [5]: ./images/OpenStar.png "OpenStar.png"
+  [5]: https://github.com/starjun/openstar/blob/master/OpenStar.png "OpenStar.png"
   [6]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
   [7]: http://www.modsecurity.org/
   [8]: https://github.com/loveshell/ngx_lua_waf
