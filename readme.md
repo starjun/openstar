@@ -106,7 +106,7 @@ git clone
  - lua文件修改
  在init.lua中，修改第四行的conf_json参数，config.json文件绝对路径写好。
  - api使用
- 如果需要使用相关api，需要配置在某个servers下配置一个location，参照一下，配置比较简单
+ 如果需要使用相关api，需要配置在某个servers下配置一个location，参照一下，配置比较简单，set $lua_path 根据实际情况配置即可
  ```
      server {
         listen  80;
