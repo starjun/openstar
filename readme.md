@@ -401,17 +401,22 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 **谨慎操作，未做严格校验**
 
 add ：**仅对ip_dict有效**，增加IP黑、白名单的。
+
 `http://*/api/ip_dict?action=add&dict=ip_dict&key=192.168.2.5&value=allow[deny]&time=60`
 value默认拒绝，time默认永久，上述就是向ngx.share.ip_dict增加信息，把该ip增加到白名单，时长是60秒
 
 del：表示删除操作
+
 `http://*/api/ip_dict?action=del&dict=ip_dict&key=192.168.2.56`
 key=all_key时，表示删除所有，其余情况删除指定key
+
 set：**仅对ip_dict有效**、表示修改ip黑白名单。
+
 `http://*/api/ip_dict?aciton=set&dict=ip_dict&key=192.168.2.56&value=deny`
 value默认就是deny。
 
 get：表示查询内容
+
 `http://*/api/ip_dict?action=get&dict=ip_dict&key=192.168.2.58`
 key=count_key时，表示查询该dict中key的总个数；key=all_key时，表示显示所有key和value（谨慎使用）；key=无参数，表示查询1024个key和value；key=$其他值时，表示仅查询该key的值。
 
@@ -422,19 +427,23 @@ key=count_key时，表示查询该dict中key的总个数；key=all_key时，表�
 api接口对redis进行相关操作
 
 set：表示将传递的数据存放到redis上
+
 `http://*/api/redis?action=set&key=aaa&value=it is a string`
 上面的操作就是将key(aaa)存放到redis上，值是"it is a string"（redis就是config.json中配置的）
 
 get：表示通过key查询redis中的值
+
 `http://*/api/redis?action=get&key=aaa`
 key=config_dict/count_dict时，返回的value进行json转换后显示。（redis作用就是保存这2个dict）
 
 sava：表示将config_dict或者count_dict存放到redis上
+
 `http://*/api/redis?action=save&key=config_dict`
 上面的操作就是将config_dict转成json字符串后存放到redis,key=count_dict表示把count_dict保存到redis。（覆盖保存，这里的count_dict计数的汇总，我们这边是python做的，这些接口都是我们的python程序调用使用的）
 
 - config.lua
 api接口对全局table（mod规则）进行保存到本地json文件中
+
 `http://*/api/config?action=save&name=app_Mod`
 上面的操作表示将app_Mod（全局table）规则保存到conf_json文件夹下，当前我在文件后增加了bak标记，还没有直接覆盖，原来的规则json文件（我在测试后会修改下的）。
 
@@ -448,14 +457,17 @@ api接口多全局规则进行操作的，各个xxx_Mod
 可操作table（`realIpFrom_Mod、ip_Mod、host_method_Mod、app_Mod、referer_Mod、url_Mod、header_Mod、useragent_Mod、cookie_Mod、args_Mod、post_Mod、network_Mod、replace_Mod`）
 
 set：对table进行增加/修改操作
+
 `http://*/api/table?action=set&table=app_Mod&key=1&value_type=table&value={some json date}`
 这个例子就是把app_Mod这个table的第3个值修改/添加为value的内容，value_type表示value的类型，默认是string，一般都是table，因为这些规则mod都是json的
 
 del：对table进行删除操作
+
 `http://*/api/table?action=del&table=app_Mod&key=1`
 这个就是删除app_Mod中key是1的值。
 
 get：查看table内容
+
 `http://*/api/table?action=get&table=app_Mod&key=1`
 这个表示查看app_Mod中可以为1的值，key=all_key表示查看所有，key=count_key表示查看个数
 
@@ -464,6 +476,7 @@ api对ngx对时间操作相关的调试，可以不用管
 
 - test.lua
 api对全局规则进行测试调试使用的，批量添加垃圾规则，用于测试规则个数对性能影响的，对13个Mod调试使用的
+
 `http://*/api/test?mod=ip_Mod&count=99`
 这个表示对ip_Mod增加99个随机信息，其他的各类Mod大家看代码吧，特别是做调试的时候，最后的一个条目需要根据自己的情况去写
 
@@ -471,21 +484,17 @@ api对全局规则进行测试调试使用的，批量添加垃圾规则，用�
 api对token进行相关操作的，本来已经有了一个对dict相关操作的api，为了区分下， 我分离了。
 
 get：对token_list进行查询操作
+
 `http://*/api/token?action=get&key=key_dog`
 该请求就是查询token_list这个dict中key为key_dog的值，key=count_key时，表示查询该token_lis中key的总个数；key=all_key时，表示显示所有key和value（谨慎使用）；key=无参数，表示查询1024个key和value
 
 set：对token_list进行添加操作
+
 `http://*/api/token?action=set&key=abc&value=iooppp`
 该请求就是设置key=abc，value=iooppp，value没有传参数将自动生成一个，value在token_list中存在也将自动生成一个
 
-# 测试
-- 这里我后续后空，会把所有的规则mod都详细的说明一次，这样方便大家理解并使用，
-
->|占位符   
-
-
 # 样例
-- 参见项目自带规则demo，后续我将把自带规则每个都解释、说明一下。
+- 参见项目自带规则demo，后续我将把自带规则每个都解释、说明一下，以及常用的功能实现说明一下，方便大家理解并使用
 
 >|占位符   
 
