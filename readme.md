@@ -479,7 +479,7 @@ set：对token_list进行添加操作
 该请求就是设置key=abc，value=iooppp，value没有传参数将自动生成一个，value在token_list中存在也将自动生成一个
 
 # 测试
-- 我在微软的Azure上，整了一些服务器进行性能上的测试。还在整理敬请期待......
+- 这里我后续后空，会把所有的规则mod都详细的说明一次，这样方便大家理解并使用，
 
 >|占位符   
 
@@ -492,7 +492,7 @@ set：对token_list进行添加操作
 
 # 性能评测
 
->|占位符  
+>我在微软的Azure上，整了一些服务器进行性能上的测试。还在整理敬请期待......
 
 # 变更历史
 
@@ -543,7 +543,6 @@ Copyright (C) 20011-2016, by zj
 
   [1]: https://github.com/agentzh
   [2]: http://openresty.org/cn/
-  [3]: http://openresty.org/cn/
   [4]: http://openresty.org/cn/
   [5]: ./OpenStar.png "OpenStar.png"
   [6]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
