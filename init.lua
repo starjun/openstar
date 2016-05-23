@@ -73,7 +73,7 @@ loadConfig()
 
 --- 初始化ip_mod列表
 --- 
-	function set_ip_mod()
+local function set_ip_mod()
 		local tb_ip_mod = ip_Mod or {}
 		local _dict = ngx.shared["ip_dict"]
 		if not tb_ip_mod then return end
@@ -152,9 +152,13 @@ end
 
 --- ngx_find
 function ngx_find(str)
-	str = string.gsub(str,"@ngx_time@",ngx.time())
+	-- str = string.sub(str,"@ngx_time@",ngx.time())
+	-- ngx.re.gsub 效率要比string.sub要好一点，参考openresty最佳实践
+	str = ngx.re.gsub(str,"@ngx_time@",ngx.time())
+	-- string.find 会走jit,所以就没有用ngx模块
+	-- 当前情况下，对token仅是全局替换一次，请注意
 	if string.find(str,"@token@") ~= nil then		
-		str = string.gsub(str,"@token@",set_token())
+		str = ngx.re.gsub(str,"@token@",set_token())
 	end	
 	return str
 end

@@ -22,6 +22,13 @@
     {
         "state": "on",
         "action": ["allow"],
+        "allow":["ip",["106.37.236.170","1.1.1.1"],"table"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "url": ["/api/.*","jio"]
+    },
+    {
+        "state": "on",
+        "action": ["allow"],
         "allow":["args","keyby","^[\\w]{6}$"],
         "hostname": [["101.200.122.200","127.0.0.1"],"table"],
         "url": ["^/api/time$","jio"]

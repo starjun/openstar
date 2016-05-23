@@ -155,13 +155,18 @@ if config_is_on("app_Mod") then
 						    if remath(get_args,v.allow[3],"jio") then
 								check = "allow"
 							end
+						end						
+					elseif v.allow[1] == "ip" then -- 增加IP判断（eg:对某url[文件夹进行IP控制]）
+						--debug("v.allow == ip")
+						if remath(ip,v.allow[2],v.allow[3]) then
+							check = "allow"
 						end
 					end
 					if check == "allow" then
 						--return
 					else
 						Set_count_dict("app_deny count")
-						debug("app_Mod allow[false]","app_log")
+						debug("app_Mod allow[false]"..v.allow[1],"app_log")
 						action_deny()
 					end
 					break

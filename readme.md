@@ -105,6 +105,42 @@ git clone
  OpenStar目录建议放到OR下，方便操作，该目录ngx运行用户有读写执行权限即可。因为要写日志，暂时没有用ngx.log，后续可能会改动。
  - lua文件修改
  在init.lua中，修改第四行的conf_json参数，config.json文件绝对路径写好。
+ - api使用
+ 如果需要使用相关api，需要配置在某个servers下配置一个location，参照一下，配置比较简单
+ ```
+     server {
+        listen  80;
+        server_name localhost;        
+        root html;
+        
+        #lua执行的主目录
+        set $lua_path "/opt/openresty/openstar/";
+        #根目录
+        location / {
+            #limit_req zone=allips nodelay;
+            default_type text/html;
+        }
+
+        location ~ ^/api/([-_a-zA-Z0-9/]+) {
+
+            #limit_req zone=allips nodelay;
+
+            # 重写阶段
+            #rewrite_by_lua_file "${lua_path}api_rewrite.lua"
+
+            # 准入阶段完成参数验证
+            #access_by_lua_file  "${lua_path}api_access.lua";
+
+            #内容生成阶段
+            content_by_lua_file "${lua_path}api/$1.lua";
+
+            #内容替换阶段
+            #body_filter_by_lua_file "${lua_path}api_body.lua";
+
+            #日志处理阶段
+            #log_by_lua_file "${lua_path}api/api_log.lua";
+        }
+```
 
 # 使用
 
