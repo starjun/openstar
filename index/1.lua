@@ -89,7 +89,7 @@ end
 
 local tb_do = {
 				host={"*",""},
-				url={[[/dodo]],""}
+				url={[[/api/time]],""}
 			}
 
 

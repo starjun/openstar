@@ -131,7 +131,7 @@ if config_is_on("app_Mod") then
 	local app_mod = app_Mod or {}
 	for i,v in ipairs(app_mod) do
 		if v.state == "on" then
-			--debug("app_Mod state is on "..i)
+			debug("app_Mod state is on "..i)
 			if host_url_remath(v.hostname,v.url) then				
 				if v.action[1] == "deny" then
 					Set_count_dict("app_deny count")
@@ -168,11 +168,10 @@ if config_is_on("app_Mod") then
 						Set_count_dict("app_deny count")
 						debug("app_Mod allow[false]"..v.allow[1],"app_log")
 						action_deny()
-					end
-					break
+						break
+					end					
 				elseif v.action[1] == "log" then
 					debug("app_Mod log","app_log")
-					break
 				elseif v.action[1] == "rehtml" then
 					sayHtml_ext(v.rehtml)
 					break
@@ -182,6 +181,7 @@ if config_is_on("app_Mod") then
 				elseif v.action[1] == "relua" then
 					local re_saylua = sayLua(v.relua)
 					if re_saylua == "break" then
+						ngx.exit(200)
 						break
 					end
 				elseif v.action[1] == "set" then

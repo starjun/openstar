@@ -29,13 +29,6 @@
     {
         "state": "on",
         "action": ["allow"],
-        "allow":["args","keyby","^[\\w]{6}$"],
-        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "url": ["^/api/time$","jio"]
-    },
-    {
-        "state": "off",
-        "action": ["allow"],
         "allow":["args","keytoken","@token@"],
         "hostname": ["101.200.122.200",""],
         "url": ["/api/debug",""]
@@ -46,6 +39,13 @@
         "relua":"1.lua",
         "hostname": ["*",""],
         "url": ["*",""]
+    },
+    {
+        "state": "on",
+        "action": ["allow"],
+        "allow":["args","keyby","^[\\w]{6}$"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "url": ["^/api/time$","jio"]
     },
     {
         "state": "on",
