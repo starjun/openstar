@@ -131,7 +131,7 @@ if config_is_on("app_Mod") then
 	local app_mod = app_Mod or {}
 	for i,v in ipairs(app_mod) do
 		if v.state == "on" then
-			debug("app_Mod state is on "..i)
+			--debug("app_Mod state is on "..i)
 			if host_url_remath(v.hostname,v.url) then				
 				if v.action[1] == "deny" then
 					Set_count_dict("app_deny count")
