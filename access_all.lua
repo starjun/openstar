@@ -25,7 +25,7 @@ local function loc_getRealIp(host,remoteIP,headers)
 		local realipfrom = realIpFrom_Mod or {}
 		local ipfromset = realipfrom[host]		
 		if type(ipfromset) ~= "table" then return remoteIP end
-		if ipfromset.ips == "" then
+		if ipfromset.ips == "*" then
 			local ip = headers[ipfromset.realipset]
 			if ip then
 				if type(ip) == "table" then ip = ip[1] end  --- http头中又多个取第一个
