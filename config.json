@@ -15,19 +15,19 @@
 
 	"url_Mod" : "on",
 
-	"header_Mod" : "on",	
+	"header_Mod" : "on",
 
-	"agent_Mod" : "on",		
+	"agent_Mod" : "on",
 
 	"cookie_Mod" : "on",
 
 	"args_Mod" : "on",
 
-	"post_Mod" : "on",	
+	"post_Mod" : "on",
 
 	"network_Mod" : "on",
 
-	"replace_Mod" : "on",
+	"replace_Mod" : "off",
 
 	"debug_Mod" : true,
 
