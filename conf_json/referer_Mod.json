@@ -13,7 +13,9 @@
         "referer": [
             "^.*/(www\\.hao123\\.com|www3\\.hao123\\.com)$",
             "jio"
-        ]
+        ],
+        "action":"next"
+
     },
     {
         "state": "on",
@@ -28,6 +30,7 @@
         "referer": [
             "*",
             ""
-        ]
+        ],
+        "action":"allow"
     }
 ]

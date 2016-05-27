@@ -197,25 +197,39 @@ end
 
 --- STEP 4
 -- referer (白名单)
-local function check_referer(_referer)
+if config_is_on("referer_Mod") then
+	local check
 	local ref_mod = referer_Mod or {}
 	for i, v in ipairs( ref_mod ) do
 		if v.state == "on" then
 			if host_url_remath(v.hostname,v.url) then
-				if remath(_referer,v.referer[1],v.referer[2]) then
-					return true
+				if v.action == "allow" then
+					if remath(_referer,v.referer[1],v.referer[2]) then
+						check = "allow"
+						break					
+					else
+						check = "deny"
+						break
+					end
+				elseif v.action == "next" then
+					if remath(_referer,v.referer[1],v.referer[2]) then
+						check = "next"
+						break
+					else
+						check = "deny"
+						break
+					end
 				else
-					return false
+				
 				end
 			end
 		end
 	end
-end
-if config_is_on("referer_Mod") then
-	local check = check_referer(referer)
-	if check == true then
+	if check == "allow" then --- 直接跳出后续规则检查
 		return
-	elseif check == false then
+	elseif check == "next" then
+		-- nil
+	elseif check == "deny" then
 		Set_count_dict("referer_deny count")
 		debug("referer "..referer.." ip "..ip,"referer_deny")
 		action_deny()

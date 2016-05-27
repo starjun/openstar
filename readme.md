@@ -547,9 +547,6 @@ set：对token_list进行添加操作
 ```
 配置规则就是这样，请多测试几次，就熟悉了，也是比较简单；关于这个jio的意思，其实就是`ngx.re.find(参数1,参数2,"jio")` 这里使用，区分大小写就是：` jo`；具体的一些参数请参考http://blog.csdn.net/weiyuefei/article/details/38439017
 
->|占位符   
-
-
 ## 获取用户真实ip设置
 在一些应用场景下，需要从http头的某一字段中获取用户真实IP，一般默认用`X-Forwarded-For` 或者 `X-Real-IP`，但是有时会被黑客伪装（没有设置remote Ip源），以及一些CDN厂商自定义的http头（CDN-SOURCE-IP），故就需要我们配置那个host，从哪些remote ip 来的，取http头中哪个标记字段
 如host是id.test.com从192.168.10.6-8来的ip，从http头my-ip-real中获取；那么就需要配置realIpFrom_Mod.json文件
@@ -601,6 +598,10 @@ set：对token_list进行添加操作
 # 变更历史
 
 ## **next 1.x 增加app_Mod，丰富allow动作，支持的参数...**
+
+## 1.2 更新支持拦截外部的csrf
+在referer_Mod处，增加action，`allow`表示允许且后续的规则不用在匹配（一般是静态资源如图片/js/css等），`next`表示白名单匹配成功后，会继续后面的规则匹配（这里就用于拦截浏览器外部的CSRF）。
+**后续的action理论上都支持该语法**
 
 ## 1.1 增加app_Mod,丰富allow动作（ip）
 网站的某个目录进行IP白名单的访问控制（后台、phpmyadmin等）
