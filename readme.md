@@ -304,17 +304,19 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 
   > **各种高级功能基本就靠这个模块来实现了，需要你发挥想象**
 
-## STEP 4：referer_Mod（黑、白名单）
+## STEP 4：referer_Mod（白名单）
 
  - 说明：
- `{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["\*",""]}`
+ `{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["*",""],"action":"allow"}`
  
-  上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】
+  上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】，action表示执行的动作，`allow`表示规则匹配成功后，跳出后续所有规则（一般对静态资源图片、js、css），referer匹配失败就拒绝访问（白名单），`next`表示匹配成功后，继续后续规则的匹配（这里主要可以设置防护站外的CSRF），referer匹配失败就拒绝访问（白名单）
+  
   state：表示规则是否开启
   url：表示匹配的url
   hostname：匹配host
   referer：匹配referer
-
+  action：匹配动作
+  
   > referer的匹配是白名单，注意一下即可
   > 这些匹配都是基于上面说过的2阶匹配法
 
