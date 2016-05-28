@@ -574,6 +574,199 @@ set：对token_list进行添加操作
 说明一下，目前host仅允许写单个，目前不支持通过正则或者list来匹配host，ips是一个list，所以不要忘记`[]`了。
 
 ## 配置自定义规则
+`deny` ：就是应用层拒绝访问了，如果一些url我们不需要外部可以访问(白名单IP不受该限制)。
+```
+{
+        "state": "on",
+        "action": ["deny"],
+        "hostname": ["127.0.0.1",""],
+        "url": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
+}
+```
+基础匹配hostname，url，host为`127.0.0.1`，url进行正则匹配，如果匹配成功，就执行`action`操作，这里就是拒绝访问。
+
+`rehtml`：这个动作就是返回字符串
+```
+{
+        "state": "on",
+        "action": ["rehtml"],
+        "rehtml": "<html>hi~!</html>",
+        "hostname": ["127.0.0.1",""],
+        "url": ["^/rehtml$","jio"]
+    }
+```
+这个也比较好理解，host是`127.0.0.1`，url通过正则匹配，匹配成功就把`rehtml`中的内容直接返回了，应用场景也是比较多的。
+
+`refile`：这个动作就是返回`./index`目录下文件的内容了，看个例子吧
+```
+{
+        "state": "on",
+        "action": ["reflie"],
+        "reflie": "2.txt",
+        "hostname": ["127.0.0.1",""],
+        "url": ["^/refile$","jio"]
+    }
+```
+
+`relua`：这个动作就是执行lua脚本文件（dofile实现）
+```
+{
+        "state": "on",
+        "action": ["relua"],
+        "relua":"1.lua",
+        "hostname": ["*",""],
+        "url": ["*",""]
+    }
+```
+这个匹配规则，host是所有的，url也是所有，匹配成功后执行`./index`目录下的1.lua文件
+文件代码：
+```
+
+-----  自定义lua脚本 by zj -----
+local remoteIp = ngx.var.remote_addr
+local headers = ngx.req.get_headers()
+local host = ngx.req.get_headers()["Host"] or "unknownhost"
+local method = ngx.var.request_method
+local url = ngx.unescape_uri(ngx.var.uri)
+local referer = headers["referer"] or "unknownreferer"
+local agent = headers["user_agent"] or "unknownagent"	
+local request_url = ngx.unescape_uri(ngx.var.request_uri)
+
+
+local config_dict = ngx.shared.config_dict
+
+--- config_is_on()
+local function config_is_on(config_arg)	
+	if config_dict:get(config_arg) == "on" then
+		return true
+	end
+end
+
+-- 传入 (host  连接IP  http头)
+local function loc_getRealIp(host,remoteIP,headers)
+	if config_is_on("realIpFrom_Mod") then
+		local realipfrom = realIpFrom_Mod or {}
+		local ipfromset = realipfrom[host]		
+		if type(ipfromset) ~= "table" then return remoteIP end
+		if ipfromset.ips == "" then
+			local ip = headers[ipfromset.realipset]
+			if ip then
+				if type(ip) == "table" then ip = ip[1] end  --- http头中又多个取第一个
+			else
+				ip = remoteIP
+			end
+			return ip
+		else
+			for i,v in ipairs(ipfromset.ips) do
+				if v == remoteIP then
+					local ip = headers[ipfromset.realipset]
+					if ip then
+						if type(ip) == "table" then ip = ip[1] end  --- http头中又多个取第一个
+					else
+						ip = remoteIP
+					end
+					return ip
+				end
+			end
+			return remoteIP
+		end
+	end
+end
+local ip = loc_getRealIp(host,remoteIp,headers)
+
+
+--- remath(str,re_str,options)
+local function remath(str,re_str,options)
+	if str == nil then return false end
+	if options == "" then
+		if str == re_str or re_str == "*" then
+			return true
+		end
+	elseif options == "table" then
+		for i,v in ipairs(re_str) do
+			if v == str then
+				return true
+			end
+		end
+	else
+		local from, to = ngx.re.find(str, re_str, options)
+	    if from ~= nil then
+	    	return true
+	    end
+	end
+end
+
+--- 匹配 host 和 url
+local function host_url_remath(_host,_url)
+	if remath(host,_host[1],_host[2]) and remath(url,_url[1],_url[2]) then
+		return true
+	end
+end
+
+--- 
+local function get_argByName(name)
+	local x = 'arg_'..name
+    local _name = ngx.unescape_uri(ngx.var[x])
+    return _name
+end
+
+local tb_do = {
+				host={"*",""},
+				url={[[/api/time]],""}
+			}
+
+
+if host_url_remath(tb_do.host,tb_do.url) then
+	ngx.say("ABC.ABC IS ABC")
+	return "break"   --- break 表示跳出for循环，且直接返回给客户端，不进行后面的规则匹配了
+else
+	return  ---- 否则继续for循环 继续规则判断
+end
+```
+如果有一些复杂的可以直接使用lua脚本去实现，这个脚本的意思是匹配任意host，url是`/api/time`的，匹配成功后直接返回内容`ABC.ABC IS ABC`，注意一下`return` 看注释。
+
+`log`：这个就表示仅仅记录一些log（log保存的路径就是在config.json里面，文件名是app_log.log）
+```
+{
+        "state": "on",
+        "action": ["log"],
+        "hostname": ["127.0.0.1",""],
+        "url": ["^/log$","jio"]
+    }
+```
+比较好理解，注意hostname和url的匹配方式（二阶匹配）
+
+`allow`：动作白名单，如果基本的hostname和url匹配成功后，后面的规则匹配失败就拒绝访问了
+```
+{
+        "state": "on",
+        "action": ["allow"],
+        "allow":["args","keyby","^[\\w]{6}$"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "url": ["^/api/time$","jio"]
+    }
+```
+基础匹配host和url，匹配成功后，`allow`值中，第一个是`args`，表示匹配的是args参数，参数名是第二个`keyby`，匹配规则是第三个`^[\\w]{6}$`，这个正则也是比较好理解：6个任意字符串即可，这里是我在设计防护CC时用到的客户端防护，对`args`的参数进行静态正则的检查，在看下面这个是使用动态token的检查，`token`是由服务器生成的，判断token是否合法即可。
+```
+{
+        "state": "on",
+        "action": ["allow"],
+        "allow":["args","keytoken","@token@"],
+        "hostname": ["101.200.122.200",""],
+        "url": ["/api/debug",""]
+    }
+```
+这个`args`参数的动态检查和静态检查基本一样，语法不一样的就是`allow`参数3是固定的`@token@`，不在是正则表达式，接下来在说一个是`ip`的检查，这个场景也是比较多，就是对某个文件夹（url路径/程序后台路径/phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）。
+```
+{
+        "state": "on",
+        "action": ["allow"],
+        "allow":["ip",["106.37.236.170","1.1.1.1"],"table"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "url": ["/api/.*","jio"]
+    }
+```
+这个配置就表示，访问`/api/.*`这些目录的只有`ip`为`1.1.1.1`和`106.37.236.170`，是不是很简单，对目录进行明细的IP访问控制。
 
 ## 配额referer过滤
 
@@ -602,7 +795,7 @@ set：对token_list进行添加操作
 ## **next 1.x 增加app_Mod，丰富allow动作，支持的参数...**
 
 ## 1.2 更新支持拦截外部的csrf
-在referer_Mod处，增加action，`allow`表示允许且后续的规则不用在匹配（一般是静态资源如图片/js/css等），`next`表示白名单匹配成功后，会继续后面的规则匹配（这里就用于拦截浏览器外部的CSRF）。
+在referer_Mod处，增加action，`allow`表示允许且后续的规则不用在匹配（一般是静态资源如图片/js/css等），`next`表示白名单匹配成功后，会继续后面的规则匹配（这里就用于拦截外部的CSRF）增加`next`是因为原来代码中，若配置了防护站外的CSRF，后续的规则会bypass,所以增加的，这样就不会出现一些绕过问题。
 **后续的action理论上都支持该语法**
 
 ## 1.1 增加app_Mod,丰富allow动作（ip）

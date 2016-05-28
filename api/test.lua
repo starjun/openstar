@@ -96,9 +96,9 @@ elseif mod == "referer_Mod" then
 	local _tmptb =  _G["referer_Mod"]
 
 	for i=1,count do
-		_tmptb[i]= stringTojson([[{"state":"on","url":["^/abc.do$","jio"],"hostname":["pass.]]..random.token(6)..[[.com",""],"referer":["^.*/(www\\.hao123\\.com|www3\\.hao123\\.com)$","jio"]}]])
+		_tmptb[i]= stringTojson([[{"state":"on","url":["^/abc.do$","jio"],"hostname":["pass.]]..random.token(6)..[[.com",""],"referer":["^.*/(www\\.hao123\\.com|www3\\.hao123\\.com)$","jio"],"action":"next"}]])
 	end
-	_tmptb[count+1] = stringTojson([[{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico|txt)$","jio"],"hostname":["101.200.122.200",""],"referer":["*",""]}]])
+	_tmptb[count+1] = stringTojson([[{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico|txt)$","jio"],"hostname":["101.200.122.200",""],"referer":["*",""],"action":"allow"}]])
 
 	local cnt = 0
 	for k in pairs(_tmptb) do
