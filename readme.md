@@ -455,23 +455,23 @@ api接口对redis进行相关操作
 set：表示将传递的数据存放到redis上
 
 `http://*/api/redis?action=set&key=aaa&value=it is a string`
-上面的操作就是将key(aaa)存放到redis上，值是"it is a string"（redis就是config.json中配置的）
+上面的操作就是将key(aaa)存放到redis上，值是"it is a string"（redis就是config.json中配置的）,该功能暂和业务无关。
 
 get：表示通过key查询redis中的值
 
 `http://*/api/redis?action=get&key=aaa`
-key=config_dict/count_dict时，返回的value进行json转换后显示。（redis作用就是保存这2个dict）
+key=config\_dict/count\_dict时，返回的value进行json转换后显示。（redis作用就是保存这2个dict）
 
 sava：表示将config_dict或者count_dict存放到redis上
 
 `http://*/api/redis?action=save&key=config_dict`
-上面的操作就是将config_dict转成json字符串后存放到redis,key=count_dict表示把count_dict保存到redis。（覆盖保存，这里的count_dict计数的汇总，我们这边是python做的，这些接口都是我们的python程序调用使用的）
+上面的操作就是将config\_dict转成json字符串后存放到redis,key=count\_dict表示把count\_dict保存到redis。（覆盖保存，这里的count\_dict计数的汇总，我们这边是python做的，这些接口都是我们的python程序调用使用的）
 
 - config.lua
 api接口对全局table（mod规则）进行保存到本地json文件中
 
 `http://*/api/config?action=save&name=app_Mod`
-上面的操作表示将app_Mod（全局table）规则保存到conf_json文件夹下，当前我在文件后增加了bak标记，还没有直接覆盖，原来的规则json文件（我在测试后会修改下的）。
+上面的操作表示将app\_Mod（全局table）规则保存到conf\_json文件夹下，当前我在文件后增加了bak标记，还没有直接覆盖，原来的规则json文件（我在测试后会修改下的）。
 
 `http://*/api/config?action=load`
 上面的操作表示，重新载入所有规则文件
@@ -485,7 +485,7 @@ api接口多全局规则进行操作的，各个xxx_Mod
 set：对table进行增加/修改操作
 
 `http://*/api/table?action=set&table=app_Mod&key=1&value_type=table&value={some json date}`
-这个例子就是把app_Mod这个table的第3个值修改/添加为value的内容，value_type表示value的类型，默认是string，一般都是table，因为这些规则mod都是json的
+这个例子就是把app\_Mod这个table的第3个值修改/添加为value的内容，value\_type表示value的类型，默认是string，一般都是table，因为这些规则mod都是json的
 
 del：对table进行删除操作
 
@@ -495,13 +495,13 @@ del：对table进行删除操作
 get：查看table内容
 
 `http://*/api/table?action=get&table=app_Mod&key=1`
-这个表示查看app_Mod中可以为1的值，key=all_key表示查看所有，key=count_key表示查看个数
+这个表示查看app\_Mod中可以为1的值，key=all\_key表示查看所有，key=count\_key表示查看个数
 
 - time.lua
 api对ngx对时间操作相关的调试，可以不用管
 
 - test.lua
-api对全局规则进行测试调试使用的，批量添加垃圾规则，用于测试规则个数对性能影响的，对13个Mod调试使用的
+api对全局规则进行测试调试使用的，批量添加垃圾规则，用于测试规则数量对性能影响的，对13个Mod调试使用的
 
 `http://*/api/test?mod=ip_Mod&count=99`
 这个表示对ip_Mod增加99个随机信息，其他的各类Mod大家看代码吧，特别是做调试的时候，最后的一个条目需要根据自己的情况去写
@@ -512,7 +512,7 @@ api对token进行相关操作的，本来已经有了一个对dict相关操作�
 get：对token_list进行查询操作
 
 `http://*/api/token?action=get&key=key_dog`
-该请求就是查询token_list这个dict中key为key_dog的值，key=count_key时，表示查询该token_lis中key的总个数；key=all_key时，表示显示所有key和value（谨慎使用）；key=无参数，表示查询1024个key和value
+该请求就是查询token\_list这个dict中key为key\_dog的值，key=count\_key时，表示查询该token\_lis中key的总个数；key=all\_key时，表示显示所有key和value（谨慎使用）；key=无参数，表示查询1024个key和value
 
 set：对token_list进行添加操作
 
@@ -590,7 +590,7 @@ set：对token_list进行添加操作
 {
         "state": "on",
         "action": ["rehtml"],
-        "rehtml": "<html>hi~!</html>",
+        "rehtml": "hi~!",
         "hostname": ["127.0.0.1",""],
         "url": ["^/rehtml$","jio"]
     }
@@ -769,6 +769,47 @@ end
 这个配置就表示，访问`/api/.*`这些目录的只有`ip`为`1.1.1.1`和`106.37.236.170`，是不是很简单，对目录进行明细的IP访问控制。
 
 ## 配额referer过滤
+在该模块下，一些防盗链，站外CSRF等都是在这里设置，如我需要设置图片仅允许本站进行引用。
+```
+{
+        "state": "on",
+        "url": [
+            "\\.(gif|jpg|png|jpeg|bmp|ico)$",
+            "jio"
+        ],
+        "hostname": [
+            "www\\.test\\.com",
+            ""
+        ],
+        "referer": [
+            "\\.*.test.com",
+            "jio"
+        ],
+        "action":"allow"
+    }
+```
+上面的配置就是`www.test.com`这个网站的图片资源仅允许`referer`是`*.test.com`来的，如果`referer`不对就拒绝访问了，如果`action`是`allow`那么匹配到的这些url将不会进行后面的规则匹配，这样就减少规则匹配，提高效率
+在看一个例子，就是防止站外的CSRF了。
+```
+{
+        "state": "on",
+        "url": [
+            "^/abc.do$",
+            "jio"
+        ],
+        "hostname": [
+            "pass.test.com"
+            ""
+        ],
+        "referer": [
+            "^.*/(www\\.test\\.com|www3\\.test\\.com)$",
+            "jio"
+        ],
+        "action":"next"
+
+    }
+```
+上面的这个配置就是url`abc.do`的请求referer来源进行了限制，否则就拒绝访问，且`action`是`next`就表示，后续的规则匹配继续，1.2版本之前会bypass的。现在不会了。
 
 ## 配置url过滤
 

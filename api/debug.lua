@@ -49,5 +49,5 @@ elseif method == "POST" then
     debug_tb["_PostData"] = data
     sayHtml_ext(debug_tb)
 else
-    ngx.say("method erroe")
+    ngx.say("method error")
 end

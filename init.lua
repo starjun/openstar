@@ -235,7 +235,7 @@ end
 		local url = ngx.var.uri or "unknow_url"
 		local method=ngx.req.get_method() or "unknow_method"
 		local request_uri = ngx.var.request_uri or "unknow_req_uri"
-		local time = os.date("%Y/%m/%d %H:%M:%S", os.time())
+		local time = ngx.localtime()
 		local str = string.format("Host:%s method:%s url:%s debug:%s",host,method,url,msg)
 		writefile(filepath,time..": "..str)
 	end

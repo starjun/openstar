@@ -68,7 +68,7 @@ elseif _action == "get" then
     if _key == "config_dict" or _key == "count_dict" then
         res = cjson_safe.decode(res)
     end
-    sayHtml_ext(res)
+    sayHtml_ext(res)    
 elseif _action == "save" then
     if _key == "config_dict" then  --保存dict中的config_dict到redis
         local tmpdict = config_dict
