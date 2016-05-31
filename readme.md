@@ -975,20 +975,29 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 # 性能评测
 
 >我在微软的Azure上，整了一些服务器进行性能上的测试。还在整理敬请期待......
+**操作系统信息**
+OpenStar测试服务器：
+```
+ 微软虚机，内网测试
+ 
+ uname -a :
+ Linux dpicsvr01 4.2.0-30-generic #36-Ubuntu SMP Fri Feb 26 00:58:07 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+ 
+ 内存：
+ cat /proc/meminfo | grep MemTotal
+ MemTotal:       14360276 kB// 14GB
+ 
+ CPU型号：cat /proc/cpuinfo | grep 'model name' |uniq
+ Intel(R) Xeon(R) CPU E5-2660 0 @ 2.20GHz
+ 
+ CPU核数：cat /proc/cpuinfo | grep "cpu cores" | uniq
+ 4
+ 
+ CPU个数：cat /proc/cpuinfo | grep "physical id" | uniq | wc -l
+ 1
+```
 
- 1. 测试1
  
- 2. 测试2
- 
- 3. 测试3
- 
- 4. 测试4
- 
- 5. 测试5
- 
- 6. 测试6
- 
- 7. 测试7
  
 
 # 变更历史
@@ -1036,7 +1045,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 
 # 关于
 
-- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥，loveshell[8]！！！
+- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥，[loveshell][8]！！！
 - 关于我：从事安全、架构相关工作。
 - Copyright and License
 GPL（GNU General Public License）
