@@ -49,7 +49,7 @@ WAF	防护从header,args,post,访问频率等层面分层进行防护，详细�
      
      2：嵌入的URL（验证码、ajax接口等）
      
-     3：面向非浏览器的接口（一些API、WEBservers等）
+     3：面向非浏览器的接口（一些API、WEBservice等）
      
  -  基于特定web服务、语言等的特定攻击（慢速攻击、PHP-dos等） 
  
@@ -58,7 +58,8 @@ WAF	防护从header,args,post,访问频率等层面分层进行防护，详细�
 ## 防护方法
  - 网络层
  通过访问ip的频率、统计等使用阀值的方式进行频率和次数的限制，黑名单方式
- - 网络层+应用层
+ 
+- 网络层+应用层
  在后来的互联网网络下，有了的CDN加入，现在增加的网络层的防护需要扩展，那么统计的IP将是在HTTP头中的IP，仍然使用频率、次数、黑名单的方式操作。 
  > `但是很多厂家的硬件流量清洗等设备，有的获取用户真实IP从HTTP头中取的是固定字段（X-FOR-F），不能自定义，更甚至有的厂家就没有该功能，这里就不说具体的这些厂家名字了`PS: 在传统的4层防护上，是没有问题的
 
@@ -92,18 +93,22 @@ url添加的尾巴（args参数）是服务器动态生成的token，而不是�
 > 应用层的防护是在网络层+扩展的网络层防护效果不佳时使用，一般情况基本用的不多，因为在网络层+部分应用层防护处，基本可以解决CC类攻击，以及在防页面抓取时，发挥你的想象使用OpenStar就可以帮你快速实现。
 
 # 目录
+
 后续更新！~
+
 # 下载
+
 wget
 
 git clone 
+
 # 安装
  - 安装OpenResty
  这里不做过多重复描述，直接看链接[OpenResty][4]
  - 配置nginx.conf
  在http节点，引用waf.conf。注：原ngx相关配置基本不用修改，该优化优化、该做CPU亲缘绑定继续、该动静分离还继续、该IO、TIME等优化继续不要停。
  - 配置waf.conf
- 修改lua_package_path，使用正确的路径即可
+ 修改lua\_package\_path，使用正确的路径即可
  - 设置目录权限
  OpenStar目录建议放到OR下，方便操作，该目录ngx运行用户有读写执行权限即可。因为要写日志，暂时没有用ngx.log，后续可能会改动。
  - lua文件修改
@@ -171,7 +176,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  
  1：ip_Mod ==> 请求ip的黑、白名单过滤
  
- 2：host_method_Mod ==> host和method过滤（白名单）
+ 2：host\_method\_Mod ==> host和method过滤（白名单）
  
  3：app_Mod ==> 用户自定义应用层过滤
  
@@ -206,7 +211,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
   该参数是否开启从http头中取用户真实IP，适用于CDN后端等
   + ip_Mod
   该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
-  + host_method_Mod 
+  + host\_method\_Mod 
   该参数是否启用HOST、METHOD白名单
   + app_Mod 
   该参数是否启用用户自定义应用层规则
@@ -238,6 +243,8 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
   该参数表示过滤规则存放目录
   + htmlPath 
   该参数表示在app_Mod规则中一些文件、脚本存放路径
+  + sayHtml
+  该参数表示，应用层拒绝访问时，显示的内容配置
 
 ## STEP 0：realIpFrom_Mod
 
@@ -723,7 +730,7 @@ else
 	return  ---- 否则继续for循环 继续规则判断
 end
 ```
-如果有一些复杂的可以直接使用lua脚本去实现，这个脚本的意思是匹配任意host，url是`/api/time`的，匹配成功后直接返回内容`ABC.ABC IS ABC`，注意一下`return` 看注释。
+如果有一些复杂的可以直接使用lua脚本去实现，这个脚本的意思是匹配任意host，url是`/api/time`的，匹配成功后直接返回内容`ABC.ABC IS ABC`，注意一下`return` 看注释。(自定义的lua脚本可以参考这个，比较简单)
 
 `log`：这个就表示仅仅记录一些log（log保存的路径就是在config.json里面，文件名是app_log.log）
 ```
@@ -789,7 +796,7 @@ end
     }
 ```
 上面的配置就是`www.test.com`这个网站的图片资源仅允许`referer`是`*.test.com`来的，如果`referer`不对就拒绝访问了，如果`action`是`allow`那么匹配到的这些url将不会进行后面的规则匹配，这样就减少规则匹配，提高效率
-在看一个例子，就是防止站外的CSRF了。
+在看一个例子，就是防止站外的CSRF了(浏览器发起的)。
 ```
 {
         "state": "on",
@@ -812,24 +819,177 @@ end
 上面的这个配置就是url`abc.do`的请求referer来源进行了限制，否则就拒绝访问，且`action`是`next`就表示，后续的规则匹配继续，1.2版本之前会bypass的。现在不会了。
 
 ## 配置url过滤
+url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子吧
+```
+{
+        "state": "on",
+        "hostname": [
+            "*",
+            ""
+        ],
+        "url": [
+            "\\.(svn|git|htaccess|bash_history)",
+            "jio"
+        ],
+        "action": "deny"
+}
+```
+首先看`hostname`,这里匹配的是所有，`url`就是一些敏感文件、目录了，动作`action`就是拒绝了。
+在说一个动作是`allow`的，这个场景就是一些静态资源，这些匹配后，不进行后续的规则匹配，总体是减少匹配的次数，提高效率的，因为不需要在不同的`location`中单独去引用LUA文件了，也是非常实用的功能
+```
+{
+        "state": "on",
+        "hostname": [
+            "*",
+            ""
+        ],
+        "url": [
+            "\\.(css|js|flv|swf|zip|txt)$",
+            "jio"
+        ],
+        "action": "allow"
+}
+```
+上面的例子也是比较好理解的，不做解释了。
+**这里的规则是[loveshell][8]总结的，后面的多数规则都是直接用loveshell的**
 
 ## 配置header过滤
+这里`header`过滤了，比如一些扫描器特征，wvs的`header`在默认是有一个标记的`Acunetix_Aspect`,来个例子
+```
+{
+    "state": "on",
+    "url": ["*",""],
+    "hostname": ["*",""],
+    "header": ["Acunetix_Aspect","*",""]        
+}
+```
+这个例子就是拦截wvs扫描器的。
+
+>占位符，后续会更新一些慢速攻击的特征
 
 ## 配置useragent过滤
+`useragent`的过滤，一些脚本语言带的`agent`默认都给过滤了。
+```
+{
+    "state": "on",
+    "useragent": [
+        "HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench",
+        "jio"
+    ],
+    "hostname": [
+        "*",
+        ""
+    ]
+}
+```
 
 ## 配置cookie过滤
+关于`cookie`过滤，一般就是SQL注入等问题。
+```
+{
+        "state": "on",
+        "hostname": [
+            "*",
+            ""
+        ],
+        "cookie": ["select.+(from|limit)","jio"],
+        "action": "deny"
+}
+```
+关于SQL注入需要根据自己的业务进行相应的调整，这样就可以更全面的防护。
 
-## 配置get参数过滤
-
-## 配置post参数过滤
+## 配置get/post参数过滤
+`get`参数的过滤就是SQL/XSS等问题。参数污染是绕过不了的。
+参考http://www.freebuf.com/articles/web/36683.html；
+参考http://drops.wooyun.org/tips/132
+一些waf的bypass技巧。我们根据自己的业务进行调整即可。
+**这个一定要根据实际情况配置**
+```
+{
+        "state": "on",
+        "hostname": [
+            "*",
+            ""
+        ],
+        "args": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
+        "action": "deny"
+}
+// -- XSS
+{
+        "state": "on",
+        "hostname": [
+            "*",
+            ""
+        ],
+        "args": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
+        "action": "deny"
+}
+```
+这些规则默认集成的[loveshell][8]，一定要根据自己的业务场景进行调整。抓过菜刀连接的数据包的人应该清楚，这里我们也可以进行过滤。
 
 ## 配置网络访问频率限制
+关于访问频率的限制，支持对明细`url`的单独限速，当然也可以是整站的频率限制。
+```
+-- 单个URL的频率限制
+-- 因为一个网站一般情况下容易被CC的点就那么几个
+{
+    "state": "on",
+    "network":{"maxReqs":10,"pTime":10,"blackTime":600},
+    "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+    "url": ["/api/time",""]
+}
+-- 限制整个网站的（范围大的一定要放下面）
+{
+    "state": "on",
+    "network":{"maxReqs":30,"pTime":10,"blackTime":600},
+    "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+    "url": ["*",""]
+}
+-- 限制ip的不区分host和url
+{
+    "state": "on",
+    "network":{"maxReqs":100,"pTime":10,"blackTime":600},
+    "hostname": ["*",""],
+    "url": ["*",""]
+}
+```
+一定要根据自己的情况进行配置！！！
 
 ## 配置返回内容的替换规则
+这个功能模块，主要是对返回内容的修改，根据自己情况使用吧。
+```
+{
+        "state": "on",
+        "url": ["^/api/ip_dict$","jio"],
+        "hostname": ["101.200.122.200",""],
+        "replace_list":
+            [
+             ["deny","","denyFUCK"],
+             ["allow","","allowPASS"],
+             ["lzcaptcha\\?key='\\s*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]
+            ]
+}
+```
+这里就不在解释了，注意的是`replace_list`这个是个内容替换的list，`@token@`就是动态的替换成服务器生成的`token`了。
 
 # 性能评测
 
 >我在微软的Azure上，整了一些服务器进行性能上的测试。还在整理敬请期待......
+
+ 1. 测试1
+ 
+ 2. 测试2
+ 
+ 3. 测试3
+ 
+ 4. 测试4
+ 
+ 5. 测试5
+ 
+ 6. 测试6
+ 
+ 7. 测试7
+ 
 
 # 变更历史
 
@@ -872,11 +1032,11 @@ end
 
 ## 0.1 CC防护版
 
-- 当时是为了解决公司的CC攻击，由于一些硬件抗D设备在新的网络环境下（有CDN网络下）无法获取用户真实IP头，我才动手将第一个版本完成，当时功能就是有通过自定义HTTP头获取用户真实ip进行访问频率的限制。（OpenStar可以根据某个url进行频率限制，不仅仅是整个网站的[排除静态文件，如设置了referer_Mod 或者 url_Mod 中资源的allow操作]）
+- 当时是为了解决公司的CC攻击，由于一些硬件抗D设备在新的网络环境下（有CDN网络下）无法获取用户真实IP头，我才动手将第一个版本完成，当时功能就是有通过自定义HTTP头获取用户真实ip进行访问频率的限制。（OpenStar可以根据某个url进行频率限制，不仅仅是整个网站的[排除静态文件，如设置了referer\_Mod 或者 url\_Mod 中资源的allow操作]）
 
 # 关于
 
-- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥！！！
+- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥，loveshell[8]！！！
 - 关于我：从事安全、架构相关工作。
 - Copyright and License
 GPL（GNU General Public License）
