@@ -2,9 +2,13 @@ local host = ngx.req.get_headers()["Host"] or "unknownhost"
 local url = ngx.unescape_uri(ngx.var.uri)
 local remoteIP = ngx.var.remote_addr
 local headers = ngx.req.get_headers()
-local token_list = ngx.shared.token_list
 
---- config_is_on()
+local token_list = ngx.shared.token_list
+local config_dict = ngx.shared.config_dict
+
+local cjson_safe = require "cjson.safe"
+
+--- 判断config_dict中模块开关是否开启
 local function config_is_on(config_arg)
 	local config_dict = ngx.shared.config_dict
 	if config_dict:get(config_arg) == "on" then
@@ -12,8 +16,13 @@ local function config_is_on(config_arg)
 	end
 end
 
+--- 取config_dict中的json数据
+local function getDict_Config(Config_jsonName)
+	local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
+	return re
+end
 
-if config_is_on("replace_Mod") ==  false then return end
+if not config_is_on("replace_Mod") then return end
 
 --- remath(str,re_str,options)
 local function remath(str,re_str,options)
@@ -57,7 +66,7 @@ local function ngx_2(reps,str_all)
 	token_list:delete(token_tmp)	
 end
 
-local Replace_Mod = replace_Mod
+local Replace_Mod = getDict_Config("json_replace_Mod")
 
 
 --- STEP 12

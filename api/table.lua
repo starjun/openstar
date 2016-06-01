@@ -1,5 +1,7 @@
 
 
+do return end --- 使用dict 暂时停止table相关API
+
 local function get_argByName(name)
 	local x = 'arg_'..name
     local _name = ngx.unescape_uri(ngx.var[x])

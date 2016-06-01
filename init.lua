@@ -49,19 +49,20 @@ loadConfig()
 --- 使用全局变量 或 使用共享内存在做序列化 未做性能测试 后续测试后 使用较高性能的方法
 --- 暂时将这些table使用全局变量 ，已经预留了共享内存的方式
 
-	realIpFrom_Mod = Config.json_realIpFrom_Mod
-	ip_Mod = Config.json_ip_Mod	
-	host_method_Mod = Config.json_host_method_Mod
-	app_Mod = Config.json_app_Mod
-	referer_Mod = Config.json_referer_Mod
-	url_Mod = Config.json_url_Mod
-	header_Mod = Config.json_header_Mod		
-	useragent_Mod = Config.json_useragent_Mod	
-	cookie_Mod = Config.json_cookie_Mod
-	args_Mod = Config.json_args_Mod
-	post_Mod = Config.json_post_Mod
-	network_Mod = Config.json_network_Mod
-	replace_Mod = Config.json_replace_Mod
+	-- realIpFrom_Mod = Config.json_realIpFrom_Mod
+	-- ip_Mod = Config.json_ip_Mod	
+	-- host_method_Mod = Config.json_host_method_Mod
+	-- app_Mod = Config.json_app_Mod
+	-- referer_Mod = Config.json_referer_Mod
+	-- url_Mod = Config.json_url_Mod
+	-- header_Mod = Config.json_header_Mod		
+	-- useragent_Mod = Config.json_useragent_Mod	
+	-- cookie_Mod = Config.json_cookie_Mod
+	-- args_Mod = Config.json_args_Mod
+	-- post_Mod = Config.json_post_Mod
+	-- network_Mod = Config.json_network_Mod
+	-- replace_Mod = Config.json_replace_Mod
+
 --- 将全局配置参数存放到共享内存（config_dict）中
 	local config_dict = ngx.shared.config_dict
 	for k,v in pairs(Config) do
@@ -74,7 +75,7 @@ loadConfig()
 --- 初始化ip_mod列表
 --- 
 local function set_ip_mod()
-		local tb_ip_mod = ip_Mod or {}
+		local tb_ip_mod = Config.json_ip_Mod or {}
 		local _dict = ngx.shared["ip_dict"]
 		if not tb_ip_mod then return end
 		for i,v in ipairs(tb_ip_mod) do

@@ -4,7 +4,15 @@ local method = ngx.var.request_method
 local args = ngx.req.get_uri_args() or {}
 local url = ngx.unescape_uri(ngx.var.uri)
 local request_url = ngx.unescape_uri(ngx.var.request_uri)
+local lua_version
+if jit then 
+    lua_version = jit.version
+else 
+    lua_version = _VERSION
+end
 local debug_tb = {
+    _lua_version = lua_version,
+    _ngx_lua_version = ngx.config.ngx_lua_version,
     _url = url,
     _method = method,
     _request_url = request_url,

@@ -6,23 +6,31 @@ local method = ngx.var.request_method
 local url = ngx.unescape_uri(ngx.var.uri)
 local referer = headers["referer"] or "unknownreferer"
 local agent = headers["user_agent"] or "unknownagent"	
-local request_url = ngx.unescape_uri(ngx.var.request_uri)
+--local request_url = ngx.unescape_uri(ngx.var.request_uri)
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared["limit_ip_dict"]
 local ip_dict = ngx.shared["ip_dict"]
 
---- config_is_on()
+local cjson_safe = require "cjson.safe"
+
+--- 判断config_dict中模块开关是否开启
 local function config_is_on(config_arg)	
 	if config_dict:get(config_arg) == "on" then
 		return true
 	end
 end
 
+--- 取config_dict中的json数据
+local function getDict_Config(Config_jsonName)
+	local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
+	return re
+end
+
 -- 传入 (host  连接IP  http头)
 local function loc_getRealIp(host,remoteIP,headers)
 	if config_is_on("realIpFrom_Mod") then
-		local realipfrom = realIpFrom_Mod or {}
+		local realipfrom = getDict_Config("json_realIpFrom_Mod")
 		local ipfromset = realipfrom[host]		
 		if type(ipfromset) ~= "table" then return remoteIP end
 		if ipfromset.ips == "*" then
@@ -107,7 +115,7 @@ end
 ---  STEP 2
 -- host and method  访问控制(白名单)
 if config_is_on("host_method_Mod") then
-	local tb_mod = host_method_Mod or {}
+	local tb_mod = getDict_Config("json_host_method_Mod")
 	local check
 	for i,v in ipairs(tb_mod) do
 		if v.state == "on" then
@@ -128,7 +136,7 @@ end
 --- STEP 3
 -- app_Mod 访问控制
 if config_is_on("app_Mod") then
-	local app_mod = app_Mod or {}
+	local app_mod = getDict_Config("json_app_Mod")
 	for i,v in ipairs(app_mod) do
 		if v.state == "on" then
 			--debug("app_Mod state is on "..i)
@@ -199,12 +207,12 @@ end
 -- referer (白名单)
 if config_is_on("referer_Mod") then
 	local check
-	local ref_mod = referer_Mod or {}
+	local ref_mod = getDict_Config("json_referer_Mod")
 	for i, v in ipairs( ref_mod ) do
 		if v.state == "on" then
 			if host_url_remath(v.hostname,v.url) then
 				if v.action == "allow" then
-					if remath(_referer,v.referer[1],v.referer[2]) then
+					if remath(referer,v.referer[1],v.referer[2]) then
 						check = "allow"
 						break					
 					else
@@ -212,7 +220,7 @@ if config_is_on("referer_Mod") then
 						break
 					end
 				elseif v.action == "next" then
-					if remath(_referer,v.referer[1],v.referer[2]) then
+					if remath(referer,v.referer[1],v.referer[2]) then
 						check = "next"
 						break
 					else
@@ -242,7 +250,7 @@ end
 --- STEP 5
 -- url 过滤(黑白名单)
 local function check_url()
-	local url_mod = url_Mod or {}	
+	local url_mod = getDict_Config("json_url_Mod")	
 	for i, v in ipairs( url_mod ) do
 		if v.state == "on" then
 			if host_url_remath(v.hostname,v.url) then
@@ -267,7 +275,7 @@ end
 --- STEP 6
 -- header 过滤(黑名单) [scanner]
 if config_is_on("header_Mod") then
-	local tb_mod = header_Mod or {}
+	local tb_mod = getDict_Config("json_header_Mod")
 	for i,v in ipairs(tb_mod) do
 		if v.state == "on" then			
 			if host_url_remath(v.hostname,v.url) then
@@ -287,7 +295,7 @@ end
 --- STEP 7
 -- useragent(黑名单)
 if config_is_on("agent_Mod") then	
-	local uagent_mod = useragent_Mod or {}
+	local uagent_mod = getDict_Config("json_useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" then
 			--debug(i.." agent_Mod state is on")
@@ -310,7 +318,7 @@ end
 -- cookie (黑名单)
 if config_is_on("cookie_Mod") then
 	local cookie = headers["cookie"] or "unknowncookie"
-	local cookie_mod = cookie_Mod or {}
+	local cookie_mod = getDict_Config("json_cookie_Mod")
 	for i, v in ipairs( cookie_mod ) do
 		if v.state == "on" then
 			if remath(host,v.hostname[1],v.hostname[2]) then
@@ -331,7 +339,7 @@ end
 -- args (黑名单)
 if config_is_on("args_Mod") then
 	--debug("args_Mod is on")
-	local args_mod = args_Mod or {}
+	local args_mod = getDict_Config("json_args_Mod")
 	local args = ngx.unescape_uri(ngx.var.query_string)
 	if args ~= nil then
 		for i,v in ipairs(args_mod) do
@@ -371,7 +379,7 @@ local function get_postargs()
 end
 if config_is_on("post_Mod") and method == "POST" then
 	--debug("post_Mod is on")
-	local post_mod = post_Mod or {}
+	local post_mod = getDict_Config("json_post_Mod")
 	local postargs = get_postargs()
 	if postargs ~= nil then
 		for i,v in ipairs(post_mod) do
@@ -396,7 +404,7 @@ end
 -- network_Mod 访问控制
 local function check_network()
 	--if ip == nil then return end
-	local tb_networkMod = network_Mod or {}
+	local tb_networkMod = getDict_Config("json_network_Mod")
 	for i, v in ipairs( tb_networkMod ) do
 		if v.state =="on" then
 			if host_url_remath(v.hostname,v.url) then
