@@ -11,6 +11,11 @@ else
     lua_version = _VERSION
 end
 local debug_tb = {
+    _pid = ngx.worker.pid(),
+    _worker_count =ngx.worker.count(),
+    _worker_id = ngx.worker.id(),
+    _ngx_configure=ngx.config.nginx_configure(),
+    _ngx_prefix=ngx.config.prefix(),
     _lua_version = lua_version,
     _ngx_lua_version = ngx.config.ngx_lua_version,
     _url = url,

@@ -16,54 +16,29 @@ end
 --- 载入JSON文件
 local function loadjson(_path_name)
 	local x = readfile(_path_name)
-	return cjson_safe.decode(x)
+	local json = cjson_safe.decode(x) or {}
+	return json
 end
 
 --- 载入config.json全局基础配置
 function loadConfig()
 	local _jsonConfig = loadjson(config_json)
-	if type(_jsonConfig) == "table" then 
-		for k,v in pairs(_jsonConfig) do
-			Config[k]=v
-		end
-	end
-	Config.name = "localConfig"
-	local _basedir = Config.jsonPath
-	Config.json_realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
-	Config.json_ip_Mod = loadjson(_basedir.."ip_Mod.json")
-	Config.json_host_method_Mod = loadjson(_basedir.."host_method_Mod.json")
-	Config.json_app_Mod = loadjson(_basedir.."app_Mod.json")
-	Config.json_referer_Mod = loadjson(_basedir.."referer_Mod.json")
-	Config.json_url_Mod = loadjson(_basedir.."url_Mod.json")	
-	Config.json_header_Mod = loadjson(_basedir.."header_Mod.json")	
-	Config.json_useragent_Mod = loadjson(_basedir.."useragent_Mod.json")	
-	Config.json_cookie_Mod = loadjson(_basedir.."cookie_Mod.json")
-	Config.json_args_Mod = loadjson(_basedir.."args_Mod.json")
-	Config.json_post_Mod = loadjson(_basedir.."post_Mod.json")	
-	Config.json_network_Mod = loadjson(_basedir.."network_Mod.json")
-	Config.json_replace_Mod = loadjson(_basedir.."replace_Mod.json")
-end
-
-loadConfig()
-
---- 使用全局变量 或 使用共享内存在做序列化 未做性能测试 后续测试后 使用较高性能的方法
---- 暂时将这些table使用全局变量 ，已经预留了共享内存的方式
-
-	-- realIpFrom_Mod = Config.json_realIpFrom_Mod
-	-- ip_Mod = Config.json_ip_Mod	
-	-- host_method_Mod = Config.json_host_method_Mod
-	-- app_Mod = Config.json_app_Mod
-	-- referer_Mod = Config.json_referer_Mod
-	-- url_Mod = Config.json_url_Mod
-	-- header_Mod = Config.json_header_Mod		
-	-- useragent_Mod = Config.json_useragent_Mod	
-	-- cookie_Mod = Config.json_cookie_Mod
-	-- args_Mod = Config.json_args_Mod
-	-- post_Mod = Config.json_post_Mod
-	-- network_Mod = Config.json_network_Mod
-	-- replace_Mod = Config.json_replace_Mod
-
---- 将全局配置参数存放到共享内存（config_dict）中
+	Config.base = _jsonConfig
+	local _basedir = Config.base.jsonPath
+	Config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
+	Config.ip_Mod = loadjson(_basedir.."ip_Mod.json")
+	Config.host_method_Mod = loadjson(_basedir.."host_method_Mod.json")
+	Config.app_Mod = loadjson(_basedir.."app_Mod.json")
+	Config.referer_Mod = loadjson(_basedir.."referer_Mod.json")
+	Config.url_Mod = loadjson(_basedir.."url_Mod.json")	
+	Config.header_Mod = loadjson(_basedir.."header_Mod.json")	
+	Config.useragent_Mod = loadjson(_basedir.."useragent_Mod.json")	
+	Config.cookie_Mod = loadjson(_basedir.."cookie_Mod.json")
+	Config.args_Mod = loadjson(_basedir.."args_Mod.json")
+	Config.post_Mod = loadjson(_basedir.."post_Mod.json")	
+	Config.network_Mod = loadjson(_basedir.."network_Mod.json")
+	Config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
+	--- 将全局配置参数存放到共享内存（config_dict）中
 	local config_dict = ngx.shared.config_dict
 	for k,v in pairs(Config) do
 		if type(v) == "table" then
@@ -71,26 +46,28 @@ loadConfig()
 		end
 		config_dict:safe_set(k,v,0)
 	end
+end
+
+loadConfig()
 
 --- 初始化ip_mod列表
 --- 
 local function set_ip_mod()
-		local tb_ip_mod = Config.json_ip_Mod or {}
-		local _dict = ngx.shared["ip_dict"]
-		if not tb_ip_mod then return end
-		for i,v in ipairs(tb_ip_mod) do
-			if v.action == "allow" then
-				_dict:safe_set(v.ip,"allow",0)
-			elseif v.action == "deny" then
-				_dict:safe_set(v.ip,"ip_mod deny",0)
-			else
-			end
+	local tb_ip_mod = Config.ip_Mod
+	local _dict = ngx.shared["ip_dict"]
+	for i,v in ipairs(tb_ip_mod) do
+		if v.action == "allow" then
+			_dict:safe_set(v.ip,"allow",0)
+		elseif v.action == "deny" then
+			_dict:safe_set(v.ip,"ip_mod deny",0)
+		else
 		end
 	end
+end
 
-	if Config["ip_Mod"] == "on" then
-		set_ip_mod()
-	end
+if Config.base["ip_Mod"] == "on" then
+	set_ip_mod()
+end
 
 -- table 相关
 --
@@ -155,7 +132,7 @@ end
 function ngx_find(str)
 	-- str = string.sub(str,"@ngx_time@",ngx.time())
 	-- ngx.re.gsub 效率要比string.sub要好一点，参考openresty最佳实践
-	str = ngx.re.gsub(str,"@ngx_time@",ngx.time())
+	str = ngx.re.gsub(str,"@ngx_localtime@",ngx.localtime())
 	-- string.find 会走jit,所以就没有用ngx模块
 	-- 当前情况下，对token仅是全局替换一次，请注意
 	if string.find(str,"@token@") ~= nil then		
@@ -186,14 +163,14 @@ end
 
 	function sayFile(filename)
 		ngx.header.content_type = "text/html"
-		local str = readfile(Config.htmlPath..filename)
+		local str = readfile(Config.base.htmlPath..filename)
 		if str == nil then str = filename end
 		ngx.say(str)
 		ngx.exit(200)
 	end
 
 	function sayLua(lua)
-		local re = dofile(Config.htmlPath..lua)
+		local re = dofile(Config.base.htmlPath..lua)
 		--debug("sayLua  init re :"..tostring( re ))
 		return re
 	end
@@ -213,7 +190,7 @@ end
 --
 	function init_debug(msg)
 		if Config.debug_Mod == false then return end  --- 判断debug开启状态
-		local filepath = Config.logPath.."debug.log"
+		local filepath = Config.base.logPath.."debug.log"
 		local time = ngx.localtime()
 		if type(msg) == "table" then
 			local str_msg = tableToString(msg)
@@ -230,7 +207,7 @@ end
 		if filename == nil then
 			filename = "debug"
 		end
-		local filepath = Config.logPath..filename..".log"
+		local filepath = Config.base.logPath..filename..".log"
 		--init_debug(filepath)
 		local host = ngx.req.get_headers()["Host"] or "unknow_host"
 		local url = ngx.var.uri or "unknow_url"
@@ -246,7 +223,7 @@ end
 	function action_deny(code)
 		if code == nil or type(code) ~= "number" then
 			local default = [[<!DOCTYPE html><html><head><title>Error</title><style>body {width: 35em;margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif;}</style></head><body><h1>An error occurred.</h1><p>Sorry, the page you are looking for is currently unavailable.<br/>Please try again later.</p><p>If you are the system administrator of this resource then you should checkthe <a href="http://nginx.org/r/error_log">error log</a> for details.</p><p><em>Faithfully yours, nginx.</em></p></body></html>]]
-			local msg = Config.sayHtml or default
+			local msg = Config.base.sayHtml or default
 			ngx.say(msg) 
 			return ngx.exit(200)
 		else

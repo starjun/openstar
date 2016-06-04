@@ -9,14 +9,15 @@ local agent = headers["user_agent"] or "unknownagent"
 --local request_url = ngx.unescape_uri(ngx.var.request_uri)
 
 local config_dict = ngx.shared.config_dict
-local limit_ip_dict = ngx.shared["limit_ip_dict"]
-local ip_dict = ngx.shared["ip_dict"]
+local limit_ip_dict = ngx.shared.limit_ip_dict
+local ip_dict = ngx.shared.ip_dict
 
 local cjson_safe = require "cjson.safe"
+local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 --- 判断config_dict中模块开关是否开启
-local function config_is_on(config_arg)	
-	if config_dict:get(config_arg) == "on" then
+local function config_is_on(config_arg)
+	if config_base[config_arg] == "on" then
 		return true
 	end
 end
@@ -30,7 +31,7 @@ end
 -- 传入 (host  连接IP  http头)
 local function loc_getRealIp(host,remoteIP,headers)
 	if config_is_on("realIpFrom_Mod") then
-		local realipfrom = getDict_Config("json_realIpFrom_Mod")
+		local realipfrom = getDict_Config("realIpFrom_Mod")
 		local ipfromset = realipfrom[host]		
 		if type(ipfromset) ~= "table" then return remoteIP end
 		if ipfromset.ips == "*" then
@@ -55,6 +56,8 @@ local function loc_getRealIp(host,remoteIP,headers)
 			end
 			return remoteIP
 		end
+	else
+		return remoteIP
 	end
 end
 
@@ -115,7 +118,7 @@ end
 ---  STEP 2
 -- host and method  访问控制(白名单)
 if config_is_on("host_method_Mod") then
-	local tb_mod = getDict_Config("json_host_method_Mod")
+	local tb_mod = getDict_Config("host_method_Mod")
 	local check
 	for i,v in ipairs(tb_mod) do
 		if v.state == "on" then
@@ -136,7 +139,7 @@ end
 --- STEP 3
 -- app_Mod 访问控制
 if config_is_on("app_Mod") then
-	local app_mod = getDict_Config("json_app_Mod")
+	local app_mod = getDict_Config("app_Mod")
 	for i,v in ipairs(app_mod) do
 		if v.state == "on" then
 			--debug("app_Mod state is on "..i)
@@ -151,7 +154,7 @@ if config_is_on("app_Mod") then
 					local check
 					if v.allow[1] == "args" then
 						local get_args = get_argByName(v.allow[2])
-						--debug("get_args by keyby : "..get_args)
+						--debug("get_args by keyby : "..get_args.."")
 						if v.allow[3] == "@token@" then --- 服务器验证
 							local token_list = ngx.shared.token_list;
 							local a = token_list:get(get_args)
@@ -179,6 +182,7 @@ if config_is_on("app_Mod") then
 						break
 					end					
 				elseif v.action[1] == "log" then
+
 					debug("app_Mod log","app_log")
 				elseif v.action[1] == "rehtml" then
 					sayHtml_ext(v.rehtml)
@@ -207,7 +211,7 @@ end
 -- referer (白名单)
 if config_is_on("referer_Mod") then
 	local check
-	local ref_mod = getDict_Config("json_referer_Mod")
+	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
 		if v.state == "on" then
 			if host_url_remath(v.hostname,v.url) then
@@ -250,7 +254,7 @@ end
 --- STEP 5
 -- url 过滤(黑白名单)
 local function check_url()
-	local url_mod = getDict_Config("json_url_Mod")	
+	local url_mod = getDict_Config("url_Mod")	
 	for i, v in ipairs( url_mod ) do
 		if v.state == "on" then
 			if host_url_remath(v.hostname,v.url) then
@@ -275,7 +279,7 @@ end
 --- STEP 6
 -- header 过滤(黑名单) [scanner]
 if config_is_on("header_Mod") then
-	local tb_mod = getDict_Config("json_header_Mod")
+	local tb_mod = getDict_Config("header_Mod")
 	for i,v in ipairs(tb_mod) do
 		if v.state == "on" then			
 			if host_url_remath(v.hostname,v.url) then
@@ -295,7 +299,7 @@ end
 --- STEP 7
 -- useragent(黑名单)
 if config_is_on("agent_Mod") then	
-	local uagent_mod = getDict_Config("json_useragent_Mod")
+	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" then
 			--debug(i.." agent_Mod state is on")
@@ -318,7 +322,7 @@ end
 -- cookie (黑名单)
 if config_is_on("cookie_Mod") then
 	local cookie = headers["cookie"] or "unknowncookie"
-	local cookie_mod = getDict_Config("json_cookie_Mod")
+	local cookie_mod = getDict_Config("cookie_Mod")
 	for i, v in ipairs( cookie_mod ) do
 		if v.state == "on" then
 			if remath(host,v.hostname[1],v.hostname[2]) then
@@ -339,7 +343,7 @@ end
 -- args (黑名单)
 if config_is_on("args_Mod") then
 	--debug("args_Mod is on")
-	local args_mod = getDict_Config("json_args_Mod")
+	local args_mod = getDict_Config("args_Mod")
 	local args = ngx.unescape_uri(ngx.var.query_string)
 	if args ~= nil then
 		for i,v in ipairs(args_mod) do
@@ -379,7 +383,7 @@ local function get_postargs()
 end
 if config_is_on("post_Mod") and method == "POST" then
 	--debug("post_Mod is on")
-	local post_mod = getDict_Config("json_post_Mod")
+	local post_mod = getDict_Config("post_Mod")
 	local postargs = get_postargs()
 	if postargs ~= nil then
 		for i,v in ipairs(post_mod) do
@@ -404,7 +408,7 @@ end
 -- network_Mod 访问控制
 local function check_network()
 	--if ip == nil then return end
-	local tb_networkMod = getDict_Config("json_network_Mod")
+	local tb_networkMod = getDict_Config("network_Mod")
 	for i, v in ipairs( tb_networkMod ) do
 		if v.state =="on" then
 			if host_url_remath(v.hostname,v.url) then

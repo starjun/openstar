@@ -39,6 +39,6 @@
 
 	"htmlPath" : "/opt/openresty/openstar/index/",
 
-	"sayHtml" : "<html>request error!</html>"
+	"sayHtml" : "request error!"
 
 }

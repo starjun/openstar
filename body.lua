@@ -22,6 +22,7 @@ local function getDict_Config(Config_jsonName)
 	return re
 end
 
+
 if not config_is_on("replace_Mod") then return end
 
 --- remath(str,re_str,options)
@@ -66,7 +67,7 @@ local function ngx_2(reps,str_all)
 	token_list:delete(token_tmp)	
 end
 
-local Replace_Mod = getDict_Config("json_replace_Mod")
+local Replace_Mod = getDict_Config("replace_Mod")
 
 
 --- STEP 12

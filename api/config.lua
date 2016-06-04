@@ -1,4 +1,5 @@
 
+local cjson_safe = require "cjson.safe"
 
 local function get_argByName(name)
 	local x = 'arg_'..name
@@ -8,24 +9,54 @@ end
 
 local _action = get_argByName("action")
 local _name = get_argByName("name")
+local _debug = get_argByName("debug")
 local config_dict = ngx.shared.config_dict
-local baseDir = config_dict:get("baseDir")
-local filepath = baseDir.."conf_json/"
 
+local _tb,config = config_dict:get_keys(0),{}
+for i,v in ipairs(_tb) do
+	config[v] = config_dict:get(v)
+end
 
+local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 if _action == "save" then
-	local _tb = _G[_name]
-	if type(_tb) == "table" then
-		local _msg = tableTojson(_tb)
-		writefile(filepath.._name.."bak.json",_msg,"w+")
-		sayHtml_ext(_msg)
-	elseif type(_tb) == "string" then
-		writefile(filepath.._name.."bak.json",_tb,"w+")
-		sayHtml_ext(_msg)
+
+	if _name == "all_config" then
+		for k,v in pairs(config) do
+			if k == "base" then
+				if _debug == "no" then
+					writefile(config_base.baseDir.."config.json",v,"w+")
+				else
+					writefile(config_base.baseDir.."config_bak.json",v,"w+")
+				end
+			else
+				if _debug == "no" then
+					writefile(config_base.jsonPath..k..".json",v,"w+")
+				else
+					writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
+				end
+			end
+		end
+		ngx.say("it is ok")
 	else
-		sayHtml_ext({})
+		local msg = config[_name]
+		if not msg then return ngx.say("name is error") end 
+		if _name == "base" then
+			if _debug == "no" then
+				writefile(config_base.baseDir.."config.json",msg,"w+")
+			else
+				writefile(config_base.baseDir.."config_bak.json",msg,"w+")
+			end
+		else
+			if _debug == "no" then
+				writefile(config_base.jsonPath.._name..".json",msg,"w+")
+			else
+				writefile(config_base.jsonPath.._name.."_bak.json",msg,"w+")
+			end
+		end
+		sayHtml_ext(msg)
 	end
+
 elseif _action =="load" then
 
 	loadConfig()

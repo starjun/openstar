@@ -455,7 +455,7 @@ key=count_key时，表示查询该dict中key的总个数；key=all_key时，表�
 
 >关于返回信息，大家自行测试、看代码吧。
 
-- redis.lua
+- redis.lua【需要更新】
 
 api接口对redis进行相关操作
 
@@ -477,13 +477,13 @@ sava：表示将config_dict或者count_dict存放到redis上
 - config.lua
 api接口对全局table（mod规则）进行保存到本地json文件中
 
-`http://*/api/config?action=save&name=app_Mod`
-上面的操作表示将app\_Mod（全局table）规则保存到conf\_json文件夹下，当前我在文件后增加了bak标记，还没有直接覆盖，原来的规则json文件（我在测试后会修改下的）。
+`http://*/api/config?action=save&name=app_Mod&debug=no`
+上面的操作表示将app\_Mod（全局table）规则保存到相应文件夹下，当`debug`为`no`时，则覆盖原配置文件，否则会添加`_bak`标记
 
 `http://*/api/config?action=load`
 上面的操作表示，重新载入所有规则文件
 
-- table.lua
+- table.lua【暂停使用】
 >对规则操作实时生效的
 
 api接口多全局规则进行操作的，各个xxx_Mod
@@ -507,7 +507,7 @@ get：查看table内容
 - time.lua
 api对ngx对时间操作相关的调试，可以不用管
 
-- test.lua
+- test.lua【暂停使用】
 api对全局规则进行测试调试使用的，批量添加垃圾规则，用于测试规则数量对性能影响的，对13个Mod调试使用的
 
 `http://*/api/test?mod=ip_Mod&count=99`
