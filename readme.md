@@ -14,7 +14,7 @@ grammar_cjkRuby: true
 ----------
 
 
-**OpenStar**是一个基于[OpenResty][3]的，高性能web平台，不仅仅包含了传统WAF的功能模块，还相应增加了其他灵活、友好、实用的功能，是增强的WAF、WEB扩展、CC防护的集合。
+**OpenStar**是一个基于[OpenResty][2]的，高性能web平台，不仅仅包含了传统WAF的功能模块，还相应增加了其他灵活、友好、实用的功能，是增强的WAF、WEB扩展、CC防护的集合。
 # WAF防护
 
 
@@ -104,7 +104,7 @@ git clone
 
 # 安装
  - 安装OpenResty
- 这里不做过多重复描述，直接看链接[OpenResty][4]
+ 这里不做过多重复描述，直接看链接[OpenResty][2]
  - 配置nginx.conf
  在http节点，引用waf.conf。注：原ngx相关配置基本不用修改，该优化优化、该做CPU亲缘绑定继续、该动静分离还继续、该IO、TIME等优化继续不要停。
  - 配置waf.conf
@@ -161,7 +161,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 
 ## 执行流程
 
-![enter description here][5]
+![enter description here][3]
 
  - init阶段
  
@@ -851,7 +851,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 }
 ```
 上面的例子也是比较好理解的，不做解释了。
-**这里的规则是[loveshell][8]总结的，后面的多数规则都是直接用loveshell的**
+**这里的规则是[loveshell][4]总结的，后面的多数规则都是直接用loveshell的**
 
 ## 配置header过滤
 这里`header`过滤了，比如一些扫描器特征，wvs的`header`在默认是有一个标记的`Acunetix_Aspect`,来个例子
@@ -925,7 +925,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
         "action": "deny"
 }
 ```
-这些规则默认集成的[loveshell][8]，一定要根据自己的业务场景进行调整。抓过菜刀连接的数据包的人应该清楚，这里我们也可以进行过滤。
+这些规则默认集成的[loveshell][4]，一定要根据自己的业务场景进行调整。抓过菜刀连接的数据包的人应该清楚，这里我们也可以进行过滤。
 
 ## 配置网络访问频率限制
 关于访问频率的限制，支持对明细`url`的单独限速，当然也可以是整站的频率限制。
@@ -995,8 +995,11 @@ OpenStar测试服务器：
  
  CPU个数：cat /proc/cpuinfo | grep "physical id" | uniq | wc -l
  1 
+ ab：
+ ab -c 1000 -n 100000 "http://10.0.0.4/test/a"
 ```
-
+测试结果：
+![enter description here][7]
  
  
 # 变更历史
@@ -1012,7 +1015,7 @@ OpenStar测试服务器：
 
 ## 0.9 - 1.0 修改了大量全局函数
 
-在学习完[OpenResty最佳实践][6]后，代码太不专业，修改了大量全局变量、函数
+在学习完[OpenResty最佳实践][5]后，代码太不专业，修改了大量全局变量、函数
 
 ## 0.8 优化一下算法
 
@@ -1032,7 +1035,7 @@ OpenStar测试服务器：
 
 ## 0.3 增加waf防护模块
 
-- 随着cc防护成功后，我陆续增加了waf相关的功能，规则参考了[modsecurity][7]、[loveshell][8]防护模块、以及互联网搜集的一些过滤点
+- 随着cc防护成功后，我陆续增加了waf相关的功能，规则参考了[modsecurity][6]、[loveshell][4]防护模块、以及互联网搜集的一些过滤点
 
 ## 0.2 CC防护应用层版
 
@@ -1044,7 +1047,7 @@ OpenStar测试服务器：
 
 # 关于
 
-- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥，[loveshell][8]！！！
+- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥，[loveshell][4]！！！
 - 关于我：从事安全、架构相关工作。
 - Copyright and License
 GPL（GNU General Public License）
@@ -1053,9 +1056,8 @@ Copyright (C) 20011-2016, by zj
 
   [1]: https://github.com/agentzh
   [2]: http://openresty.org/cn/
-  [3]: http://openresty.org/cn/
-  [4]: http://openresty.org/cn/
-  [5]: ./OpenStar.png "OpenStar.png"
-  [6]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
-  [7]: http://www.modsecurity.org/
-  [8]: https://github.com/loveshell/ngx_lua_waf
+  [3]: ./OpenStar.png "OpenStar.png"
+  [4]: https://github.com/loveshell/ngx_lua_waf
+  [5]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
+  [6]: http://www.modsecurity.org/
+  [7]: ./test.png "test.png"
