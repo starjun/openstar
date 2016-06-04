@@ -995,12 +995,11 @@ OpenStar测试服务器：
  
  CPU个数：cat /proc/cpuinfo | grep "physical id" | uniq | wc -l
  1
+ 
 ```
 
  
- 
-
-# 变更历史
+ # 变更历史
 
 ## **next 1.x 增加app_Mod，丰富allow动作，支持的参数...**
 
