@@ -1,5 +1,5 @@
 
-
+ngx.say("test api error")
 do return end --- 使用dict 暂时停止table相关API
 
 local function get_argByName(name)

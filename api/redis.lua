@@ -7,7 +7,9 @@ local cjson_safe = require "cjson.safe"
 
 
 local config_dict = ngx.shared.config_dict
-local redis_mod = cjson_safe.decode(config_dict:get("redis_Mod"))
+local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+
+local redis_mod = config_base.redis_Mod or {}
 
 
 local function get_argByName(name)
@@ -54,6 +56,7 @@ if _action == "set" then
 	ngx.say("set result: ", ok)
 
 elseif _action == "get" then
+
 	local res, err = red:get(_key)
     if not res then
         ngx.say("failed to get "..tostring(_key)..": ", err)
@@ -68,8 +71,10 @@ elseif _action == "get" then
     if _key == "config_dict" or _key == "count_dict" then
         res = cjson_safe.decode(res)
     end
-    sayHtml_ext(res)    
-elseif _action == "save" then
+    sayHtml_ext(res)
+
+elseif _action == "push" then
+
     if _key == "config_dict" then  --保存dict中的config_dict到redis
         local tmpdict = config_dict
         local _tb,tb_all = tmpdict:get_keys(0),{}
@@ -98,7 +103,16 @@ elseif _action == "save" then
         ngx.say("set count_dict result: ", ok)
     else    
     end
-else
+
+elseif _action == "pull" then --- 从redis拉去数据到dict 还没写
+
+    if _key == "config_dict" then
+
+    elseif _key == "count_dict" then
+    
+    else
+        
+    end
 
 end
 

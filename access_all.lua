@@ -1,16 +1,18 @@
 -----  access_all by zj  -----
 local remoteIp = ngx.var.remote_addr
 local headers = ngx.req.get_headers()
-local host = ngx.req.get_headers()["Host"] or "unknownhost"
+local host = headers["Host"] or "unknown-host"
 local method = ngx.var.request_method
 local url = ngx.unescape_uri(ngx.var.uri)
-local referer = headers["referer"] or "unknownreferer"
-local agent = headers["user_agent"] or "unknownagent"	
+local referer = headers["referer"] or "unknown-referer"
+local agent = headers["user_agent"] or "unknown-agent"	
 --local request_url = ngx.unescape_uri(ngx.var.request_uri)
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
 local ip_dict = ngx.shared.ip_dict
+local count_dict = ngx.shared.count_dict
+local token_list = ngx.shared.token_list
 
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
@@ -96,6 +98,30 @@ local function get_argByName(name)
     return _name
 end
 
+--- 拦截计数 2016年6月7日 21:52:52 up 从全局变成local
+local function Set_count_dict(_key)
+	if _key == nil then return end	
+	local key_count = count_dict:get(_key)
+	if key_count == nil then 
+		count_dict:set(_key,1)
+	else
+		count_dict:incr(_key,1)
+	end
+end
+
+-- action_deny(code) 拒绝访问
+-- 2016年6月7日 21:55:13 up 从全局调整为 local
+local function action_deny(code)
+	if code == nil or type(code) ~= "number" then
+		--local default = [[<!DOCTYPE html><html><head><title>Error</title><style>body {width: 35em;margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif;}</style></head><body><h1>An error occurred.</h1><p>Sorry, the page you are looking for is currently unavailable.<br/>Please try again later.</p><p>If you are the system administrator of this resource then you should checkthe <a href="http://nginx.org/r/error_log">error log</a> for details.</p><p><em>Faithfully yours, nginx.</em></p></body></html>]]
+		local msg = config_base.sayHtml or "OpenStar request error"
+		ngx.say(msg) 
+		return ngx.exit(200)
+	else
+		return ngx.exit(code)
+	end
+end
+
 --- STEP 0
 local ip = loc_getRealIp(host,remoteIp,headers)
 --debug("----------- STEP 0  "..ip)
@@ -130,14 +156,15 @@ if config_is_on("host_method_Mod") then
 	end
 	if check ~= "allow" then
 		Set_count_dict(" black_host_method count")
-	 	debug("<host error> ip "..ip,"host_method_deny")
+	 	debug("host_method_Mod : black","host_method_deny",ip)
 	 	action_deny()
 	end
 end
 --debug("----------- STEP 2")
 
 --- STEP 3
--- app_Mod 访问控制
+-- app_Mod 访问控制 （自定义action）
+-- 目前支持的 deny allow log rehtml refile relua
 if config_is_on("app_Mod") then
 	local app_mod = getDict_Config("app_Mod")
 	for i,v in ipairs(app_mod) do
@@ -146,7 +173,7 @@ if config_is_on("app_Mod") then
 			if host_url_remath(v.hostname,v.url) then				
 				if v.action[1] == "deny" then
 					Set_count_dict("app_deny count")
-					debug("app_Mod deny No : "..i,"app_log")
+					debug("app_Mod deny No : "..i,"app_log",ip)
 					action_deny()
 					break
 				elseif v.action[1] == "allow" then
@@ -155,8 +182,7 @@ if config_is_on("app_Mod") then
 					if v.allow[1] == "args" then
 						local get_args = get_argByName(v.allow[2])
 						--debug("get_args by keyby : "..get_args.."")
-						if v.allow[3] == "@token@" then --- 服务器验证
-							local token_list = ngx.shared.token_list;
+						if v.allow[3] == "@token@" then --- 服务端验证							
 							local a = token_list:get(get_args)
 							if a == true then 
 								token_list:delete(get_args) -- 使用一次就删除token
@@ -168,7 +194,6 @@ if config_is_on("app_Mod") then
 							end
 						end						
 					elseif v.allow[1] == "ip" then -- 增加IP判断（eg:对某url[文件夹进行IP控制]）
-						--debug("v.allow == ip")
 						if remath(ip,v.allow[2],v.allow[3]) then
 							check = "allow"
 						end
@@ -177,13 +202,13 @@ if config_is_on("app_Mod") then
 						--return
 					else
 						Set_count_dict("app_deny count")
-						debug("app_Mod No"..i.." allow[false]"..v.allow[1],"app_log")
+						debug("app_Mod allow : "..v.allow[1].." No : "..i,"app_log",ip)
 						action_deny()
 						break
 					end					
 				elseif v.action[1] == "log" then
 
-					debug("app_Mod log No : "..i,"app_log")
+					debug("app_Mod log No : "..i,"app_log",ip)
 				elseif v.action[1] == "rehtml" then
 					sayHtml_ext(v.rehtml)
 					break
@@ -196,7 +221,7 @@ if config_is_on("app_Mod") then
 						ngx.exit(200)
 						break
 					end
-				elseif v.action[1] == "set" then
+				elseif v.action[1] == "set" then -- 预留
 
 				else
 					break
@@ -244,7 +269,7 @@ if config_is_on("referer_Mod") then
 		-- nil
 	elseif check == "deny" then
 		Set_count_dict("referer_deny count")
-		debug("referer "..referer.." ip "..ip.." No : "..no,"referer_deny")
+		debug("referer_Mod "..referer.." No : "..no,"referer_deny",ip)
 		action_deny()
 	else
 
@@ -270,7 +295,7 @@ if config_is_on("url_Mod") then
 		return
 	elseif t ==	"deny" then
 		Set_count_dict("url_deny count")
-		debug(ip.." No : "..no,"url_deny")
+		debug("url_Mod No : "..no,"url_deny",ip)
 		action_deny()
 	else
 	end
@@ -286,7 +311,7 @@ if config_is_on("header_Mod") then
 			if host_url_remath(v.hostname,v.url) then
 				if remath(headers[v.header[1]],v.header[2],v.header[3]) then
 					Set_count_dict(" black_header_method count")
-				 	debug("<header error> ip "..ip.." No : "..no,"header_deny")
+				 	debug("header_Mod No : "..no,"header_deny",ip)
 				 	action_deny()
 				 	break
 				end
@@ -308,7 +333,7 @@ if config_is_on("agent_Mod") then
 				--debug("useragent host is ok")
 				if remath(agent,v.useragent[1],v.useragent[2]) then
 					Set_count_dict("agent_deny count")
-					debug("agent : "..agent.." ip : "..ip.." No : "..i,"agent_deny")
+					debug("agent_Mod : "..agent.." No : "..i,"agent_deny",ip)
 					action_deny()
 					break
 				end
@@ -329,7 +354,7 @@ if config_is_on("cookie_Mod") then
 			if remath(host,v.hostname[1],v.hostname[2]) then
 				if remath(cookie,v.cookie[1],v.cookie[2]) then
 					Set_count_dict("cookie_deny count")
-					debug(cookie.."No : "..i,"cookie_deny")
+					debug("cookie_Mod : "..cookie.." No : "..i,"cookie_deny",ip)
 					action_deny()
 					break
 				end
@@ -353,7 +378,7 @@ if config_is_on("args_Mod") then
 				if remath(host,v.hostname[1],v.hostname[2]) then			
 					if remath(args,v.args[1],v.args[2]) then
 						Set_count_dict("args_deny count")
-						debug("args_Mod No : "..i.." _args = "..args,"args_deny")
+						debug("args_Mod _args = "..args.." No : "..i,"args_deny",ip)
 						action_deny()
 						break
 					end
@@ -393,7 +418,7 @@ if config_is_on("post_Mod") and method == "POST" then
 				if remath(host,v.hostname[1],v.hostname[2]) then				
 					if remath(postargs,v.post[1],v.post[2]) then
 						Set_count_dict("post_deny count")
-						debug("post_Mod No : "..i,"post_deny")
+						debug("post_Mod : "..postargs.."No : "..i,"post_deny",ip)
 						action_deny()
 						break
 					end
@@ -407,8 +432,7 @@ end
 
 --- STEP 11
 -- network_Mod 访问控制
-local function check_network()
-	--if ip == nil then return end
+if config_is_on("network_Mod") then
 	local tb_networkMod = getDict_Config("network_Mod")
 	for i, v in ipairs( tb_networkMod ) do
 		if v.state =="on" then
@@ -423,21 +447,16 @@ local function check_network()
 					if ip_count >= maxReqs then
 						--debug("maxReqs is true")
 						local blacktime = v.network.blackTime or 10*60
-						ip_dict:safe_set(ip,mod_ip.." host: "..host,blacktime)
-						return true
+						ip_dict:safe_set(ip,mod_ip,blacktime)
+						debug("network_Mod  check_network true","network_log",ip)
+						action_deny()
+						break
 					else
 					    limit_ip_dict:incr(mod_ip,1)
 					end
 				end
 			end
 		end
-	end
-end
-
-if config_is_on("network_Mod") then
-	if check_network() then
-		debug("network_Mod  check_network true  ip: "..ip)
-		action_deny()
 	end
 end
 

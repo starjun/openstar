@@ -116,18 +116,6 @@ end
 	    return json
 	end
 
--- count_dict(_key) 相关
-function Set_count_dict(_key)
-	if _key == nil then return end
-	local count_dict = ngx.shared.count_dict; --- ngx 缓存
-	local key_count = count_dict:get(_key)
-	if key_count == nil then 
-		count_dict:set(_key,1)
-	else
-		count_dict:incr(_key,1)
-	end
-end
-
 --- ngx_find
 function ngx_find(str)
 	-- str = string.sub(str,"@ngx_time@",ngx.time())
@@ -201,8 +189,8 @@ end
 	end
 
 -- debug(msg,filename) 记录debug日志
---
-	function debug(msg,filename)
+-- 更新记录IP 2016年6月7日 22:22:15
+	function debug(msg,filename,ip)
 		if Config.debug_Mod == false then return end --- 判断debug开启状态
 		if filename == nil then
 			filename = "debug"
@@ -212,23 +200,10 @@ end
 		local host = ngx.req.get_headers()["Host"] or "unknow_host"
 		local url = ngx.var.uri or "unknow_url"
 		local method=ngx.req.get_method() or "unknow_method"
-		local request_uri = ngx.var.request_uri or "unknow_req_uri"
+		--local request_uri = ngx.var.request_uri or "unknow_req_uri"
 		local time = ngx.localtime()
-		local str = string.format("Host:%s method:%s url:%s debug:%s",host,method,url,msg)
-		writefile(filepath,time..": "..str)
-	end
-
--- action_deny(code) 拒绝访问
--- 
-	function action_deny(code)
-		if code == nil or type(code) ~= "number" then
-			local default = [[<!DOCTYPE html><html><head><title>Error</title><style>body {width: 35em;margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif;}</style></head><body><h1>An error occurred.</h1><p>Sorry, the page you are looking for is currently unavailable.<br/>Please try again later.</p><p>If you are the system administrator of this resource then you should checkthe <a href="http://nginx.org/r/error_log">error log</a> for details.</p><p><em>Faithfully yours, nginx.</em></p></body></html>]]
-			local msg = Config.base.sayHtml or default
-			ngx.say(msg) 
-			return ngx.exit(200)
-		else
-			return ngx.exit(code)
-		end
+		local str = string.format("Time:%s Host:%s Method:%s Url:%s Ip:%s Msg:%s",time,host,method,url,ip,msg)
+		writefile(filepath,str)
 	end
 
 -- guid() 局部函数用于生成唯一随机字符串

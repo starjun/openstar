@@ -6,7 +6,8 @@ grammar_cjkRuby: true
 ---
 
 
-欢迎使用 **{OpenStar}(WAF+)**，该项目是从实际需求中产生，用于解决当时实际出现的问题，经过多次的版本迭代到今天，非常不容易。感谢**春哥**，该项目是解决工作的实际问题一点一滴积累的经验，(==多多指导==) 特别感谢[春哥][1]为我们做好的一件神器（**[OpenResty][2]**）
+欢迎使用 **{OpenStar}(WAF+)**，该项目是从实际需求中产生，用于解决当时实际出现的问题，经过多次的版本迭代到今天，实属不易。感谢**春哥**，该项目是解决工作的实际问题一点一滴积累的经验，(==多多指导==) 特别感谢[春哥][1]为我们做好的一件神器（**[OpenResty][2]**）
+**代码写的比较好理解，至于代码是否优雅 呵呵~**
 
 # 概览
 
@@ -22,7 +23,7 @@ grammar_cjkRuby: true
 
 
 在**OpenStar**中的WAF防护模块，采用传统的黑白名单、正则过滤的方式（*有人会问现在不是流行自主学习么；正则、黑白名单会有盲点、会被绕过......*）。这里我简单说明一下，自主分析学习引擎是我们的日志分析引擎做的，这里是高性能、高并发的点，就用简单粗暴的方法解决，根据业务实际调整好防护策略，可以解决绝大多数WEB安全1.0和WEB安全2.0类型的漏洞（90%+的问题）。
-WAF	防护从header,args,post,访问频率等层面分层进行防护，详细在后面的功能会详细说明
+WAF	防护从header,args,post,访问频率等，分层进行按顺序防护，详细在后面的功能会详细说明
 
  - **WEB安全1.0**
    在1.0时代下，攻击是通过服务器漏洞（IIS6溢出等）、WEB应用漏洞（SQL注入、文件上传、命令执行、文件包含等）属于服务器类的攻击，该类型漏洞虽然经历了这么多年，很遗憾，此类漏洞还是存在，并且重复在犯相同的错误。
@@ -31,7 +32,7 @@ WAF	防护从header,args,post,访问频率等层面分层进行防护，详细�
    随着社交网络的兴起，原来不被重视的XSS、CSRF等漏洞逐渐进入人们的视野，那么在2.0时代，漏洞利用的思想将更重要，发挥你的想象，可以有太多可能。
 
  - **WEB安全3.0**
-   同开发设计模式类似（界面、业务逻辑、数据），3.0将关注应用本身的业务逻辑和数据安全，如密码修改绕过、二级密码绕过、支付类漏洞、刷钱等类型的漏洞，故注重的是本身产品的业务安全、数据安全。
+   同开发设计模式类似（界面、业务逻辑、数据），3.0将关注应用本身的业务逻辑和数据安全，如密码修改绕过、二级密码绕过、支付类漏洞、刷钱等类型的漏洞，故注重的是产品本身的业务安全、数据安全。
    
    > `安全不仅仅是在技术层面、还应该在行政管理层面、物理层面去做好安全的防护，才能提供最大限度的保护。`
    > 安全行业多年的从业经验：人，才是最大的威胁；无论是外部、内部、无心、有意过失。（没有丑女人、只有懒女人）我想可以套用在此处，纯属个人见解。
@@ -65,14 +66,14 @@ WAF	防护从header,args,post,访问频率等层面分层进行防护，详细�
 
  - 应用层 
 TAG验证、SET COOKIE、URL跳转、JS跳转、验证码、页面嵌套、强制静态缓存等
-防护是需要根据攻击点进行分别防护的，如攻击的是嵌入的url，我们就不能使用JS跳转、302验证码等这样的方法；在多次的CC防护实战中，如使用url跳转、set cookie，在新型的CC攻击下，这些防护都已经失效了。后面我会分享一下我的防护算法，并且在**OpenStar**中已经可以根据情况实现我所说的防护算法。
+防护是需要根据攻击点进行分别防护的，如攻击的是嵌入的url，我们就不能使用JS跳转、302验证码等这样的方法；**在多次的CC防护实战中，如使用url跳转、set cookie，在新型的CC攻击下，这些防护都已经失效了**。后面我会分享一下我的防护算法，并且在**OpenStar**中已经可以根据情况实现我所说的防护算法。
 浏览器是可以执行JS和flash的，这里我分享一些基于JS的防护算法，flash需要自己去写（比js复杂一些），可以实现flash应用层的安全防护和防页面抓取（开动你的大脑吧）
 
 1：客户端防护
-使用JS进行前端的防护（浏览器识别、鼠标轨迹判断、url有规则添加尾巴（args参数）、随机延迟、鼠标键盘事件获取等）其实这里非常复杂，如浏览器的识别 ie 支持 `!-[1,]` 这个特殊JS，一些浏览器有自定义标签等等；被嵌入的页面重写JS等等
+使用JS进行前端的防护（浏览器识别、鼠标轨迹判断、url有规则添加尾巴（args参数）、随机延迟、鼠标键盘事件获取等）其实这里非常复杂，如浏览器的识别 ie 支持 `!-[1,]` 这个特殊JS，一些浏览器有自定义标签等等；
 
 2：服务端防护
-url添加的尾巴（args参数）是服务器动态生成的token，而不是使用静态的正则去匹配其合法性。token在页面生成是的动态使用。
+url添加的尾巴（args参数）是服务器动态生成的token，而不是使用静态的正则去匹配其合法性。
 
 3：特定攻击
 该类特定攻击，可以通过特征快速匹配出来（慢速攻击、PHP5.3的http头攻击）
@@ -80,17 +81,21 @@ url添加的尾巴（args参数）是服务器动态生成的token，而不是�
 **简单场景**
 
 1：用户可直接访问的url
-第一阶段：js跳转、验证码、flash策略（拖动识别等）
-（这种是最好防，基本第一阶段可以完成）
+第一阶段（应用层）：js跳转、验证码、flash策略（拖动识别等）
+第一阶段（网络层）：访问频率限制，超出阀值仅黑名单一段时间
+（这种是最好防的）
 2：嵌入的url（ajax校验点、图片验证码）
 
-第一阶段：载入被攻击的url页面，重写页面，使用js方操作链接被攻击的url。js随机在url尾巴增加有一定规则的校验串，服务端对串进行静态正则校验。
+第一阶段（应用层）：载入被攻击的url页面，重写页面，使用js方操作链接被攻击的url。js随机在url尾巴增加有一定规则的校验串，服务端对串进行静态正则校验。
+第一阶段（网络层）：访问频率限制，超出阀值仅黑名单一段时间
 
-第二阶段：校验串使用服务端生成的token，进行严格服务器token验证检查
+第二阶段（应用层）：校验串使用服务端生成的token，进行严格服务器token验证检查
+第二阶段（网络层+应用层）：用户ip在http头中，需要从http头取ip，在进行频率限制
+（其实做好了，这一层的防护，基本不用进入第三阶段的应用层防护了）
 
-第三阶段：js增加浏览器识别（不同agent匹配不同js识别代码）、鼠标轨迹验证、键盘鼠标事件验证等js增加验证后，在进行校验串生成。
+第三阶段（应用层）：js增加浏览器识别（不同agent匹配不同js识别代码）、鼠标轨迹验证、键盘鼠标事件验证等js增加验证后，在进行校验串生成。
 
-> 应用层的防护是在网络层+扩展的网络层防护效果不佳时使用，一般情况基本用的不多，因为在网络层+部分应用层防护处，基本可以解决CC类攻击，以及在防页面抓取时，发挥你的想象使用OpenStar就可以帮你快速实现。
+> 应用层的防护是在网络层+扩展的网络层防护效果不佳时使用，一般情况基本用的不多，因为在OpenStar的防护下，极少数情况下，需要第三阶段防护。在防页面抓取时，发挥你的想象（js是个好帮手，善用）使用OpenStar就可以帮你快速实现；当然使用flash防抓取效果更好（不够灵活）。
 
 # 目录
 
@@ -108,47 +113,13 @@ git clone
  - 配置nginx.conf
  在http节点，引用waf.conf。注：原ngx相关配置基本不用修改，该优化优化、该做CPU亲缘绑定继续、该动静分离还继续、该IO、TIME等优化继续不要停。
  - 配置waf.conf
- 修改lua\_package\_path，使用正确的路径即可
+ 修改lua\_package\_path，使用正确的路径即可；修改那些lua文件的路径，多检查几遍。
  - 设置目录权限
- OpenStar目录建议放到OR下，方便操作，该目录ngx运行用户有读写执行权限即可。因为要写日志，暂时没有用ngx.log，后续可能会改动。
+ OpenStar目录建议放到OR下，方便操作，该目录ngx运行用户有读写执行权限即可。因为要写日志，*暂时没有用ngx.log，后续可能会改动*。
  - lua文件修改
- 在init.lua中，修改第四行的conf_json参数，config.json文件绝对路径写好。
+ 在init.lua中，修改conf_json参数，config.json文件绝对路径根据自己的情况写正确。
  - api使用
- 如果需要使用相关api，需要配置在某个servers下配置一个location，参照一下，配置比较简单，set $lua_path 根据实际情况配置即可
- ```
-     server {
-        listen  80;
-        server_name localhost;        
-        root html;
-        
-        #lua执行的主目录
-        set $lua_path "/opt/openresty/openstar/";
-        #根目录
-        location / {
-            #limit_req zone=allips nodelay;
-            default_type text/html;
-        }
-
-        location ~ ^/api/([-_a-zA-Z0-9/]+) {
-
-            #limit_req zone=allips nodelay;
-
-            # 重写阶段
-            #rewrite_by_lua_file "${lua_path}api_rewrite.lua"
-
-            # 准入阶段完成参数验证
-            #access_by_lua_file  "${lua_path}api_access.lua";
-
-            #内容生成阶段
-            content_by_lua_file "${lua_path}api/$1.lua";
-
-            #内容替换阶段
-            #body_filter_by_lua_file "${lua_path}api_body.lua";
-
-            #日志处理阶段
-            #log_by_lua_file "${lua_path}api/api_log.lua";
-        }
-```
+2016年6月7日 23:31:09 更新啦，引用waf.conf，后就可以直接使用api接口了，通过监听5460端口来给管理用啦，界面也在筹划中，期待有人可以加入，帮我一起整界面。
 
 # 使用
 
@@ -165,11 +136,11 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 
  - init阶段
  
- a：首先加载本地的config.json配置文件，将相关配置读取到dict和全局table中
+ a：首先加载本地的config.json配置文件，将相关配置读取到dict中
  
- b：定义全局函数，记录日志记录、token生成等。
+ b：定义全局函数，日志记录、token生成等。
  - rewrite阶段
- 暂无操作
+ 暂无操作（这个预留跳转用的）
  - access阶段（自上到下的执行流程，规则列表也是自上到下按循序执行的）
  
  0：realIpFrom_Mod ==> 获取用户真实IP（从HTTP头获取，如设置）
@@ -198,12 +169,12 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  
  - body阶段
  
- 12：replace_Mod ==> 内容替换规则（动态进行内容替换，性能消耗较高慎用）
+ 12：replace_Mod ==> 内容替换规则（动态进行内容替换，性能消耗较高慎用，可以的话用app_Mod中rehtml、refile这2个自定义action）
  
 ## 主配置
 
   config.json文件进行配置，主要是一些参数开关、目录设置
-  注：以下表示法，"on"表示开启，"off"表示关闭。未来增加"log"表示仅记录日志
+  注：以下表示法，"on"表示开启，"off"表示关闭。
   + redis_Mod
   该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
   说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
@@ -236,7 +207,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
   + debug_Mod 
   该参数是否启用日志打印（true表示启用）
   + baseDir 
-  该参数表示设置软件根路径（绝对路径）
+  该参数表示设置OpenStar根路径（绝对路径）
   + logPath 
   该参数表示配置log文件存放目录
   + jsonPath 
@@ -251,7 +222,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  - 说明：
 `{"id.game.com":{"ips":["111.206.199.57"],"realipset":"CDN-R-IP"}}`
  
- 通过上面的例子，表示域名id.game.com,从ips来的直连ip，用户真实ip在CDN-R-IP中，ips是list，可以写多个，后续会增加使用正则或者ip段来匹配。（因为当时场景中ip没有多少，所有就用了list，）可以参考例子进行设置。
+ 通过上面的例子，表示域名id.game.com,从ips来的直连ip，用户真实ip在CDN-R-IP中，ips是list，可以写多个，后续会增加使用正则或者ip段来匹配。（因为当时场景中ip没有多少，所有就用了list，）可以参考例子进行设置，ips为\*时，表示不区分直连ip了。
 
 ## STEP 1：ip_Mod（黑、白名单）
 
@@ -316,7 +287,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  - 说明：
  `{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["*",""],"action":"allow"}`
  
-  上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】，action表示执行的动作，`allow`表示规则匹配成功后，跳出后续所有规则（一般对静态资源图片、js、css），referer匹配失败就拒绝访问（白名单），`next`表示匹配成功后，继续后续规则的匹配（这里主要可以设置防护站外的CSRF），referer匹配失败就拒绝访问（白名单）
+  上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行**【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的不同的location动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】**，action表示执行的动作，`allow`表示规则匹配成功后，跳出后续所有规则（一般对静态资源图片），referer匹配失败就拒绝访问（白名单），防盗链为主，`next`表示匹配成功后，继续后续规则的匹配（这里主要可以设置防护站外的CSRF），referer匹配失败就拒绝访问（白名单）
   
   state：表示规则是否开启
   url：表示匹配的url
@@ -355,7 +326,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
   - 说明：
   `{"state":"off","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
 
-  上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问
+  上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问，一般host设置为：`"hostname":["*",""]`表示所有（字符串匹配，非常快）
   state：规则是否启用
   hostname：匹配host
   useragent：匹配agent
@@ -364,7 +335,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  
 ## STEP 8：cookie_Mod（黑名单）
  - 说明：
- `{"state":"on","cookie":["\\.\\./","jio"],"hostname":["\*",""],"action":"deny"}`
+ `{"state":"on","cookie":["\\.\\./","jio"],"hostname":["*",""],"action":"deny"}`
    
   上面的例子表示，规则启用，匹配任意host，cookies匹配正则，匹配成功则执行拒绝访问操作
   state：表示规则是否启用
@@ -377,7 +348,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 ## STEP 9：args_Mod（黑名单）
 
  - 说明：
- `{"state":"on","hostname":["\*",""],"args":["\\:\\$","jio"],"action":"deny"}`
+ `{"state":"on","hostname":["*",""],"args":["\\:\\$","jio"],"action":"deny"}`
  
  上面例子表示，规则启用，匹配任意host，args参数组匹配正则，成功则执行拒绝访问动作
  state：表示规则是否启用
@@ -388,7 +359,7 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 
 ## STEP 10：post_Mod（黑名单）
  - 说明：
- `{"state":"on","hostname":["\*",""],"post":["\\$\\{","jio"],"action":"deny"}`
+ `{"state":"on","hostname":["*",""],"post":["\\$\\{","jio"],"action":"deny"}`
 
   上面的例子表示，规则启用，匹配任意host,post参数组匹配正则，成功则拒绝访问
   state：表示是否启用规则
@@ -469,13 +440,13 @@ get：表示通过key查询redis中的值
 `http://*/api/redis?action=get&key=aaa`
 key=config\_dict/count\_dict时，返回的value进行json转换后显示。（redis作用就是保存这2个dict）
 
-sava：表示将config_dict或者count_dict存放到redis上
+push：表示将config_dict或者count_dict存放到redis上
 
-`http://*/api/redis?action=save&key=config_dict`
+`http://*/api/redis?action=push&key=config_dict`
 上面的操作就是将config\_dict转成json字符串后存放到redis,key=count\_dict表示把count\_dict保存到redis。（覆盖保存，这里的count\_dict计数的汇总，我们这边是python做的，这些接口都是我们的python程序调用使用的）
 
 - config.lua
-api接口对全局table（mod规则）进行保存到本地json文件中
+api接口对配置规则（主配置、mod规则配置）进行保存到本地json文件中
 
 `http://*/api/config?action=save&name=app_Mod&debug=no`
 上面的操作表示将app\_Mod（全局table）规则保存到相应文件夹下，当`debug`为`no`时，则覆盖原配置文件，否则会添加`_bak`标记
@@ -485,24 +456,6 @@ api接口对全局table（mod规则）进行保存到本地json文件中
 
 - table.lua【暂停使用】
 >对规则操作实时生效的
-
-api接口多全局规则进行操作的，各个xxx_Mod
-可操作table（`realIpFrom_Mod、ip_Mod、host_method_Mod、app_Mod、referer_Mod、url_Mod、header_Mod、useragent_Mod、cookie_Mod、args_Mod、post_Mod、network_Mod、replace_Mod`）
-
-set：对table进行增加/修改操作
-
-`http://*/api/table?action=set&table=app_Mod&key=1&value_type=table&value={some json date}`
-这个例子就是把app\_Mod这个table的第3个值修改/添加为value的内容，value\_type表示value的类型，默认是string，一般都是table，因为这些规则mod都是json的
-
-del：对table进行删除操作
-
-`http://*/api/table?action=del&table=app_Mod&key=1`
-这个就是删除app_Mod中key是1的值。
-
-get：查看table内容
-
-`http://*/api/table?action=get&table=app_Mod&key=1`
-这个表示查看app\_Mod中可以为1的值，key=all\_key表示查看所有，key=count\_key表示查看个数
 
 - time.lua
 api对ngx对时间操作相关的调试，可以不用管
@@ -763,7 +716,7 @@ end
         "url": ["/api/debug",""]
     }
 ```
-这个`args`参数的动态检查和静态检查基本一样，语法不一样的就是`allow`参数3是固定的`@token@`，不在是正则表达式，接下来在说一个是`ip`的检查，这个场景也是比较多，就是对某个文件夹（url路径/程序后台路径/phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）。
+这个`args`参数的动态检查和静态检查基本一样，语法不一样的就是`allow`参数3是固定的`@token@`，不在是正则表达式，接下来在说一个是`ip`的检查，**这个场景也是比较多，就是对某个文件夹（url路径/程序后台路径/phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）**。
 ```
 {
         "state": "on",
@@ -775,7 +728,7 @@ end
 ```
 这个配置就表示，访问`/api/.*`这些目录的只有`ip`为`1.1.1.1`和`106.37.236.170`，是不是很简单，对目录进行明细的IP访问控制。
 
-## 配额referer过滤
+## 配置referer过滤
 在该模块下，一些防盗链，站外CSRF等都是在这里设置，如我需要设置图片仅允许本站进行引用。
 ```
 {
@@ -868,7 +821,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 >占位符，后续会更新一些慢速攻击的特征
 
 ## 配置useragent过滤
-`useragent`的过滤，一些脚本语言带的`agent`默认都给过滤了。
+`useragent`的过滤，一些脚本语言带的`agent`默认都给过滤了（ab 也过滤了）。
 ```
 {
     "state": "on",
@@ -899,9 +852,11 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 关于SQL注入需要根据自己的业务进行相应的调整，这样就可以更全面的防护。
 
 ## 配置get/post参数过滤
-`get`参数的过滤就是SQL/XSS等问题。参数污染是绕过不了的。
+`get/post`参数的过滤就是SQL/XSS等问题（就是args_Mod.json和post_Mod.json）。参数污染是绕过不了的。
+
 参考http://www.freebuf.com/articles/web/36683.html；
 参考http://drops.wooyun.org/tips/132
+
 一些waf的bypass技巧。我们根据自己的业务进行调整即可。
 **这个一定要根据实际情况配置**
 ```
@@ -1059,7 +1014,7 @@ OpenStar测试服务器：
 - 关于我：从事安全、架构相关工作。
 - Copyright and License
 GPL（GNU General Public License）
-Copyright (C) 20011-2016, by zj 
+Copyright (C) 2011-2016, by zj 
 
 
   [1]: https://github.com/agentzh
