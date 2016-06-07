@@ -37,7 +37,7 @@ local function loc_getRealIp(host,remoteIP,headers)
 		if ipfromset.ips == "*" then
 			local ip = headers[ipfromset.realipset]
 			if ip then
-				if type(ip) == "table" then ip = ip[1] end  --- http头中又多个取第一个
+				if type(ip) == "table" then ip = ip[1] end  --- http头中有多个取第一个
 			else
 				ip = remoteIP
 			end
@@ -47,7 +47,7 @@ local function loc_getRealIp(host,remoteIP,headers)
 				if v == remoteIP then
 					local ip = headers[ipfromset.realipset]
 					if ip then
-						if type(ip) == "table" then ip = ip[1] end  --- http头中又多个取第一个
+						if type(ip) == "table" then ip = ip[1] end
 					else
 						ip = remoteIP
 					end
@@ -146,7 +146,7 @@ if config_is_on("app_Mod") then
 			if host_url_remath(v.hostname,v.url) then				
 				if v.action[1] == "deny" then
 					Set_count_dict("app_deny count")
-					debug("app_Mod deny","app_log")
+					debug("app_Mod deny No : "..i,"app_log")
 					action_deny()
 					break
 				elseif v.action[1] == "allow" then
@@ -177,13 +177,13 @@ if config_is_on("app_Mod") then
 						--return
 					else
 						Set_count_dict("app_deny count")
-						debug("app_Mod allow[false]"..v.allow[1],"app_log")
+						debug("app_Mod No"..i.." allow[false]"..v.allow[1],"app_log")
 						action_deny()
 						break
 					end					
 				elseif v.action[1] == "log" then
 
-					debug("app_Mod log","app_log")
+					debug("app_Mod log No : "..i,"app_log")
 				elseif v.action[1] == "rehtml" then
 					sayHtml_ext(v.rehtml)
 					break
@@ -210,10 +210,11 @@ end
 --- STEP 4
 -- referer (白名单)
 if config_is_on("referer_Mod") then
-	local check
+	local check,no
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
 		if v.state == "on" then
+			no = i
 			if host_url_remath(v.hostname,v.url) then
 				if v.action == "allow" then
 					if remath(referer,v.referer[1],v.referer[2]) then
@@ -243,7 +244,7 @@ if config_is_on("referer_Mod") then
 		-- nil
 	elseif check == "deny" then
 		Set_count_dict("referer_deny count")
-		debug("referer "..referer.." ip "..ip,"referer_deny")
+		debug("referer "..referer.." ip "..ip.." No : "..no,"referer_deny")
 		action_deny()
 	else
 
@@ -253,23 +254,23 @@ end
 
 --- STEP 5
 -- url 过滤(黑白名单)
-local function check_url()
-	local url_mod = getDict_Config("url_Mod")	
+if config_is_on("url_Mod") then
+	local url_mod = getDict_Config("url_Mod")
+	local t,no
 	for i, v in ipairs( url_mod ) do
+		no = i
 		if v.state == "on" then
 			if host_url_remath(v.hostname,v.url) then
-				return v.action
+				t = v.action
+				break
 			end
 		end
 	end
-end
-if config_is_on("url_Mod") then
-	local t = check_url()
 	if t == "allow" then
 		return
 	elseif t ==	"deny" then
 		Set_count_dict("url_deny count")
-		debug(ip,"url_deny")
+		debug(ip.." No : "..no,"url_deny")
 		action_deny()
 	else
 	end
@@ -285,7 +286,7 @@ if config_is_on("header_Mod") then
 			if host_url_remath(v.hostname,v.url) then
 				if remath(headers[v.header[1]],v.header[2],v.header[3]) then
 					Set_count_dict(" black_header_method count")
-				 	debug("<header error> ip "..ip,"header_deny")
+				 	debug("<header error> ip "..ip.." No : "..no,"header_deny")
 				 	action_deny()
 				 	break
 				end
@@ -307,7 +308,7 @@ if config_is_on("agent_Mod") then
 				--debug("useragent host is ok")
 				if remath(agent,v.useragent[1],v.useragent[2]) then
 					Set_count_dict("agent_deny count")
-					debug(i.." agent : "..agent.." ip : "..ip,"agent_deny")
+					debug("agent : "..agent.." ip : "..ip.." No : "..i,"agent_deny")
 					action_deny()
 					break
 				end
@@ -328,7 +329,7 @@ if config_is_on("cookie_Mod") then
 			if remath(host,v.hostname[1],v.hostname[2]) then
 				if remath(cookie,v.cookie[1],v.cookie[2]) then
 					Set_count_dict("cookie_deny count")
-					debug(i.." "..cookie,"cookie_deny")
+					debug(cookie.."No : "..i,"cookie_deny")
 					action_deny()
 					break
 				end
@@ -379,7 +380,7 @@ local function get_postargs()
 			end
 		end
 	end
-	return data
+	return ngx.unescape_uri(data)
 end
 if config_is_on("post_Mod") and method == "POST" then
 	--debug("post_Mod is on")
@@ -412,7 +413,7 @@ local function check_network()
 	for i, v in ipairs( tb_networkMod ) do
 		if v.state =="on" then
 			if host_url_remath(v.hostname,v.url) then
-				local mod_ip = ip.." network_Mod no "..i
+				local mod_ip = ip.." network_Mod No "..i
 				local ip_count = limit_ip_dict:get(mod_ip)
 				if ip_count == nil then
 					local pTime =  v.network.pTime or 10
@@ -435,7 +436,7 @@ end
 
 if config_is_on("network_Mod") then
 	if check_network() then
-		debug("network_Mod  check_network true")
+		debug("network_Mod  check_network true  ip: "..ip)
 		action_deny()
 	end
 end

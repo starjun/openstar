@@ -13,7 +13,7 @@
         "realipset": "x-for-f"
     },
     "game.game.com": {
-        "ips": "",
+        "ips": "*",
         "realipset": "x-forword-for"
     }
 }
