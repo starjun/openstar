@@ -1030,7 +1030,7 @@ Copyright (C) 2011-2016, by zj
 
   [1]: https://github.com/agentzh
   [2]: http://openresty.org/cn/
-  [3]: ./OpenStar.jpg "OpenStar.jpg"
+  [3]: ./OpenStar.png "OpenStar.png"
   [4]: https://github.com/loveshell/ngx_lua_waf
   [5]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
   [6]: http://www.modsecurity.org/
