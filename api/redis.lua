@@ -88,30 +88,71 @@ elseif _action == "push" then
             return
         end
         ngx.say("set config_dict result: ", ok)
+
     elseif _key == "count_dict" then -- 保存dict中的count_dict到redis
+
+        --- 0 获取远程数据
+        local res, err = red:get(_key)
+        if not res then
+            ngx.say("failed to get "..tostring(_key)..": ", err)
+            return
+        end
+        if res == ngx.null then
+            ngx.say("key not found.")
+            return
+        end
+        res = cjson_safe.decode(res)
+
+        --- 1 合并本机数据
         local tmpdict = ngx.shared.count_dict
         local _tb,tb_all = tmpdict:get_keys(0),{}
         for i,v in ipairs(_tb) do
             tb_all[v] = tmpdict:get(v)
         end
-        local json_count = cjson_safe.encode(tb_all)
-        ok, err = red:set("count_dict", json_count)
+        
+        for k,v in pairs(res) do
+            if tb_all[k] == nil then
+                tb_all[k] = v
+            else
+                tb_all[k] = tonumber(v) + tonumber(tb_all[k])
+            end
+        end
+
+        --- 2 合并后数据 push
+        local json_config = cjson_safe.encode(tb_all)
+        ok, err = red:set("count_dict", json_config)
         if not ok then
             ngx.say("failed to set count_dict: ", err)
             return
         end
+
+        --- 3 清空本地数据
+        local re = tmpdict:flush_all()
+        local re1 = tmpdict:flush_expired(0)
+
         ngx.say("set count_dict result: ", ok)
-    else    
+
+    else
+
     end
 
-elseif _action == "pull" then --- 从redis拉去数据到dict 还没写
+elseif _action == "pull" then --- 从redis拉取配置到dict
 
     if _key == "config_dict" then
-
-    elseif _key == "count_dict" then
-    
-    else
-        
+        local res, err = red:get(_key)
+        if not res then
+            ngx.say("failed to get "..tostring(_key)..": ", err)
+            return
+        end
+        if res == ngx.null then
+            ngx.say("key not found.")
+            return
+        end
+        res = cjson_safe.decode(res)
+        for i,v in pairs(res) do
+            config_dict:replace(i,cjson_safe.encode(v))
+        end
+        ngx.say("It is Ok !")
     end
 
 end

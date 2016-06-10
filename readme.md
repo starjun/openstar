@@ -431,7 +431,7 @@ key=count_key时，表示查询该dict中key的总个数；key=all_key时，表�
 
 >关于返回信息，大家自行测试、看代码吧。
 
-- redis.lua【需要更新】
+- redis.lua
 
 api接口对redis进行相关操作
 
@@ -448,7 +448,13 @@ key=config\_dict/count\_dict时，返回的value进行json转换后显示。（r
 push：表示将config_dict或者count_dict存放到redis上
 
 `http://*/api/redis?action=push&key=config_dict`
-上面的操作就是将config\_dict转成json字符串后存放到redis,key=count\_dict表示把count\_dict保存到redis。（覆盖保存，这里的count\_dict计数的汇总，我们这边是python做的，这些接口都是我们的python程序调用使用的）
+上面的操作就是将config\_dict转成json字符串后存放到redis,key=count\_dict表示把count\_dict保存到redis（合并数据后在上传到redis）。
+
+pull：表示将redis的数据保存到dict中
+
+`http://*/api/redis?action=pull&key=config_dict`
+上面的操作就是将redis中的配置文件读取到本机的config_dict中，集群时使用
+
 
 - config.lua
 api接口对配置规则（主配置、mod规则配置）进行保存到本地json文件中
@@ -1024,7 +1030,7 @@ Copyright (C) 2011-2016, by zj
 
   [1]: https://github.com/agentzh
   [2]: http://openresty.org/cn/
-  [3]: ./OpenStar.png "OpenStar.png"
+  [3]: ./OpenStar.jpg "OpenStar.jpg"
   [4]: https://github.com/loveshell/ngx_lua_waf
   [5]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
   [6]: http://www.modsecurity.org/

@@ -1,6 +1,4 @@
 
-
-
 local function get_argByName(name)
 	local x = 'arg_'..name
     local _name = ngx.unescape_uri(ngx.var[x])

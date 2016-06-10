@@ -1,7 +1,8 @@
 
 local Config = {}
 local cjson_safe = require "cjson.safe"
---- config.json 文件绝对路径
+
+--- config.json 文件绝对路径 [需要自行根据自己服务器情况设置]
 local config_json = "/opt/openresty/openstar/config.json"
 
 --- 读取文件（全部读取）
@@ -202,7 +203,7 @@ end
 		local method=ngx.req.get_method() or "unknow_method"
 		--local request_uri = ngx.var.request_uri or "unknow_req_uri"
 		local time = ngx.localtime()
-		local str = string.format("Time:%s Host:%s Method:%s Url:%s Ip:%s Msg:%s",time,host,method,url,ip,msg)
+		local str = string.format("%s Host:%s Method:%s Url:%s Ip:%s Msg:%s",time,host,method,url,ip,msg)
 		writefile(filepath,str)
 	end
 

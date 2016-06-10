@@ -131,7 +131,7 @@ local ip = loc_getRealIp(host,remoteIp,headers)
 if config_is_on("ip_Mod") then	
 	local _ip_v = ip_dict:get(ip)
 	if _ip_v ~= nil then
-		if _ip_v == "allow" then
+		if _ip_v == "allow" then -- 跳出后续规则
 			return
 		else
 			Set_count_dict(ip)
@@ -291,7 +291,7 @@ if config_is_on("url_Mod") then
 			end
 		end
 	end
-	if t == "allow" then
+	if t == "allow" then --- 跳出后续规则
 		return
 	elseif t ==	"deny" then
 		Set_count_dict("url_deny count")
@@ -311,7 +311,7 @@ if config_is_on("header_Mod") then
 			if host_url_remath(v.hostname,v.url) then
 				if remath(headers[v.header[1]],v.header[2],v.header[3]) then
 					Set_count_dict(" black_header_method count")
-				 	debug("header_Mod No : "..no,"header_deny",ip)
+				 	debug("header_Mod No : "..i,"header_deny",ip)
 				 	action_deny()
 				 	break
 				end
@@ -371,7 +371,7 @@ if config_is_on("args_Mod") then
 	--debug("args_Mod is on")
 	local args_mod = getDict_Config("args_Mod")
 	local args = ngx.unescape_uri(ngx.var.query_string)
-	if args ~= nil then
+	if args ~= "" then
 		for i,v in ipairs(args_mod) do
 			if v.state == "on" then
 				--debug("args_Mod state is on "..i)
@@ -448,7 +448,7 @@ if config_is_on("network_Mod") then
 						--debug("maxReqs is true")
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(ip,mod_ip,blacktime)
-						debug("network_Mod  check_network true","network_log",ip)
+						debug("network_Mod  check_network No : "..i,"network_log",ip)
 						action_deny()
 						break
 					else
