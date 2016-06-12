@@ -198,6 +198,7 @@ if config_is_on("app_Mod") then
 							check = "allow"
 						end
 					end
+
 					if check == "allow" then
 						--return
 					else
@@ -310,7 +311,7 @@ if config_is_on("header_Mod") then
 		if v.state == "on" then			
 			if host_url_remath(v.hostname,v.url) then
 				if remath(headers[v.header[1]],v.header[2],v.header[3]) then
-					Set_count_dict(" black_header_method count")
+					Set_count_dict("black_header_method count")
 				 	debug("header_Mod No : "..i,"header_deny",ip)
 				 	action_deny()
 				 	break
@@ -393,7 +394,7 @@ end
 -- post (黑名单)
 local function get_postargs()	
 	ngx.req.read_body()
-	local data = ngx.req.get_body_data()
+	local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
 	if not data then 
 		local datafile = ngx.req.get_body_file()
 		if datafile then

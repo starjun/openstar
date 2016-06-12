@@ -178,21 +178,21 @@ end
 -- init_debug(msg) 阶段调试记录LOG
 --
 	function init_debug(msg)
-		if Config.debug_Mod == false then return end  --- 判断debug开启状态
+		if Config.base.debug_Mod == false then return end  --- 判断debug开启状态
 		local filepath = Config.base.logPath.."debug.log"
 		local time = ngx.localtime()
 		if type(msg) == "table" then
 			local str_msg = tableToString(msg)
-			writefile(filepath,time.."--init_debug: "..tostring(str_msg))
+			writefile(filepath,time.."- init_debug: "..tostring(str_msg))
 		else
-			writefile(filepath,time.."--init_debug: "..tostring(msg))
+			writefile(filepath,time.."- init_debug: "..tostring(msg))
 		end
 	end
 
 -- debug(msg,filename) 记录debug日志
 -- 更新记录IP 2016年6月7日 22:22:15
 	function debug(msg,filename,ip)
-		if Config.debug_Mod == false then return end --- 判断debug开启状态
+		if Config.base.debug_Mod == false then return end --- 判断debug开启状态
 		if filename == nil then
 			filename = "debug"
 		end
