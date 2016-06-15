@@ -10,14 +10,14 @@
         "action": ["rehtml"],
         "rehtml": "<html>hi~!</html>",
         "hostname": ["101.200.122.200",""],
-        "url": ["^/rehtml$","jio"]
+        "url": ["/rehtml",""]
     },
     {
         "state": "on",
         "action": ["reflie"],
         "reflie": "2.txt",
         "hostname": ["101.200.122.200",""],
-        "url": ["^/refile$","jio"]
+        "url": ["/refile",""]
     },
     {
         "state": "on",
@@ -45,12 +45,12 @@
         "action": ["allow"],
         "allow":["args","keyby","^[\\w]{6}$"],
         "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "url": ["^/api/time$","jio"]
+        "url": ["/api/time",""]
     },
     {
         "state": "on",
         "action": ["log"],
         "hostname": ["101.200.122.200",""],
-        "url": ["^/log$","jio"]
+        "url": ["/log",""]
     }
 ]

@@ -113,6 +113,7 @@ end
 -- 2016年6月7日 21:55:13 up 从全局调整为 local
 local function action_deny(code)
 	if code == nil or type(code) ~= "number" then
+		ngx.header["Content-Type"] = "text/plain"
 		--local default = [[<!DOCTYPE html><html><head><title>Error</title><style>body {width: 35em;margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif;}</style></head><body><h1>An error occurred.</h1><p>Sorry, the page you are looking for is currently unavailable.<br/>Please try again later.</p><p>If you are the system administrator of this resource then you should checkthe <a href="http://nginx.org/r/error_log">error log</a> for details.</p><p><em>Faithfully yours, nginx.</em></p></body></html>]]
 		local msg = config_base.sayHtml or "OpenStar request error"
 		ngx.say(msg) 
@@ -198,6 +199,7 @@ if config_is_on("app_Mod") then
 							check = "allow"
 						end
 					end
+
 					if check == "allow" then
 						--return
 					else
@@ -310,7 +312,7 @@ if config_is_on("header_Mod") then
 		if v.state == "on" then			
 			if host_url_remath(v.hostname,v.url) then
 				if remath(headers[v.header[1]],v.header[2],v.header[3]) then
-					Set_count_dict(" black_header_method count")
+					Set_count_dict("black_header_method count")
 				 	debug("header_Mod No : "..i,"header_deny",ip)
 				 	action_deny()
 				 	break
@@ -393,7 +395,7 @@ end
 -- post (黑名单)
 local function get_postargs()	
 	ngx.req.read_body()
-	local data = ngx.req.get_body_data()
+	local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
 	if not data then 
 		local datafile = ngx.req.get_body_file()
 		if datafile then
@@ -411,7 +413,7 @@ if config_is_on("post_Mod") and method == "POST" then
 	--debug("post_Mod is on")
 	local post_mod = getDict_Config("post_Mod")
 	local postargs = get_postargs()
-	if postargs ~= nil then
+	if postargs ~= "" then
 		for i,v in ipairs(post_mod) do
 			if v.state == "on" then
 				--debug(i.." post_mod state is on")

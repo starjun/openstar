@@ -7,11 +7,11 @@ local token_list = ngx.shared.token_list
 local config_dict = ngx.shared.config_dict
 
 local cjson_safe = require "cjson.safe"
+local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 --- 判断config_dict中模块开关是否开启
 local function config_is_on(config_arg)
-	local config_dict = ngx.shared.config_dict
-	if config_dict:get(config_arg) == "on" then
+	if config_base[config_arg] == "on" then
 		return true
 	end
 end
