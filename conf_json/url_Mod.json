@@ -6,7 +6,7 @@
             ""
         ],
         "url": [
-            "\\.(css|js|flv|swf|zip|txt)$",
+            "\\.(css|js|flv|swf|woff|txt)$",
             "jio"
         ],
         "action": "allow"
