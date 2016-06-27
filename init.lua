@@ -217,7 +217,7 @@ local function guid()
 end
 
 -- 设置token 并缓存3分钟
-function set_token(token)	
+function set_token(token)
 	if token == nil then token = guid()	end -- 没有值自动生成一个guid
 	local ditc_token = ngx.shared.token_list;
 	if ditc_token:get(token) == nil then 
