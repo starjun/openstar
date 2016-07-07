@@ -299,7 +299,9 @@ if config_is_on("url_Mod") then
 		Set_count_dict("url_deny count")
 		debug("url_Mod No : "..no,"url_deny",ip)
 		action_deny()
-	else
+	elseif t == "log" then
+		Set_count_dict("url_log count")
+		debug("url_Mod No : "..no,"url_log",ip)
 	end
 end
 --debug("----------- STEP 5")
@@ -355,10 +357,16 @@ if config_is_on("cookie_Mod") then
 		if v.state == "on" then
 			if remath(host,v.hostname[1],v.hostname[2]) then
 				if remath(cookie,v.cookie[1],v.cookie[2]) then
-					Set_count_dict("cookie_deny count")
-					debug("cookie_Mod : "..cookie.." No : "..i,"cookie_deny",ip)
-					action_deny()
-					break
+					if v.action == "deny" then
+						Set_count_dict("cookie_deny count")
+						debug("cookie_Mod : "..cookie.." No : "..i,"cookie_deny",ip)
+						action_deny()
+						break
+					elseif v.action =="log" then
+						Set_count_dict("cookie_log count")
+						debug("cookie_Mod : "..cookie.." No : "..i,"cookie_log",ip)
+						break
+					end
 				end
 			end
 		end
@@ -379,10 +387,16 @@ if config_is_on("args_Mod") then
 				--debug("args_Mod state is on "..i)
 				if remath(host,v.hostname[1],v.hostname[2]) then			
 					if remath(args,v.args[1],v.args[2]) then
-						Set_count_dict("args_deny count")
-						debug("args_Mod _args = "..args.." No : "..i,"args_deny",ip)
-						action_deny()
-						break
+						if v.action == "deny" then
+							Set_count_dict("args_deny count")
+							debug("args_Mod _args = "..args.." No : "..i,"args_deny",ip)
+							action_deny()
+							break
+						elseif v.action == "log" then
+							Set_count_dict("args_log count")
+							debug("args_Mod _args = "..args.." No : "..i,"args_log",ip)
+							break
+						end
 					end
 				end
 			end
@@ -419,10 +433,16 @@ if config_is_on("post_Mod") and method == "POST" then
 				--debug(i.." post_mod state is on")
 				if remath(host,v.hostname[1],v.hostname[2]) then				
 					if remath(postargs,v.post[1],v.post[2]) then
-						Set_count_dict("post_deny count")
-						debug("post_Mod : "..postargs.."No : "..i,"post_deny",ip)
-						action_deny()
-						break
+						if v.action == "deny" then
+							Set_count_dict("post_deny count")
+							debug("post_Mod : "..postargs.."No : "..i,"post_deny",ip)
+							action_deny()
+							break
+						elseif v.action == "log" then
+							Set_count_dict("post_log count")
+							debug("post_Mod : "..postargs.."No : "..i,"post_log",ip)
+							break
+						end
 					end
 				end
 			end
