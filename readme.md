@@ -161,6 +161,8 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
  
  2：host\_method\_Mod ==> host和method过滤（白名单）
  
+ 2.1：rewrite_Mod ==> 跳转模块，set-cookie等操作
+ 
  3：app_Mod ==> 用户自定义应用层过滤
  
  4：referer_Mod ==> referer过滤（白名单）
@@ -196,6 +198,8 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
   该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
   + host\_method\_Mod 
   该参数是否启用HOST、METHOD白名单
+  + rewrite_Mod
+  该参数是配置跳转使用，如set-cookie。（目前仅有set-cookie，后续增加验证码跳转）
   + app_Mod 
   该参数是否启用用户自定义应用层规则
   + referer_Mod 
@@ -262,10 +266,28 @@ hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` ·表示匹配参数1列�
 
   > **后面的很多规则都是使用该方式匹配的**
 
+## STEP 2.1: rewrite_Mod（跳转模块）
+- 说明：
+```
+    {
+        "state": "on",
+        "action": ["set-cookie","asjldisdafpopliu8909jk34jk"],
+        "hostname": ["101.200.122.200",""],
+        "url": ["^/rewrite$","jio"]
+    }
+```
+上面的例子表示规则启用，host为101.200.122.200,且url匹配成功的进行302/307跳转，同时设置一个无状态cookie，名称是token。action中第二个参数是用户ip+和改参数进行md5计算的。请自行使用一个无意义字符串。防止攻击者猜测出生成算法。
 
 ## STEP 3：app_Mod（自定义action）
  - 说明：
- `{"state":"on","action":["deny"],"hostname":["127.0.0.1",""],"url":["^/([\\w]{4}\\.html|deny1\\.do|你好\\.html)$","jio"]}`
+ ```
+{
+    "state":"on",
+    "action":["deny"],
+    "hostname":["127.0.0.1",""],
+    "url":["^/([\w]{4}\.html|deny1\.do|你好\.html)$","jio"]
+}
+ ```
    
   上面的例子表示规则启用，host为127.0.0.1，且url符合正则匹配的，拒绝访问
 
@@ -988,6 +1010,9 @@ OpenStar测试服务器：
 # 变更历史
 
 ## **next 1.x 增加app_Mod，丰富allow动作，支持的参数 and 增加token和IP绑定功能 **
+
+## 1.3 更新跳转功能，可配置进行set-cookie操作
+可以配置某一个或者多个url使用跳转set-cookie操作。cookie是无状态的。
 
 ## 1.2 更新支持拦截外部的csrf
 在referer_Mod处，增加action，`allow`表示允许且后续的规则不用在匹配（一般是静态资源如图片/js/css等），`next`表示白名单匹配成功后，会继续后面的规则匹配（这里就用于拦截外部的CSRF）增加`next`是因为原来代码中，若配置了防护站外的CSRF，后续的规则会bypass,所以增加的，这样就不会出现一些绕过问题。

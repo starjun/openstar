@@ -9,6 +9,8 @@
 
 	"host_method_Mod" : "on",
 
+	"rewrite_Mod" : "on",
+
 	"app_Mod" : "on",
 	
 	"referer_Mod" : "on",

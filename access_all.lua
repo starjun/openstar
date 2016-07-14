@@ -163,6 +163,33 @@ if config_is_on("host_method_Mod") then
 end
 --debug("----------- STEP 2")
 
+--- STEP 2.1
+-- rewrite 跳转阶段(set-cookie)
+-- 本来想着放到rewrite阶段使用的，方便统一都放到access阶段了。
+if config_is_on("rewrite_Mod") then
+	local tb_mod = getDict_Config("rewrite_Mod")
+	for i,v in ipairs(tb_mod) do
+		if v.state == "on" then
+			if host_url_remath(v.hostname,v.url) then
+				if v.action[1] == "set-cookie" then
+					local token = ngx.md5(v.action[2] .. ip)
+		            if (ngx.var.cookie_token ~= token) then
+		                ngx.header["Set-Cookie"] = {"token=" .. token}
+		                if method == "POST" then
+		                	return ngx.redirect(ngx.var.request_uri,307)
+		                else
+		                	return ngx.redirect(ngx.var.request_uri)
+		                end
+		            end
+				else
+				
+				end
+				break
+			end
+		end
+	end
+end
+
 --- STEP 3
 -- app_Mod 访问控制 （自定义action）
 -- 目前支持的 deny allow log rehtml refile relua
