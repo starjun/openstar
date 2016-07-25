@@ -45,6 +45,7 @@ local function loc_getRealIp(host,remoteIP,headers)
 			end
 			return ip
 		else
+			if type(ipfromset.ips) ~= "table" then return remoteIP end
 			for i,v in ipairs(ipfromset.ips) do
 				if v == remoteIP then
 					local ip = headers[ipfromset.realipset]
@@ -79,7 +80,7 @@ local function remath(str,re_str,options)
 	else
 		local from, to = ngx.re.find(str, re_str, options)
 	    if from ~= nil then
-	    	return true
+	    	return true,string.sub(str, from, to))
 	    end
 	end
 end

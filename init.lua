@@ -5,6 +5,9 @@ local cjson_safe = require "cjson.safe"
 --- config.json 文件绝对路径 [需要自行根据自己服务器情况设置]
 local config_json = "/opt/openresty/openstar/config.json"
 
+--- 将全局配置参数存放到共享内存（config_dict）中
+local config_dict = ngx.shared.config_dict
+
 --- 读取文件（全部读取）
 local function readfile(filepath)
 	local fd = io.open(filepath,"r")
@@ -14,6 +17,17 @@ local function readfile(filepath)
     return str
 end
 
+-- 写文件(filepath,msg,ty)  默认追加方式写入
+--
+	function writefile(filepath,msg,ty)
+		if ty == nil then ty = "ab" end
+	    local fd = io.open(filepath,ty) --- 默认追加方式写入
+	    if fd == nil then return end -- 文件读取错误返回
+	    fd:write(tostring(msg).."\n")
+	    fd:flush()
+	    fd:close()
+	end
+
 --- 载入JSON文件
 local function loadjson(_path_name)
 	local x = readfile(_path_name)
@@ -21,10 +35,10 @@ local function loadjson(_path_name)
 	return json
 end
 
+Config.base = loadjson(config_json)
+
 --- 载入config.json全局基础配置
-function loadConfig()
-	local _jsonConfig = loadjson(config_json)
-	Config.base = _jsonConfig
+function loadConfig()	
 	local _basedir = Config.base.jsonPath
 	Config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
 	Config.ip_Mod = loadjson(_basedir.."ip_Mod.json")
@@ -40,8 +54,7 @@ function loadConfig()
 	Config.post_Mod = loadjson(_basedir.."post_Mod.json")	
 	Config.network_Mod = loadjson(_basedir.."network_Mod.json")
 	Config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
-	--- 将全局配置参数存放到共享内存（config_dict）中
-	local config_dict = ngx.shared.config_dict
+	
 	for k,v in pairs(Config) do
 		if type(v) == "table" then
 			v = cjson_safe.encode(v)
@@ -50,7 +63,63 @@ function loadConfig()
 	end
 end
 
+function loadConfigByRedis()
+
+	local redis = require "resty.redis"	
+	local redis_mod = Config.base.redis_Mod or {}
+	local logPathInit = Config.base.logPath.."init.log"
+
+	-- redis 连接
+	local red = redis:new()
+	red:set_timeout(1000) -- 1 sec
+	local count ,err , ok,res
+	ok, err = red:connect(redis_mod.ip, redis_mod.Port)
+	if not ok then
+	    writefile(logPathInit,ngx.localtime().."- init_debug: failed to connect:"..tostring(err))
+	    return
+	end
+
+	-- redis auth 认证	
+	count, err = red:get_reused_times()
+	if 0 == count then
+	    ok, err = red:auth(redis_mod.Password)
+	    if not ok then
+	        --ngx.say("failed to auth: ", err)
+	        writefile(logPathInit,ngx.localtime().."- init_debug: failed to auth: "..tostring(err))
+	        return
+	    end
+	elseif err then
+	    --ngx.say("failed to get reused times: ", err)
+	    writefile(logPathInit,ngx.localtime().."- init_debug: failed to get reused times: "..tostring(err))
+	    return
+	end
+
+	-- redis 读取
+	res, err = red:get("config_dict")
+    if not res then
+        --ngx.say("failed to get "..tostring(_key)..": ", err)
+        writefile(logPathInit,ngx.localtime().."- init_debug: failed to get [config_dict] "..tostring(err))
+        return
+    end
+
+    if res == ngx.null then
+        --ngx.say("key not found.")
+        writefile(logPathInit,ngx.localtime().."- init_debug: [config_dict] key not found")
+        return
+    end
+
+    res = cjson_safe.decode(res)
+    for i,v in pairs(res) do
+        config_dict:replace(i,cjson_safe.encode(v))
+    end
+    
+end
+
 loadConfig()
+
+if Config.base.redis_Mod["status"] == "on" then
+	loadConfigByRedis()
+end
 
 --- 初始化ip_mod列表
 --- 
@@ -165,16 +234,6 @@ end
 		return re
 	end
 
--- writefile(filepath,msg,ty)  默认追加方式写入
---
-	function writefile(filepath,msg,ty)
-		if ty == nil then ty = "ab" end
-	    local fd = io.open(filepath,ty) --- 默认追加方式写入
-	    if fd == nil then return end -- 文件读取错误返回
-	    fd:write(tostring(msg).."\n")
-	    fd:flush()
-	    fd:close()
-	end
 
 -- init_debug(msg) 阶段调试记录LOG
 --
