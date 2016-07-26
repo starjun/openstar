@@ -18,7 +18,6 @@ local function readfile(filepath)
 end
 
 -- 写文件(filepath,msg,ty)  默认追加方式写入
---
 	function writefile(filepath,msg,ty)
 		if ty == nil then ty = "ab" end
 	    local fd = io.open(filepath,ty) --- 默认追加方式写入
@@ -26,6 +25,19 @@ end
 	    fd:write(tostring(msg).."\n")
 	    fd:flush()
 	    fd:close()
+	end
+
+-- init_debug(msg) 阶段调试记录LOG
+	function init_debug(msg)
+		if Config.base.debug_Mod == false then return end  --- 判断debug开启状态
+		local filepath = Config.base.logPath.."debug.log"
+		local time = ngx.localtime()
+		if type(msg) == "table" then
+			local str_msg = tableToString(msg)
+			writefile(filepath,time.."- init_debug: "..tostring(str_msg))
+		else
+			writefile(filepath,time.."- init_debug: "..tostring(msg))
+		end
 	end
 
 --- 载入JSON文件
@@ -37,8 +49,10 @@ end
 
 Config.base = loadjson(config_json)
 
+
 --- 载入config.json全局基础配置
-function loadConfig()	
+function loadConfig()
+
 	local _basedir = Config.base.jsonPath
 	Config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
 	Config.ip_Mod = loadjson(_basedir.."ip_Mod.json")
@@ -63,63 +77,7 @@ function loadConfig()
 	end
 end
 
-function loadConfigByRedis()
-
-	local redis = require "resty.redis"	
-	local redis_mod = Config.base.redis_Mod or {}
-	local logPathInit = Config.base.logPath.."init.log"
-
-	-- redis 连接
-	local red = redis:new()
-	red:set_timeout(1000) -- 1 sec
-	local count ,err , ok,res
-	ok, err = red:connect(redis_mod.ip, redis_mod.Port)
-	if not ok then
-	    writefile(logPathInit,ngx.localtime().."- init_debug: failed to connect:"..tostring(err))
-	    return
-	end
-
-	-- redis auth 认证	
-	count, err = red:get_reused_times()
-	if 0 == count then
-	    ok, err = red:auth(redis_mod.Password)
-	    if not ok then
-	        --ngx.say("failed to auth: ", err)
-	        writefile(logPathInit,ngx.localtime().."- init_debug: failed to auth: "..tostring(err))
-	        return
-	    end
-	elseif err then
-	    --ngx.say("failed to get reused times: ", err)
-	    writefile(logPathInit,ngx.localtime().."- init_debug: failed to get reused times: "..tostring(err))
-	    return
-	end
-
-	-- redis 读取
-	res, err = red:get("config_dict")
-    if not res then
-        --ngx.say("failed to get "..tostring(_key)..": ", err)
-        writefile(logPathInit,ngx.localtime().."- init_debug: failed to get [config_dict] "..tostring(err))
-        return
-    end
-
-    if res == ngx.null then
-        --ngx.say("key not found.")
-        writefile(logPathInit,ngx.localtime().."- init_debug: [config_dict] key not found")
-        return
-    end
-
-    res = cjson_safe.decode(res)
-    for i,v in pairs(res) do
-        config_dict:replace(i,cjson_safe.encode(v))
-    end
-    
-end
-
 loadConfig()
-
-if Config.base.redis_Mod["status"] == "on" then
-	loadConfigByRedis()
-end
 
 --- 初始化ip_mod列表
 --- 
@@ -234,20 +192,6 @@ end
 		return re
 	end
 
-
--- init_debug(msg) 阶段调试记录LOG
---
-	function init_debug(msg)
-		if Config.base.debug_Mod == false then return end  --- 判断debug开启状态
-		local filepath = Config.base.logPath.."debug.log"
-		local time = ngx.localtime()
-		if type(msg) == "table" then
-			local str_msg = tableToString(msg)
-			writefile(filepath,time.."- init_debug: "..tostring(str_msg))
-		else
-			writefile(filepath,time.."- init_debug: "..tostring(msg))
-		end
-	end
 
 -- debug(msg,filename) 记录debug日志
 -- 更新记录IP 2016年6月7日 22:22:15

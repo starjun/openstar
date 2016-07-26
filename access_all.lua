@@ -80,7 +80,7 @@ local function remath(str,re_str,options)
 	else
 		local from, to = ngx.re.find(str, re_str, options)
 	    if from ~= nil then
-	    	return true,string.sub(str, from, to))
+	    	return true,string.sub(str, from, to)
 	    end
 	end
 end
@@ -123,6 +123,26 @@ local function action_deny(code)
 		return ngx.exit(code)
 	end
 end
+
+local function get_postargs()	
+	ngx.req.read_body()
+	local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
+	if not data then 
+		local datafile = ngx.req.get_body_file()
+		if datafile then
+			local fh, err = io.open(datafile, "r")
+			if fh then
+				fh:seek("set")
+                data = fh:read("*a")
+                fh:close()
+			end
+		end
+	end
+	return ngx.unescape_uri(data)
+end
+
+local post_date
+local get_date
 
 --- STEP 0
 local ip = loc_getRealIp(host,remoteIp,headers)
@@ -236,9 +256,18 @@ if config_is_on("app_Mod") then
 						action_deny()
 						break
 					end					
-				elseif v.action[1] == "log" then
+				elseif v.action[1] == "log" then					
+					local http_tmp = {}
+					http_tmp["headers"] = headers
+					get_date = ngx.unescape_uri(ngx.var.query_string)
+					http_tmp["get_date"] = get_date
+					http_tmp["remoteIp"] = remoteIp
+					if method == "POST" then
+						post_date = get_postargs()
+						http_tmp["post"] = post_date						
+					end
+					debug("app_Mod log Msg : "..tableTojson(http_tmp),"app_log",ip)
 
-					debug("app_Mod log No : "..i,"app_log",ip)
 				elseif v.action[1] == "rehtml" then
 					sayHtml_ext(v.rehtml)
 					break
@@ -408,7 +437,7 @@ end
 if config_is_on("args_Mod") then
 	--debug("args_Mod is on")
 	local args_mod = getDict_Config("args_Mod")
-	local args = ngx.unescape_uri(ngx.var.query_string)
+	local args = get_date or ngx.unescape_uri(ngx.var.query_string)
 	if args ~= "" then
 		for i,v in ipairs(args_mod) do
 			if v.state == "on" then
@@ -435,26 +464,11 @@ end
 
 --- STEP 10
 -- post (黑名单)
-local function get_postargs()	
-	ngx.req.read_body()
-	local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
-	if not data then 
-		local datafile = ngx.req.get_body_file()
-		if datafile then
-			local fh, err = io.open(datafile, "r")
-			if fh then
-				fh:seek("set")
-                data = fh:read("*a")
-                fh:close()
-			end
-		end
-	end
-	return ngx.unescape_uri(data)
-end
+
 if config_is_on("post_Mod") and method == "POST" then
 	--debug("post_Mod is on")
 	local post_mod = getDict_Config("post_Mod")
-	local postargs = get_postargs()
+	local postargs = post_date or get_postargs()
 	if postargs ~= "" then
 		for i,v in ipairs(post_mod) do
 			if v.state == "on" then
