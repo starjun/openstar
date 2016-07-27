@@ -7,7 +7,7 @@
 
 	"ip_Mod" : "on",
 
-	"host_method_Mod" : "on",
+	"host_method_Mod" : "off",
 
 	"rewrite_Mod" : "on",
 
