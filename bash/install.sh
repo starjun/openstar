@@ -22,8 +22,7 @@ if [ "$1" = "install" ];then
 	gmake
 	gmake install
 	##############################
-	cd ${install_path}
-	mv openstar/ openstar.bak/
+	cd ${install_path}	
 	git clone https://github.com/starjun/openstar.git
 	mv nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
 	cp openstar/conf/nginx.conf nginx/conf/
@@ -38,6 +37,7 @@ if [ "$1" = "install" ];then
 
 elif [ "$1" = "openstar" ]; then
 	cd ${install_path}
+	mv -f openstar/ openstar.bak/
 	git clone https://github.com/starjun/openstar.git
 	mv nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
 	cp openstar/conf/nginx.conf nginx/conf/
