@@ -4,53 +4,5 @@
         "action": ["deny"],
         "hostname": ["101.200.122.200",""],
         "url": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
-    },
-    {
-        "state": "on",
-        "action": ["rehtml"],
-        "rehtml": "<html>hi~!</html>",
-        "hostname": ["101.200.122.200",""],
-        "url": ["/rehtml",""]
-    },
-    {
-        "state": "on",
-        "action": ["reflie"],
-        "reflie": "2.txt",
-        "hostname": ["101.200.122.200",""],
-        "url": ["/refile",""]
-    },
-    {
-        "state": "on",
-        "action": ["allow"],
-        "allow":["ip",["106.37.236.170","1.1.1.1"],"table"],
-        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "url": ["/api/.*","jio"]
-    },
-    {
-        "state": "on",
-        "action": ["allow"],
-        "allow":["args","keytoken","@token@"],
-        "hostname": ["101.200.122.200",""],
-        "url": ["/api/debug",""]
-    },   
-    {
-        "state": "on",
-        "action": ["relua"],
-        "relua":"1.lua",
-        "hostname": ["*",""],
-        "url": ["*",""]
-    },
-    {
-        "state": "on",
-        "action": ["allow"],
-        "allow":["args","keyby","^[\\w]{6}$"],
-        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "url": ["/api/time",""]
-    },
-    {
-        "state": "on",
-        "action": ["log"],
-        "hostname": ["101.200.122.200",""],
-        "url": ["/log",""]
     }
 ]

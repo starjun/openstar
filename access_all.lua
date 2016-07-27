@@ -72,10 +72,16 @@ local function remath(str,re_str,options)
 			return true
 		end
 	elseif options == "table" then
+		if type(re_str) ~= "table" then return false end
 		for i,v in ipairs(re_str) do
 			if v == str then
 				return true
 			end
+		end
+	elseif options == "in" then --- 用于包含 查找 string.find
+		local from , to = string.find(str, re_str)
+		if from ~= nil or (from == 1 and to == 0 ) then
+			return true
 		end
 	else
 		local from, to = ngx.re.find(str, re_str, options)
@@ -101,7 +107,7 @@ end
 
 --- 拦截计数 2016年6月7日 21:52:52 up 从全局变成local
 local function Set_count_dict(_key)
-	if _key == nil then return end	
+	if _key == nil then return end
 	local key_count = count_dict:get(_key)
 	if key_count == nil then 
 		count_dict:set(_key,1)

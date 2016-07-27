@@ -33,15 +33,21 @@ local function remath(str,re_str,options)
 			return true
 		end
 	elseif options == "table" then
+		if type(re_str) ~= "table" then return false end
 		for i,v in ipairs(re_str) do
 			if v == str then
 				return true
 			end
 		end
+	elseif options == "in" then --- 用于包含 查找 string.find
+		local from , to = string.find(str, re_str)
+		if from ~= nil or (from == 1 and to == 0 ) then
+			return true
+		end
 	else
 		local from, to = ngx.re.find(str, re_str, options)
 	    if from ~= nil then
-	    	return true
+	    	return true,string.sub(str, from, to)
 	    end
 	end
 end

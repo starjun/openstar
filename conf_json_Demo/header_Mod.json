@@ -5,5 +5,12 @@
         "url": ["*",""],
         "hostname": ["*",""],
         "header": ["Acunetix_Aspect","*",""]        
+    },
+    {
+        "state": "on",
+        "url": ["*",""],
+        "hostname": ["*",""],
+        "header": ["X_Scan_Memo","*",""]        
     }
+
 ]
