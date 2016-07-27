@@ -23,6 +23,7 @@ if [ "$1" = "install" ];then
 	gmake install
 	##############################
 	cd ${install_path}
+	mv openstar/ openstar.bak/
 	git clone https://github.com/starjun/openstar.git
 	mv nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
 	cp openstar/conf/nginx.conf nginx/conf/
@@ -51,8 +52,8 @@ elif [ "$1" = "redis" ]; then
 	cd redis-3.2.1
 	make	
 else
-	#### �鿴��������Ϣ �汾���ڴ桢CPU �ȵ� ####
-	echo "uname ��a"
+	#### 查看服务器信息 版本、内存、CPU 等等 ####
+	echo "uname －a"
 	uname -a
 	echo "##########################"
 	echo "cat /proc/version"
@@ -61,10 +62,10 @@ else
 	echo "cat /proc/cpuinfo"
 	cat /proc/cpuinfo
 	echo "##########################"
-	echo " cat /etc/issue  ��cat /etc/redhat-release"
+	echo " cat /etc/issue  或cat /etc/redhat-release"
 	cat /etc/redhat-release 2>/dev/null || cat /etc/issue
 	echo "##########################"
-	echo "getconf LONG_BIT  ��Linux�鿴�汾˵����ǰCPU������32bitģʽ�£� ��������CPU��֧��64bit��"
+	echo "getconf LONG_BIT  （Linux查看版本说明当前CPU运行在32bit模式下， 但不代表CPU不支持64bit）"
 	getconf LONG_BIT	
 fi
 	
