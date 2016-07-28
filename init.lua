@@ -88,8 +88,9 @@ local function set_ip_mod()
 		if v.action == "allow" then
 			_dict:safe_set(v.ip,"allow",0)
 		elseif v.action == "deny" then
-			_dict:safe_set(v.ip,"ip_mod deny",0)
+			_dict:safe_set(v.ip,"deny",0)
 		else
+			_dict:safe_set(v.ip,"log",0)
 		end
 	end
 end

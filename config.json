@@ -19,7 +19,7 @@
 
 	"header_Mod" : "on",
 
-	"agent_Mod" : "on",
+	"agent_Mod" : "off",
 
 	"cookie_Mod" : "on",
 
@@ -27,7 +27,7 @@
 
 	"post_Mod" : "on",
 
-	"network_Mod" : "on",
+	"network_Mod" : "off",
 
 	"replace_Mod" : "off",
 

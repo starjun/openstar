@@ -16,14 +16,13 @@ local function config_is_on(config_arg)
 	end
 end
 
+if not config_is_on("replace_Mod") then return end
+
 --- 取config_dict中的json数据
 local function getDict_Config(Config_jsonName)
 	local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
 	return re
 end
-
-
-if not config_is_on("replace_Mod") then return end
 
 --- remath(str,re_str,options)
 local function remath(str,re_str,options)
