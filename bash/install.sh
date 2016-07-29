@@ -24,11 +24,15 @@ if [ "$1" = "install" ];then
 	##############################
 	cd ${install_path}	
 	git clone https://github.com/starjun/openstar.git
-	mv nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
-	cp openstar/conf/nginx.conf nginx/conf/
-	cp openstar/conf/our.conf nginx/conf/
-	cp openstar/conf/waf.conf nginx/conf/
+	mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
+	#cp openstar/conf/nginx.conf nginx/conf/
+	#cp openstar/conf/our.conf nginx/conf/
+	#cp openstar/conf/waf.conf nginx/conf/
+	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
+	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
+	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
 	mkdir -p ${install_path}/openstar/logs
+	chmod o+rw ${install_path}/openstar/logs/
 	nginx/sbin/nginx
 
 	##############################
@@ -39,10 +43,15 @@ elif [ "$1" = "openstar" ]; then
 	cd ${install_path}
 	mv -f openstar/ openstar.bak/
 	git clone https://github.com/starjun/openstar.git
-	mv nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
-	cp openstar/conf/nginx.conf nginx/conf/
-	cp openstar/conf/our.conf nginx/conf/
-	cp openstar/conf/waf.conf nginx/conf/
+	mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
+	mv -f nginx/conf/waf.conf nginx/conf/waf.conf.bak
+	mv -f nginx/conf/our.conf nginx/conf/our.conf.bak
+	#cp openstar/conf/nginx.conf nginx/conf/
+	#cp openstar/conf/our.conf nginx/conf/
+	#cp openstar/conf/waf.conf nginx/conf/
+	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
+	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
+	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
 elif [ "$1" = "redis" ]; then
 	#yum install redis -y
 	mkdir -p ${install_path_redis}

@@ -155,12 +155,16 @@ local ip = loc_getRealIp(host,remoteIp,headers)
 --debug("----------- STEP 0  "..ip)
 
 ---  STEP 1 
--- black/white ip 访问控制(黑/白名单)
-if config_is_on("ip_Mod") then	
-	local _ip_v = ip_dict:get(ip)
+-- black/white ip 访问控制(黑/白名单/log记录)
+-- 2016年7月29日19:12:53 检查
+if config_is_on("ip_Mod") then
+	local _ip_v = ip_dict:get(ip) --- 全局IP 黑白名单
 	if _ip_v ~= nil then
 		if _ip_v == "allow" then -- 跳出后续规则
 			return
+		elseif _ip_v == "log"
+			Set_count_dict("ip log count")
+	 		debug("ip_Mod : log","ip_log",ip)
 		else
 			Set_count_dict(ip)
 			action_deny()
@@ -171,7 +175,8 @@ end
 
 ---  STEP 2
 -- host and method  访问控制(白名单)
-if config_is_on("host_method_Mod") then
+-- 2016年7月29日19:14:31  检查
+if config_is_on("host_method_Mod") and host ~= "unknown-host" then
 	local tb_mod = getDict_Config("host_method_Mod")
 	local check
 	for i,v in ipairs(tb_mod) do
@@ -183,7 +188,7 @@ if config_is_on("host_method_Mod") then
 		end
 	end
 	if check ~= "allow" then
-		Set_count_dict(" black_host_method count")
+		Set_count_dict("black_host_method count")
 	 	debug("host_method_Mod : black","host_method_deny",ip)
 	 	action_deny()
 	end
@@ -298,8 +303,8 @@ end
 --debug("----------- STEP 3")
 
 --- STEP 4
--- referer (白名单)
-if config_is_on("referer_Mod") then
+-- referer (白名单/log记录/next)
+if config_is_on("referer_Mod") and referer ~= "unknown-referer" then
 	local check,no
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
@@ -322,8 +327,16 @@ if config_is_on("referer_Mod") then
 						check = "deny"
 						break
 					end
+				elseif v.action == "log" then
+					if remath(referer,v.referer[1],v.referer[2]) then
+						check = "log"
+						break
+					else
 				else
-				
+					-- if remath(referer,v.referer[1],v.referer[2]) then
+					-- 	check = "deny"
+					-- 	break
+					-- else
 				end
 			end
 		end
@@ -332,12 +345,13 @@ if config_is_on("referer_Mod") then
 		return
 	elseif check == "next" then
 		-- nil
-	elseif check == "deny" then
+	elseif check == "log" then
+		Set_count_dict("referer_deny count")
+		debug("referer_Mod "..referer.." No : "..no,"referer_log",ip)
+	else
 		Set_count_dict("referer_deny count")
 		debug("referer_Mod "..referer.." No : "..no,"referer_deny",ip)
 		action_deny()
-	else
-
 	end
 end
 --debug("----------- STEP 4")
@@ -390,8 +404,8 @@ end
 --debug("----------- STEP 6")
 
 --- STEP 7
--- useragent(黑名单)
-if config_is_on("agent_Mod") then	
+-- useragent(黑、白名单/log记录)
+if config_is_on("agent_Mod") and agent ~= "unknown-agent" then	
 	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" then
@@ -399,10 +413,17 @@ if config_is_on("agent_Mod") then
 			if remath(host,v.hostname[1],v.hostname[2]) then
 				--debug("useragent host is ok")
 				if remath(agent,v.useragent[1],v.useragent[2]) then
-					Set_count_dict("agent_deny count")
-					debug("agent_Mod : "..agent.." No : "..i,"agent_deny",ip)
-					action_deny()
-					break
+					if v.action == "allow" then
+						return
+					elseif v.action == "log" then
+						Set_count_dict("agent_deny count")
+						debug("agent_Mod : "..agent.." No : "..i,"agent_log",ip)
+					else
+						Set_count_dict("agent_deny count")
+						debug("agent_Mod : "..agent.." No : "..i,"agent_deny",ip)
+						action_deny()
+						break
+					end
 				end
 			end
 		end
