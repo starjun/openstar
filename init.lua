@@ -19,10 +19,11 @@ end
 
 -- 写文件(filepath,msg,ty)  默认追加方式写入
 	function writefile(filepath,msg,ty)
-		if ty == nil then ty = "ab" end
+		if ty == nil then ty = "a+" end
+		-- w+ 覆盖
 	    local fd = io.open(filepath,ty) --- 默认追加方式写入
 	    if fd == nil then return end -- 文件读取错误返回
-	    fd:write(tostring(msg).."\n")
+	    fd:write("\n"..tostring(msg))
 	    fd:flush()
 	    fd:close()
 	end
@@ -69,10 +70,8 @@ function loadConfig()
 	Config.network_Mod = loadjson(_basedir.."network_Mod.json")
 	Config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
 	
-	for k,v in pairs(Config) do
-		if type(v) == "table" then
-			v = cjson_safe.encode(v)
-		end
+	for k,v in pairs(Config) do		
+		v = cjson_safe.encode(v)
 		config_dict:safe_set(k,v,0)
 	end
 end

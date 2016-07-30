@@ -176,7 +176,12 @@ end
 ---  STEP 2
 -- host and method  访问控制(白名单)
 -- 2016年7月29日19:14:31  检查
-if config_is_on("host_method_Mod") and host ~= "unknown-host" then
+if host == "unknown-host" then 
+	Set_count_dict("black_host_method count")
+	debug("host_method_Mod : black","host_method_deny",ip)
+	action_deny()
+end
+if config_is_on("host_method_Mod") then
 	local tb_mod = getDict_Config("host_method_Mod")
 	local check
 	for i,v in ipairs(tb_mod) do
@@ -304,7 +309,7 @@ end
 
 --- STEP 4
 -- referer (白名单/log记录/next)
-if config_is_on("referer_Mod") and referer ~= "unknown-referer" then
+if config_is_on("referer_Mod") then
 	local check,no
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
@@ -333,10 +338,10 @@ if config_is_on("referer_Mod") and referer ~= "unknown-referer" then
 						break
 					else
 				else
-					-- if remath(referer,v.referer[1],v.referer[2]) then
-					-- 	check = "deny"
-					-- 	break
-					-- else
+					if remath(referer,v.referer[1],v.referer[2]) then
+						check = "deny"
+						break
+					else
 				end
 			end
 		end
@@ -348,10 +353,12 @@ if config_is_on("referer_Mod") and referer ~= "unknown-referer" then
 	elseif check == "log" then
 		Set_count_dict("referer_deny count")
 		debug("referer_Mod "..referer.." No : "..no,"referer_log",ip)
-	else
+	elseif check == "deny" then
 		Set_count_dict("referer_deny count")
 		debug("referer_Mod "..referer.." No : "..no,"referer_deny",ip)
 		action_deny()
+	else
+		
 	end
 end
 --debug("----------- STEP 4")
@@ -405,7 +412,7 @@ end
 
 --- STEP 7
 -- useragent(黑、白名单/log记录)
-if config_is_on("agent_Mod") and agent ~= "unknown-agent" then	
+if config_is_on("agent_Mod") then	
 	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" then
@@ -418,6 +425,7 @@ if config_is_on("agent_Mod") and agent ~= "unknown-agent" then
 					elseif v.action == "log" then
 						Set_count_dict("agent_deny count")
 						debug("agent_Mod : "..agent.." No : "..i,"agent_log",ip)
+						break
 					else
 						Set_count_dict("agent_deny count")
 						debug("agent_Mod : "..agent.." No : "..i,"agent_deny",ip)
@@ -433,9 +441,10 @@ end
 --debug("----------- STEP 7")
 
 --- STEP 8
--- cookie (黑名单)
-if config_is_on("cookie_Mod") then
-	local cookie = headers["cookie"] or "unknowncookie"
+-- cookie (黑/白名单/log记录)
+local cookie = headers["cookie"]
+if config_is_on("cookie_Mod") and cookie ~= nil then
+	cookie = ngx.unescape_uri(cookie)
 	local cookie_mod = getDict_Config("cookie_Mod")
 	for i, v in ipairs( cookie_mod ) do
 		if v.state == "on" then
@@ -450,6 +459,8 @@ if config_is_on("cookie_Mod") then
 						Set_count_dict("cookie_log count")
 						debug("cookie_Mod : "..cookie.." No : "..i,"cookie_log",ip)
 						break
+					elseif v.action == "allow" then
+						return
 					end
 				end
 			end
@@ -460,7 +471,7 @@ end
 --debug("----------- STEP 8")
 
 --- STEP 9
--- args (黑名单)
+-- args (黑/白名单/log记录)
 if config_is_on("args_Mod") then
 	--debug("args_Mod is on")
 	local args_mod = getDict_Config("args_Mod")
@@ -480,6 +491,8 @@ if config_is_on("args_Mod") then
 							Set_count_dict("args_log count")
 							debug("args_Mod _args = "..args.." No : "..i,"args_log",ip)
 							break
+						elseif v.action == "allow" then
+							return							
 						end
 					end
 				end
