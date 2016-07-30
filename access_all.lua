@@ -154,6 +154,7 @@ local get_date
 local ip = loc_getRealIp(host,remoteIp,headers)
 --debug("----------- STEP 0  "..ip)
 
+
 ---  STEP 1 
 -- black/white ip 访问控制(黑/白名单/log记录)
 -- 2016年7月29日19:12:53 检查
@@ -162,7 +163,7 @@ if config_is_on("ip_Mod") then
 	if _ip_v ~= nil then
 		if _ip_v == "allow" then -- 跳出后续规则
 			return
-		elseif _ip_v == "log" then
+		elseif _ip_v == "log" then 
 			Set_count_dict("ip log count")
 	 		debug("ip_Mod : log","ip_log",ip)
 		else
@@ -181,6 +182,7 @@ if host == "unknown-host" then
 	debug("host_method_Mod : black","host_method_deny",ip)
 	action_deny()
 end
+
 if config_is_on("host_method_Mod") then
 	local tb_mod = getDict_Config("host_method_Mod")
 	local check
@@ -227,9 +229,9 @@ if config_is_on("rewrite_Mod") then
 	end
 end
 
---- STEP 3
--- app_Mod 访问控制 （自定义action）
--- 目前支持的 deny allow log rehtml refile relua
+-- --- STEP 3
+-- -- app_Mod 访问控制 （自定义action）
+-- -- 目前支持的 deny allow log rehtml refile relua
 if config_is_on("app_Mod") then
 	local app_mod = getDict_Config("app_Mod")
 	for i,v in ipairs(app_mod) do
@@ -307,8 +309,8 @@ if config_is_on("app_Mod") then
 end
 --debug("----------- STEP 3")
 
---- STEP 4
--- referer (白名单/log记录/next)
+-- --- STEP 4
+-- -- referer (白名单/log记录/next)
 if config_is_on("referer_Mod") then
 	local check,no
 	local ref_mod = getDict_Config("referer_Mod")
@@ -336,12 +338,12 @@ if config_is_on("referer_Mod") then
 					if remath(referer,v.referer[1],v.referer[2]) then
 						check = "log"
 						break
-					else
+					end
 				else
 					if remath(referer,v.referer[1],v.referer[2]) then
 						check = "deny"
 						break
-					else
+					end
 				end
 			end
 		end
@@ -443,6 +445,7 @@ end
 --- STEP 8
 -- cookie (黑/白名单/log记录)
 local cookie = headers["cookie"]
+
 if config_is_on("cookie_Mod") and cookie ~= nil then
 	cookie = ngx.unescape_uri(cookie)
 	local cookie_mod = getDict_Config("cookie_Mod")
