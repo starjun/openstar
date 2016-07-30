@@ -162,7 +162,7 @@ if config_is_on("ip_Mod") then
 	if _ip_v ~= nil then
 		if _ip_v == "allow" then -- 跳出后续规则
 			return
-		elseif _ip_v == "log"
+		elseif _ip_v == "log" then
 			Set_count_dict("ip log count")
 	 		debug("ip_Mod : log","ip_log",ip)
 		else
