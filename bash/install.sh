@@ -1,7 +1,7 @@
 #!/bin/bash
 build_path=/data/openresty
 install_path=/opt/openresty
-install_path_redis=/opt/redis
+
 install_version=1.9.15.1
 ##############################
 if [ "$1" = "install" ];then
@@ -38,6 +38,7 @@ if [ "$1" = "install" ];then
 	##############################
 	echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile
 	export PATH
+
 elif [ "$1" = "openstar" ]; then
 	cd ${install_path}
 	mv -f openstar/ openstar.bak/
@@ -51,14 +52,15 @@ elif [ "$1" = "openstar" ]; then
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
 	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
-elif [ "$1" = "redis" ]; then
-	#yum install redis -y
-	mkdir -p ${install_path_redis}
-	cd ${install_path_redis}
-	wget http://download.redis.io/releases/redis-3.2.1.tar.gz
-	tar zxvf redis-3.2.1.tar.gz
-	cd redis-3.2.1
-	make	
+elif [ "$1" = "openresty" ]; then
+	cd ${build_path}
+	wget https://github.com/openresty/openresty/releases/download/v${install_version}/openresty-${install_version}.tar.gz
+	tar zxvf openresty-${install_version}.tar.gz
+	cd openresty-${install_version}
+	###############################
+	./configure --prefix=${install_path} --with-luajit
+	gmake
+	gmake install
 else
 	#### 查看服务器信息 版本、内存、CPU 等等 ####
 	echo "uname －a"

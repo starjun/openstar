@@ -5,12 +5,20 @@ local args = ngx.req.get_uri_args() or {}
 local url = ngx.unescape_uri(ngx.var.uri)
 local request_url = ngx.unescape_uri(ngx.var.request_uri)
 local lua_version
+
+
+local config_dict = ngx.shared.config_dict
+
+local cjson_safe = require "cjson.safe"
+local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+
 if jit then 
     lua_version = jit.version
 else 
     lua_version = _VERSION
 end
 local debug_tb = {
+    _Openstar_version = config_base.openstar_version,
     _pid = ngx.worker.pid(),
     _worker_count =ngx.worker.count(),
     _worker_id = ngx.worker.id(),

@@ -1,5 +1,6 @@
 
 {
+	"openstar_version":"v 1.0",
 
 	"redis_Mod" : {"state":"off","ip":"127.0.0.1","Port" : 6379,"Password":"yesorno@123"},
 

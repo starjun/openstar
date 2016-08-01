@@ -10,8 +10,8 @@
         ],
         "realipset": "x-for-f"
     },
-    "game.game.com": {
+    "10.112.29.56": {
         "ips": "*",
-        "realipset": "x-forword-for"
+        "realipset": "vc3-realip-from"
     }
 }
