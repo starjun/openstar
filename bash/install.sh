@@ -38,7 +38,6 @@ if [ "$1" = "install" ];then
 	##############################
 	echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile
 	export PATH
-
 elif [ "$1" = "openstar" ]; then
 	cd ${install_path}
 	mv -f openstar/ openstar.bak/

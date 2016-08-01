@@ -34,8 +34,8 @@ end
 local function loc_getRealIp(host,remoteIP,headers)
 	if config_is_on("realIpFrom_Mod") then
 		local realipfrom = getDict_Config("realIpFrom_Mod")
-		local ipfromset = realipfrom[host]		
-		if type(ipfromset) ~= "table" then return remoteIP end
+		local ipfromset = realipfrom[host]
+		if ipfromset == nil or type(ipfromset) ~= "table" then return remoteIP end
 		if ipfromset.ips == "*" then
 			local ip = headers[ipfromset.realipset]
 			if ip then
@@ -171,6 +171,18 @@ if config_is_on("ip_Mod") then
 			action_deny()
 		end
 	end
+	local host_ip = ip_dict:get(host.."-"..ip)
+	if host_ip ~= nil then
+		if host_ip == "allow" then -- 跳出后续规则
+			return
+		elseif host_ip == "log" then 
+			Set_count_dict(host.."-ip log count")
+	 		debug(host.."-ip_Mod : log","ip_log",ip)
+		else
+			Set_count_dict(host.."-"..ip)
+			action_deny()
+		end
+	end
 end
 --debug("----------- STEP 1")
 
@@ -237,12 +249,13 @@ if config_is_on("app_Mod") then
 	for i,v in ipairs(app_mod) do
 		if v.state == "on" then
 			--debug("app_Mod state is on "..i)
-			if host_url_remath(v.hostname,v.url) then				
+			if host_url_remath(v.hostname,v.url) then
 				if v.action[1] == "deny" then
 					Set_count_dict("app_deny count")
 					debug("app_Mod deny No : "..i,"app_log",ip)
 					action_deny()
 					break
+
 				elseif v.action[1] == "allow" then
 					--debug("app_Mod action = allow")
 					local check
@@ -274,7 +287,8 @@ if config_is_on("app_Mod") then
 						action_deny()
 						break
 					end					
-				elseif v.action[1] == "log" then					
+
+				elseif v.action[1] == "log" then
 					local http_tmp = {}
 					http_tmp["headers"] = headers
 					get_date = ngx.unescape_uri(ngx.var.query_string)
@@ -289,17 +303,20 @@ if config_is_on("app_Mod") then
 				elseif v.action[1] == "rehtml" then
 					sayHtml_ext(v.rehtml)
 					break
+
 				elseif v.action[1] == "reflie" then
 					sayFile(v.reflie)
 					break
+
 				elseif v.action[1] == "relua" then
 					local re_saylua = sayLua(v.relua)
 					if re_saylua == "break" then
 						ngx.exit(200)
 						break
 					end
-				elseif v.action[1] == "set" then -- 预留
 
+				elseif v.action[1] == "set" then -- 预留
+					break
 				else
 					break
 				end 
@@ -366,7 +383,7 @@ end
 --debug("----------- STEP 4")
 
 --- STEP 5
--- url 过滤(黑白名单)
+-- url 过滤(黑/白名单)
 if config_is_on("url_Mod") then
 	local url_mod = getDict_Config("url_Mod")
 	local t,no
@@ -506,7 +523,7 @@ end
 --debug("----------- STEP 9")
 
 --- STEP 10
--- post (黑名单)
+-- post (黑/白名单)
 
 if config_is_on("post_Mod") and method == "POST" then
 	--debug("post_Mod is on")
@@ -516,7 +533,7 @@ if config_is_on("post_Mod") and method == "POST" then
 		for i,v in ipairs(post_mod) do
 			if v.state == "on" then
 				--debug(i.." post_mod state is on")
-				if remath(host,v.hostname[1],v.hostname[2]) then				
+				if remath(host,v.hostname[1],v.hostname[2]) then
 					if remath(postargs,v.post[1],v.post[2]) then
 						if v.action == "deny" then
 							Set_count_dict("post_deny count")
@@ -527,6 +544,8 @@ if config_is_on("post_Mod") and method == "POST" then
 							Set_count_dict("post_log count")
 							debug("post_Mod : "..postargs.."No : "..i,"post_log",ip)
 							break
+						elseif v.action == "allow" then
+							return
 						end
 					end
 				end
