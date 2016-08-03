@@ -250,6 +250,7 @@ if config_is_on("app_Mod") then
 		if v.state == "on" then
 			--debug("app_Mod state is on "..i)
 			if host_url_remath(v.hostname,v.url) then
+				
 				if v.action[1] == "deny" then
 					Set_count_dict("app_deny count")
 					debug("app_Mod deny No : "..i,"app_log",ip)

@@ -18,7 +18,7 @@ local function readfile(filepath)
 end
 
 -- 写文件(filepath,msg,ty)  默认追加方式写入
-	function writefile(filepath,msg,ty)
+local function writefile(filepath,msg,ty)
 		if ty == nil then ty = "a+" end
 		-- w+ 覆盖
 	    local fd = io.open(filepath,ty) --- 默认追加方式写入
@@ -29,17 +29,17 @@ end
 	end
 
 -- init_debug(msg) 阶段调试记录LOG
-	function init_debug(msg)
-		if Config.base.debug_Mod == false then return end  --- 判断debug开启状态
-		local filepath = Config.base.logPath.."debug.log"
-		local time = ngx.localtime()
-		if type(msg) == "table" then
-			local str_msg = tableToString(msg)
-			writefile(filepath,time.."- init_debug: "..tostring(str_msg))
-		else
-			writefile(filepath,time.."- init_debug: "..tostring(msg))
-		end
+local function init_debug(msg)
+	if Config.base.debug_Mod == false then return end  --- 判断debug开启状态
+	local filepath = Config.base.logPath.."debug.log"
+	local time = ngx.localtime()
+	if type(msg) == "table" then
+		local str_msg = tableToString(msg)
+		writefile(filepath,time.."- init_debug: "..tostring(str_msg))
+	else
+		writefile(filepath,time.."- init_debug: "..tostring(msg))
 	end
+end
 
 --- 载入JSON文件
 local function loadjson(_path_name)
@@ -61,12 +61,12 @@ function loadConfig()
 	Config.rewrite_Mod = loadjson(_basedir.."rewrite_Mod.json")
 	Config.app_Mod = loadjson(_basedir.."app_Mod.json")
 	Config.referer_Mod = loadjson(_basedir.."referer_Mod.json")
-	Config.url_Mod = loadjson(_basedir.."url_Mod.json")	
-	Config.header_Mod = loadjson(_basedir.."header_Mod.json")	
+	Config.url_Mod = loadjson(_basedir.."url_Mod.json")
+	Config.header_Mod = loadjson(_basedir.."header_Mod.json")
 	Config.useragent_Mod = loadjson(_basedir.."useragent_Mod.json")	
 	Config.cookie_Mod = loadjson(_basedir.."cookie_Mod.json")
 	Config.args_Mod = loadjson(_basedir.."args_Mod.json")
-	Config.post_Mod = loadjson(_basedir.."post_Mod.json")	
+	Config.post_Mod = loadjson(_basedir.."post_Mod.json")
 	Config.network_Mod = loadjson(_basedir.."network_Mod.json")
 	Config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
 	
