@@ -41,11 +41,14 @@ if [ "$1" = "install" ];then
 
 elif [ "$1" = "openstar" ]; then
 	cd ${install_path}
-	mv -f openstar/ openstar.bak/
+	newstar=`date "+%G-%m-%d-%H-%M-%S"`
+	mv -f openstar/ openstar.${newstar}/
 	git clone https://github.com/starjun/openstar.git
-	mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
-	mv -f nginx/conf/waf.conf nginx/conf/waf.conf.bak
-	mv -f nginx/conf/our.conf nginx/conf/our.conf.bak
+	mkdir -p openstar/logs
+	chmod o+rw openstar/logs
+	# mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
+	# mv -f nginx/conf/waf.conf nginx/conf/waf.conf.bak
+	# mv -f nginx/conf/our.conf nginx/conf/our.conf.bak
 	#cp openstar/conf/nginx.conf nginx/conf/
 	#cp openstar/conf/our.conf nginx/conf/
 	#cp openstar/conf/waf.conf nginx/conf/
