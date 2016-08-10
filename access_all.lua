@@ -18,7 +18,7 @@ local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 --- 2016年8月4日 增加全局Mod开关
-if config_base["Mod_state"] ~= "on" then
+if config_base["Mod_state"] == "off" then
 	return
 end
 

@@ -9,6 +9,12 @@ local config_dict = ngx.shared.config_dict
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
+
+--- 2016年8月10日 增加全局Mod开关
+if config_base["Mod_state"] == "off" then
+	return
+end
+
 --- 判断config_dict中模块开关是否开启
 local function config_is_on(config_arg)
 	if config_base[config_arg] == "on" then
