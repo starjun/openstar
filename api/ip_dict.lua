@@ -6,12 +6,12 @@ local function get_argByName(name)
 end
 
 local _action = get_argByName("action")
-local _dict = get_argByName("dict")
+--local _dict = get_argByName("dict")
 local _key = get_argByName("key")
 
 
 
-local tmpdict = ngx.shared[_dict]
+local tmpdict = ngx.shared["ip_dict"]
 if tmpdict == nil then sayHtml_ext("dict is nil") end
 
 --- add 仅对ip_dict操作

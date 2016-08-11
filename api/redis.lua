@@ -11,6 +11,12 @@ local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 local redis_mod = config_base.redis_Mod or {}
 
+if redis_mod.state == "off" then
+    local re = {}
+    re.code = "error"
+    re.msg = "redis_Mod state is off"
+    sayHtml_ext(re)
+end
 
 local function get_argByName(name)
 	local x = 'arg_'..name
@@ -36,10 +42,12 @@ end
 local count ,err , ok
 count, err = red:get_reused_times()
 if 0 == count then
-    ok, err = red:auth(redis_mod.Password)
-    if not ok then
-        ngx.say("failed to auth: ", err)
-        return
+    if redis_mod.Password ~= "" then
+        ok, err = red:auth(redis_mod.Password)
+        if not ok then
+            ngx.say("failed to auth: ", err)
+            return
+        end
     end
 elseif err then
     ngx.say("failed to get reused times: ", err)
@@ -47,6 +55,7 @@ elseif err then
 end
 
 if _action == "set" then
+
 	ok, err = red:set(_key, _value)
 	if not ok then
 	    ngx.say("failed to set dog: ", err)
@@ -133,7 +142,7 @@ elseif _action == "push" then
         ngx.say("set count_dict result: ", ok)
 
     else
-
+        ngx.say("_key is error")
     end
 
 elseif _action == "pull" then --- 从redis拉取配置到dict
@@ -153,6 +162,8 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
             config_dict:replace(i,cjson_safe.encode(v))
         end
         ngx.say("It is Ok !")
+    else
+        ngx.say("_key is error")
     end
 
 end

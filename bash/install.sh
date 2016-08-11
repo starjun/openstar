@@ -33,6 +33,9 @@ if [ "$1" = "install" ];then
 	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
 	mkdir -p ${install_path}/openstar/logs
 	chmod o+rw ${install_path}/openstar/logs/
+	chown root:nobody nginx/sbin/nginx
+	chmod 750 nginx/sbin/nginx
+	chmod u+s nginx/sbin/nginx
 	nginx/sbin/nginx
 
 	##############################
@@ -64,6 +67,10 @@ elif [ "$1" = "openresty" ]; then
 	./configure --prefix=${install_path} --with-luajit
 	gmake
 	gmake install
+	cd ${install_path}
+	chown root:nobody nginx/sbin/nginx
+	chmod 750 nginx/sbin/nginx
+    chmod u+s nginx/sbin/nginx
 else
 	#### 查看服务器信息 版本、内存、CPU 等等 ####
 	echo "uname －a"
