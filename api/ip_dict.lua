@@ -6,27 +6,26 @@ local function get_argByName(name)
 end
 
 local _action = get_argByName("action")
---local _dict = get_argByName("dict")
 local _key = get_argByName("key")
-
-
+local _value = get_argByName("value")
+local _time = tonumber( get_argByName("time")) or 0
 
 local tmpdict = ngx.shared["ip_dict"]
-if tmpdict == nil then sayHtml_ext("dict is nil") end
 
---- add 仅对ip_dict操作
+-- 用于ip_dict操作接口  对ip列表进行增 删 改 查 操作
+
+--- add 
 if _action == "add" then
 
 	if _key == "" then
 		sayHtml_ext({})
-	else
-		local _value = get_argByName("value")
-		if _value ~= "allow" then _value = "deny" end
-		local _time = tonumber( get_argByName("time")) or 0
+	else		
+		if _value ~= "allow" then _value = "deny" end		
 		local re = tmpdict:safe_add(_key,_value,_time)
+		-- 非重复插入(lru不启用)
 		sayHtml_ext({add=re,key=_key,value=_value})
 	end
---- del 对所有ngx.shared可以删除		
+--- del
 elseif _action == "del" then
 
 	if _key == "" then
@@ -40,7 +39,7 @@ elseif _action == "del" then
 		local re1 = tmpdict:flush_expired(0)
 		sayHtml_ext({delete=re,flush_expired=re1})
 	end
---- set 仅对ip_dict操作
+--- set 
 elseif _action == "set" then
 	if _key == "" then
 		sayHtml_ext({})
@@ -50,7 +49,7 @@ elseif _action == "set" then
 		local re = tmpdict:replace(_key,_value)
 		sayHtml_ext({replace=re})
 	end
---- get 对所有ngx.shared可查询
+--- get 
 elseif _action == "get" then
 
 	if _key == "count_key" then
@@ -70,6 +69,6 @@ elseif _action == "get" then
 	end
 
 else
-	sayHtml_ext({code="action_error"})
+	sayHtml_ext({code="error",msg="action is error"})
 end
 

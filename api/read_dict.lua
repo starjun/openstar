@@ -10,7 +10,7 @@ local _key = get_argByName("key")
 local _dict = get_argByName("dict")
 
 
-
+--- 用于给 limit_ip_dict,count_dict 等查询数据使用
 
 local tmpdict = ngx.shared[_dict]
 if tmpdict == nil then sayHtml_ext("dict is nil") end
@@ -33,16 +33,6 @@ if _action == "get" then
 		sayHtml_ext(tmpdict:get(_key))
 	end
 
-elseif _action == "set" then
-
-	if _token == "" then
-		local re = set_token()
-		sayHtml_ext({_token=re})
-	else
-		local re = set_token(_token)
-		sayHtml_ext({_token = re})
-	end
-
 else
-
+	sayHtml_ext({code="error",msg="action is error"})
 end

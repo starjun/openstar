@@ -10,6 +10,8 @@ local _key = get_argByName("key")
 local _token = get_argByName("token")
 local tmpdict = ngx.shared.token_list
 
+--- token_list [dict] 操作接口 查询和设置
+
 if _action == "get" then
 	
 	if _key == "count_key" then
@@ -39,5 +41,5 @@ elseif _action == "set" then
 	end
 
 else
-
+	sayHtml_ext({code="error",msg="action is error"})
 end
