@@ -20,7 +20,7 @@ if _action == "add" then
 	if _key == "" then
 		sayHtml_ext({})
 	else		
-		if _value ~= "allow" then _value = "deny" end		
+		if _value ~= "allow" then _value = "deny" end
 		local re = tmpdict:safe_add(_key,_value,_time)
 		-- 非重复插入(lru不启用)
 		sayHtml_ext({add=re,key=_key,value=_value})

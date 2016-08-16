@@ -19,6 +19,18 @@ end
 
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
+
+-- 写文件(filepath,msg,ty)  默认追加方式写入
+local function writefile(filepath,msg,ty)
+	if ty == nil then ty = "a+" end
+	-- w+ 覆盖
+    local fd = io.open(filepath,ty) --- 默认追加方式写入
+    if fd == nil then return end -- 文件读取错误返回
+    fd:write("\n"..tostring(msg))
+    fd:flush()
+    fd:close()
+end
+
 if _action == "save" then
 
 	if _name == "all_config" then
