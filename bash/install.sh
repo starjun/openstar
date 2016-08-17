@@ -3,6 +3,8 @@ build_path=/data/openresty
 install_path=/opt/openresty
 
 install_version=1.9.15.1
+down_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
+
 ##############################
 if [ "$1" = "install" ];then
 	yum install -y epel-release
@@ -14,7 +16,7 @@ if [ "$1" = "install" ];then
 	mkdir -p ${build_path}
 	#############################	
 	cd ${build_path}
-	wget https://github.com/openresty/openresty/releases/download/v${install_version}/openresty-${install_version}.tar.gz
+	wget ${down_uri}
 	tar zxvf openresty-${install_version}.tar.gz
 	cd openresty-${install_version}
 	###############################
@@ -36,6 +38,8 @@ if [ "$1" = "install" ];then
 	chown root:nobody nginx/sbin/nginx
 	chmod 750 nginx/sbin/nginx
 	chmod u+s nginx/sbin/nginx
+	chown root:nobody -R openstar/
+	chmod g+rw openstar/
 	nginx/sbin/nginx
 
 	##############################
@@ -49,6 +53,8 @@ elif [ "$1" = "openstar" ]; then
 	git clone https://github.com/starjun/openstar.git
 	mkdir -p openstar/logs
 	chmod o+rw openstar/logs
+	chown root:nobody -R openstar/
+	chmod g+rw openstar/
 	# mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
 	# mv -f nginx/conf/waf.conf nginx/conf/waf.conf.bak
 	# mv -f nginx/conf/our.conf nginx/conf/our.conf.bak
@@ -60,7 +66,7 @@ elif [ "$1" = "openstar" ]; then
 	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
 elif [ "$1" = "openresty" ]; then
 	cd ${build_path}
-	wget https://github.com/openresty/openresty/releases/download/v${install_version}/openresty-${install_version}.tar.gz
+	wget ${down_uri}
 	tar zxvf openresty-${install_version}.tar.gz
 	cd openresty-${install_version}
 	###############################

@@ -17,6 +17,8 @@ local token_list = ngx.shared.token_list
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
+local debug = Pub_debug
+
 --- 2016年8月4日 增加全局Mod开关
 if config_base["Mod_state"] == "off" then
 	return
@@ -35,53 +37,8 @@ local function getDict_Config(Config_jsonName)
 	return re
 end
 
--- 传入 (host  连接IP  http头)
-local function loc_getRealIp(host,remoteIP,headers)
-	if config_is_on("realIpFrom_Mod") then
-		local realipfrom = getDict_Config("realIpFrom_Mod")
-		local ipfromset = realipfrom[host]
-		if ipfromset == nil or type(ipfromset) ~= "table" then return remoteIP end
-		-- if remath(remoteIP,ipfromset.ips[1],ipfromset.ips[2]) then
-		-- 	local ip = headers[ipfromset.realipset]
-		-- 	if ip then
-		-- 		if type(ip) == "table" then ip = ip[1] end
-		-- 	else
-		-- 		ip = remoteIP
-		-- 	end
-		-- 	return ip
-		-- else
-		-- 	return remoteIP
-		-- end
-		-- 统一使用 二阶匹配
-		if ipfromset.ips == "*" then
-			local ip = headers[ipfromset.realipset]
-			if ip then
-				if type(ip) == "table" then ip = ip[1] end  --- http头中有多个取第一个
-			else
-				ip = remoteIP
-			end
-			return ip
-		else
-			if type(ipfromset.ips) ~= "table" then return remoteIP end
-			for i,v in ipairs(ipfromset.ips) do
-				if v == remoteIP then
-					local ip = headers[ipfromset.realipset]
-					if ip then
-						if type(ip) == "table" then ip = ip[1] end
-					else
-						ip = remoteIP
-					end
-					return ip
-				end
-			end
-			return remoteIP
-		end
-	else
-		return remoteIP
-	end
-end
-
 --- remath(str,re_str,options)
+--- 常用二阶匹配规则
 local function remath(str,re_str,options)
 	if str == nil or re_str == nil or options == nil then return false end
 	if options == "" then
@@ -102,6 +59,12 @@ local function remath(str,re_str,options)
 		if from ~= nil then
 			return true
 		end
+	elseif options == "list" then
+		if type(re_str) ~= "table" then return false end
+		local re = re_str[str]
+		if re == true then
+			return true
+		end
 	else
 		local from, to = ngx.re.find(str, re_str, options)
 	    if from ~= nil then
@@ -109,6 +72,30 @@ local function remath(str,re_str,options)
 	    end
 	end
 end
+
+-- 传入 (host  连接IP  http头)
+local function loc_getRealIp(host,remoteIP,headers)
+	if config_is_on("realIpFrom_Mod") then
+		local realipfrom = getDict_Config("realIpFrom_Mod")
+		local ipfromset = realipfrom[host]
+		if ipfromset == nil or type(ipfromset) ~= "table" then return remoteIP end
+		if remath(remoteIP,ipfromset.ips[1],ipfromset.ips[2]) then
+			local ip = headers[ipfromset.realipset]
+			if ip then
+				if type(ip) == "table" then ip = ip[1] end
+			else
+				ip = remoteIP
+			end
+			return ip
+		else
+			return remoteIP
+		end
+		-- 统一使用 二阶匹配
+	else
+		return remoteIP
+	end
+end
+
 
 --- 匹配 host 和 url
 local function host_url_remath(_host,_url)
@@ -136,7 +123,6 @@ local function Set_count_dict(_key)
 end
 
 -- action_deny(code) 拒绝访问
--- 2016年6月7日 21:55:13 up 从全局调整为 local
 local function action_deny(code)
 	if code == nil or type(code) ~= "number" then
 		ngx.header["Content-Type"] = "text/plain"

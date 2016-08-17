@@ -6,7 +6,7 @@
 
 	"Mod_state":"on",
 
-	"realIpFrom_Mod" : "on",
+	"realIpFrom_Mod" : "off",
 
 	"ip_Mod" : "on",
 

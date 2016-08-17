@@ -19,14 +19,14 @@ end
 
 -- 写文件(filepath,msg,ty)  默认追加方式写入
 local function writefile(filepath,msg,ty)
-		if ty == nil then ty = "a+" end
-		-- w+ 覆盖
-	    local fd = io.open(filepath,ty) --- 默认追加方式写入
-	    if fd == nil then return end -- 文件读取错误返回
-	    fd:write("\n"..tostring(msg))
-	    fd:flush()
-	    fd:close()
-	end
+	if ty == nil then ty = "a+" end
+	-- w+ 覆盖
+    local fd = io.open(filepath,ty) --- 默认追加方式写入
+    if fd == nil then return end -- 文件读取错误返回
+    fd:write("\n"..tostring(msg))
+    fd:flush()
+    fd:close()
+end
 
 -- init_debug(msg) 阶段调试记录LOG
 local function init_debug(msg)
@@ -49,14 +49,13 @@ local function loadjson(_path_name)
 end
 
 Config.base = loadjson(config_json)
-
+local _basedir = Config.base.jsonPath or "./"
 
 --- 载入config.json全局基础配置
 function loadConfig()
-
-	local _basedir = Config.base.jsonPath
+	
 	Config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
-	Config.ip_Mod = loadjson(_basedir.."ip_Mod.json")
+	--Config.ip_Mod = loadjson(_basedir.."ip_Mod.json")
 	Config.host_method_Mod = loadjson(_basedir.."host_method_Mod.json")
 	Config.rewrite_Mod = loadjson(_basedir.."rewrite_Mod.json")
 	Config.app_Mod = loadjson(_basedir.."app_Mod.json")
@@ -70,7 +69,7 @@ function loadConfig()
 	Config.network_Mod = loadjson(_basedir.."network_Mod.json")
 	Config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
 	
-	for k,v in pairs(Config) do		
+	for k,v in pairs(Config) do
 		v = cjson_safe.encode(v)
 		config_dict:safe_set(k,v,0)
 	end
@@ -81,7 +80,7 @@ loadConfig()
 --- 初始化ip_mod列表
 --- 
 local function set_ip_mod()
-	local tb_ip_mod = Config.ip_Mod
+	local tb_ip_mod = loadjson(_basedir.."ip_Mod.json")
 	local _dict = ngx.shared["ip_dict"]
 	for i,v in ipairs(tb_ip_mod) do
 		if v.action == "allow" then
@@ -195,7 +194,7 @@ end
 
 -- debug(msg,filename) 记录debug日志
 -- 更新记录IP 2016年6月7日 22:22:15
-	function debug(msg,filename,ip)
+	function Pub_debug(msg,filename,ip)
 		if Config.base.debug_Mod == false then return end --- 判断debug开启状态
 		if filename == nil then
 			filename = "debug"
