@@ -31,8 +31,9 @@ local function getDict_Config(Config_jsonName)
 end
 
 --- remath(str,re_str,options)
+--- 常用二阶匹配规则
 local function remath(str,re_str,options)
-	if str == nil then or re_str == nil or options == nil return false end
+	if str == nil or re_str == nil or options == nil then return false end
 	if options == "" then
 		if str == re_str or re_str == "*" then
 			return true
@@ -47,7 +48,14 @@ local function remath(str,re_str,options)
 	elseif options == "in" then --- 用于包含 查找 string.find
 		local from , to = string.find(str, re_str)
 		--if from ~= nil or (from == 1 and to == 0 ) then
+		--当re_str=""时的情况
 		if from ~= nil then
+			return true
+		end
+	elseif options == "list" then
+		if type(re_str) ~= "table" then return false end
+		local re = re_str[str]
+		if re == true then
 			return true
 		end
 	else
