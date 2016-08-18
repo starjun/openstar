@@ -63,25 +63,25 @@ local function remath(str,re_str,options)
 end
 
 -- 传入 (host  连接IP  http头)
-local function loc_getRealIp(host,remoteIP,headers)
+local function loc_getRealIp(_host,_headers)
     if config_is_on("realIpFrom_Mod") then
         local realipfrom = getDict_Config("realIpFrom_Mod")
-        local ipfromset = realipfrom[host]
-        if ipfromset == nil or type(ipfromset) ~= "table" then return remoteIP end
-        if remath(remoteIP,ipfromset.ips[1],ipfromset.ips[2]) then
-            local ip = headers[ipfromset.realipset]
+        local ipfromset = realipfrom[_host]
+        if type(ipfromset) ~= "table" then return remoteIp end
+        if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+            local ip = _headers[ipfromset.realipset]
             if ip then
                 if type(ip) == "table" then ip = ip[1] end
             else
-                ip = remoteIP
+                ip = remoteIp
             end
             return ip
         else
-            return remoteIP
+            return remoteIp
         end
         -- 统一使用 二阶匹配
     else
-        return remoteIP
+        return remoteIp
     end
 end
 
@@ -109,7 +109,7 @@ local debug_tb = {
     _hostname = ngx.var.hostname,
     _servername = ngx.var.server_name or "unknownserver",
     _remoteIp = remoteIp,
-    _ip = loc_getRealIp(host,remoteIp,headers),
+    _ip = loc_getRealIp(host,headers),
     _filename = ngx.var.request_filename,
     _query_string = ngx.unescape_uri(ngx.var.query_string),
     _nowtime=ngx.var.time_local or "time error",

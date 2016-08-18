@@ -9,6 +9,7 @@ local config_json = "/opt/openresty/openstar/config.json"
 local config_dict = ngx.shared.config_dict
 
 --- 读取文件（全部读取）
+--- loadjson()调用
 local function readfile(filepath)
 	local fd = io.open(filepath,"r")
 	if fd == nil then return end -- 文件读取错误返回
@@ -17,7 +18,8 @@ local function readfile(filepath)
     return str
 end
 
--- 写文件(filepath,msg,ty)  默认追加方式写入
+--- 写文件(filepath,msg,ty)  默认追加方式写入
+--- init_debug() Pub_debug() 调用
 local function writefile(filepath,msg,ty)
 	if ty == nil then ty = "a+" end
 	-- w+ 覆盖
@@ -29,6 +31,7 @@ local function writefile(filepath,msg,ty)
 end
 
 -- init_debug(msg) 阶段调试记录LOG
+-- 暂无调用
 local function init_debug(msg)
 	if Config.base.debug_Mod == false then return end  --- 判断debug开启状态
 	local filepath = Config.base.logPath.."debug.log"
@@ -42,6 +45,7 @@ local function init_debug(msg)
 end
 
 --- 载入JSON文件
+--- loadConfig()
 local function loadjson(_path_name)
 	local x = readfile(_path_name)
 	local json = cjson_safe.decode(x) or {}
@@ -73,29 +77,27 @@ function loadConfig()
 		v = cjson_safe.encode(v)
 		config_dict:safe_set(k,v,0)
 	end
+
+	--- 将ip_mod放入 ip_dict 中
+	if Config.base["ip_Mod"] == "on" then
+		local tb_ip_mod = loadjson(_basedir.."ip_Mod.json")
+		local _dict = ngx.shared["ip_dict"]
+		for i,v in ipairs(tb_ip_mod) do
+			if v.action == "allow" then
+				_dict:safe_set(v.ip,"allow",0)
+				--- key 存在会覆盖 lru算法关闭
+			elseif v.action == "deny" then
+				_dict:safe_set(v.ip,"deny",0)
+			else
+				_dict:safe_set(v.ip,"log",0)
+			end
+		end
+	end
+
 end
 
 loadConfig()
 
---- 初始化ip_mod列表
---- 
-local function set_ip_mod()
-	local tb_ip_mod = loadjson(_basedir.."ip_Mod.json")
-	local _dict = ngx.shared["ip_dict"]
-	for i,v in ipairs(tb_ip_mod) do
-		if v.action == "allow" then
-			_dict:safe_set(v.ip,"allow",0)
-		elseif v.action == "deny" then
-			_dict:safe_set(v.ip,"deny",0)
-		else
-			_dict:safe_set(v.ip,"log",0)
-		end
-	end
-end
-
-if Config.base["ip_Mod"] == "on" then
-	set_ip_mod()
-end
 
 -- table 相关
 --

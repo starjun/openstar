@@ -55,7 +55,7 @@ local function remath(str,re_str,options)
 	elseif options == "in" then --- 用于包含 查找 string.find
 		local from , to = string.find(str, re_str)
 		--if from ~= nil or (from == 1 and to == 0 ) then
-		--当re_str=""时的情况
+		--当re_str=""时的情况 没有处理
 		if from ~= nil then
 			return true
 		end
@@ -74,25 +74,25 @@ local function remath(str,re_str,options)
 end
 
 -- 传入 (host  连接IP  http头)
-local function loc_getRealIp(host,remoteIP,headers)
+local function loc_getRealIp(_host,_headers)
 	if config_is_on("realIpFrom_Mod") then
 		local realipfrom = getDict_Config("realIpFrom_Mod")
-		local ipfromset = realipfrom[host]
-		if ipfromset == nil or type(ipfromset) ~= "table" then return remoteIP end
-		if remath(remoteIP,ipfromset.ips[1],ipfromset.ips[2]) then
-			local ip = headers[ipfromset.realipset]
+		local ipfromset = realipfrom[_host]
+		if type(ipfromset) ~= "table" then return remoteIp end
+		if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+			local ip = _headers[ipfromset.realipset]
 			if ip then
 				if type(ip) == "table" then ip = ip[1] end
 			else
-				ip = remoteIP
+				ip = remoteIp
 			end
 			return ip
 		else
-			return remoteIP
+			return remoteIp
 		end
 		-- 统一使用 二阶匹配
 	else
-		return remoteIP
+		return remoteIp
 	end
 end
 
@@ -156,7 +156,7 @@ local post_date
 local get_date
 
 --- STEP 0
-local ip = loc_getRealIp(host,remoteIp,headers)
+local ip = loc_getRealIp(host,headers)
 --debug("----------- STEP 0  "..ip)
 
 
@@ -262,30 +262,30 @@ if config_is_on("app_Mod") then
 					action_deny()
 					break
 
-				elseif v.action[1] == "allow" then
+				elseif v.action[1] == "next" then
 					--debug("app_Mod action = allow")
 					local check
-					if v.allow[1] == "args" then
-						local get_args = get_argByName(v.allow[2])
+					if v.next[1] == "args" then
+						local get_args = get_argByName(v.next[2])
 						--debug("get_args by keyby : "..get_args.."")
-						if v.allow[3] == "@token@" then --- 服务端验证							
+						if v.next[3] == "@token@" then --- 服务端验证							
 							local a = token_list:get(get_args)
 							if a == true then 
 								token_list:delete(get_args) -- 使用一次就删除token
-								check = "allow"	
+								check = "next"	
 							end
 						else
-						    if remath(get_args,v.allow[3],"jio") then
-								check = "allow"
+						    if remath(get_args,v.next[3],"jio") then
+								check = "next"
 							end
 						end						
-					elseif v.allow[1] == "ip" then -- 增加IP判断（eg:对某url[文件夹进行IP控制]）
-						if remath(ip,v.allow[2],v.allow[3]) then
-							check = "allow"
+					elseif v.next[1] == "ip" then -- 增加IP判断（eg:对某url[文件夹进行IP控制]）
+						if remath(ip,v.next[2],v.next[3]) then
+							check = "next"
 						end
 					end
 
-					if check == "allow" then
+					if check == "next" then
 						--return
 					else
 						Set_count_dict("app_deny count")
