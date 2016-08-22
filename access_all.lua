@@ -2,7 +2,7 @@
 local remoteIp = ngx.var.remote_addr
 local headers = ngx.req.get_headers()
 local host = headers["Host"] or "unknown-host"
-local method = ngx.var.request_method
+local method = ngx.var.request_method or "unknown-method"
 local url = ngx.unescape_uri(ngx.var.uri)
 local referer = headers["referer"] or "unknown-referer"
 local agent = headers["user_agent"] or "unknown-agent"	
@@ -12,16 +12,143 @@ local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
 local ip_dict = ngx.shared.ip_dict
 local count_dict = ngx.shared.count_dict
-local token_list = ngx.shared.token_list
+local token_dict = ngx.shared.token_dict
 
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
-local debug = Pub_debug
-
 --- 2016年8月4日 增加全局Mod开关
 if config_base["Mod_state"] == "off" then
 	return
+end
+
+local function readfile(filepath)
+	local fd = io.open(filepath,"r")
+	if fd == nil then return end -- 文件读取错误返回
+    local str = fd:read("*a") --- 全部内容读取
+    fd:close()
+    return str
+end
+
+local function writefile(filepath,msg,ty)
+	if ty == nil then ty = "a+" end
+	-- w+ 覆盖
+    local fd = io.open(filepath,ty) --- 默认追加方式写入
+    if fd == nil then return end -- 文件读取错误返回
+    fd:write("\n"..tostring(msg))
+    fd:flush()
+    fd:close()
+end
+
+local function debug(_msg,_filename,_ip)
+	if config_base.debug_Mod == false then return end --- 判断debug开启状态
+	if _filename == nil then
+		_filename = "debug"
+	end
+	local filepath = config_base.logPath or "./"
+	filepath = filepath.._filename..".log"
+	local time = ngx.localtime()
+	local str = string.format("%s Host:%s Method:%s Url:%s Ip:%s Msg:%s",time,host,method,url,_ip,_msg)
+	writefile(filepath,str)
+end
+
+local function tableToString(obj)
+    local lua = ""  
+    local t = type(obj)  
+    if t == "number" then  
+        lua = lua .. obj  
+    elseif t == "boolean" then  
+        lua = lua .. tostring(obj)  
+    elseif t == "string" then  
+        lua = lua .. string.format("%q", obj)  
+    elseif t == "table" then  
+        lua = lua .. "{\n"  
+    for k, v in pairs(obj) do  
+        lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+    end  
+    local metatable = getmetatable(obj)  
+        if metatable ~= nil and type(metatable.__index) == "table" then  
+        for k, v in pairs(metatable.__index) do  
+            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+        end  
+    end  
+        lua = lua .. "}"  
+    elseif t == "nil" then  
+        return nil  
+    else  
+        error("can not tableToString a " .. t .. " type.")  
+    end  
+    return lua  
+end
+
+local function tableTojson(obj)
+    local json_text = cjson_safe.encode(obj)  
+    return json_text
+end
+
+local function guid()
+    local random = require "resty-random"
+    return string.format('%s-%s',
+        random.token(10),
+        random.token(10)
+    )
+end
+
+-- 设置token 并缓存3分钟
+local function set_token(token)
+	if token == nil then token = guid()	end -- 没有值自动生成一个guid
+	if token_dict:get(token) == nil then 
+		token_dict:set(token,true,3*60)  --- -- 缓存3分钟 非重复插入
+		return token
+	else
+		return set_token(nil)
+	end	
+end
+
+local function ngx_find(_str)
+	-- str = string.sub(str,"@ngx_time@",ngx.time())
+	-- ngx.re.gsub 效率要比string.sub要好一点，参考openresty最佳实践
+	_str = ngx.re.gsub(str,"@ngx_localtime@",ngx.localtime())
+	-- string.find 会走jit,所以就没有用ngx模块
+	-- 当前情况下，对token仅是全局替换一次，请注意
+	if string.find(_str,"@token@") ~= nil then		
+		str = ngx.re.gsub(_str,"@token@",set_token())
+	end	
+	return str
+end
+
+local function sayHtml_ext(html,ty)	
+	ngx.header.content_type = "text/html"
+	if html == nil then 
+		ngx.say("fileorhtml is nil")
+    	ngx.exit(200)
+    elseif type(html) == "table" then
+    	if ty == nil then	    		
+    		ngx.say(tableTojson(html))
+    		ngx.exit(200)
+    	else
+    		ngx.say(tableToString(html))
+    		ngx.exit(200)
+    	end
+    else
+	    ngx.say(ngx_find(html))
+	    ngx.exit(200)
+	end	
+end
+
+local function sayFile(filename)
+	ngx.header.content_type = "text/html"
+	local str
+	if filename == nil then str = "filename error"
+	str = readfile(config_base.htmlPath..filename) or "read filename error"
+	ngx.say(str)
+	ngx.exit(200)
+end
+
+local function sayLua(lua)
+	local re = dofile(config_base.htmlPath..lua)
+	--debug("sayLua  init re :"..tostring( re ))
+	return re
 end
 
 --- 判断config_dict中模块开关是否开启
@@ -65,6 +192,12 @@ local function remath(str,re_str,options)
 		if re == true then
 			return true
 		end
+	elseif options == "@token@" then
+		local a = tostring(token_dict:get(str))
+		if a == re_str then 
+			token_dict:delete(str) -- 使用一次就删除token
+			return true
+		end
 	else
 		local from, to = ngx.re.find(str, re_str, options)
 	    if from ~= nil then
@@ -90,7 +223,6 @@ local function loc_getRealIp(_host,_headers)
 		else
 			return remoteIp
 		end
-		-- 统一使用 二阶匹配
 	else
 		return remoteIp
 	end
@@ -159,6 +291,13 @@ local get_date
 local ip = loc_getRealIp(host,headers)
 --debug("----------- STEP 0  "..ip)
 
+--- STEP 0.1
+-- 2016年7月29日19:14:31  检查
+if host == "unknown-host" then 
+	Set_count_dict("black_host_method count")
+	debug("host_method_Mod : black","host_method_deny",ip)
+	action_deny()
+end
 
 ---  STEP 1 
 -- black/white ip 访问控制(黑/白名单/log记录)
@@ -171,7 +310,7 @@ if config_is_on("ip_Mod") then
 		elseif _ip_v == "log" then 
 			Set_count_dict("ip log count")
 	 		debug("ip_Mod : log","ip_log",ip)
-		else
+		elseif _ip_v == "deny" then
 			Set_count_dict(ip)
 			action_deny()
 		end
@@ -183,7 +322,7 @@ if config_is_on("ip_Mod") then
 		elseif host_ip == "log" then 
 			Set_count_dict(host.."-ip log count")
 	 		debug(host.."-ip_Mod : log","ip_log",ip)
-		else
+		elseif host_ip == "deny" then
 			Set_count_dict(host.."-"..ip)
 			action_deny()
 		end
@@ -193,12 +332,6 @@ end
 
 ---  STEP 2
 -- host and method  访问控制(白名单)
--- 2016年7月29日19:14:31  检查
-if host == "unknown-host" then 
-	Set_count_dict("black_host_method count")
-	debug("host_method_Mod : black","host_method_deny",ip)
-	action_deny()
-end
 
 if config_is_on("host_method_Mod") then
 	local tb_mod = getDict_Config("host_method_Mod")
@@ -237,10 +370,10 @@ if config_is_on("rewrite_Mod") then
 		                	return ngx.redirect(ngx.var.request_uri)
 		                end
 		            end
-				else
-				
+				elseif v.action[1] == "set-url" then
+				-- 备用 使用url尾巴跳转方式进行验证
+					
 				end
-				break
 			end
 		end
 	end
@@ -262,34 +395,33 @@ if config_is_on("app_Mod") then
 					action_deny()
 					break
 
+				elseif v.action[1] == "allow" then
+
+					return
+
 				elseif v.action[1] == "next" then
 					--debug("app_Mod action = allow")
 					local check
-					if v.next[1] == "args" then
-						local get_args = get_argByName(v.next[2])
+					if v.action[2] == "args" then
+						local get_args = get_argByName(v.args[3])
 						--debug("get_args by keyby : "..get_args.."")
-						if v.next[3] == "@token@" then --- 服务端验证							
-							local a = token_list:get(get_args)
-							if a == true then 
-								token_list:delete(get_args) -- 使用一次就删除token
-								check = "next"	
-							end
-						else
-						    if remath(get_args,v.next[3],"jio") then
-								check = "next"
-							end
-						end						
-					elseif v.next[1] == "ip" then -- 增加IP判断（eg:对某url[文件夹进行IP控制]）
-						if remath(ip,v.next[2],v.next[3]) then
+						if remath(get_args,v.args[1],v.args[2]) then
 							check = "next"
 						end
+				
+					elseif v.action[2] == "ip" then -- 增加IP判断（eg:对某url[目录进行IP控制]）
+						if remath(ip,v.ip[1],v.ip[2]) then
+							check = "next"
+						end
+					else
+						check = "next"
 					end
 
 					if check == "next" then
 						--return
 					else
 						Set_count_dict("app_deny count")
-						debug("app_Mod allow : "..v.allow[1].." No : "..i,"app_log",ip)
+						debug("app_Mod deny No : "..i,"app_log",ip)
 						action_deny()
 						break
 					end					

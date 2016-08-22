@@ -19,7 +19,7 @@ local function readfile(filepath)
 end
 
 --- 写文件(filepath,msg,ty)  默认追加方式写入
---- init_debug() Pub_debug() 调用
+--- init_debug() 
 local function writefile(filepath,msg,ty)
 	if ty == nil then ty = "a+" end
 	-- w+ 覆盖
@@ -56,7 +56,7 @@ Config.base = loadjson(config_json)
 local _basedir = Config.base.jsonPath or "./"
 
 --- 载入config.json全局基础配置
-function loadConfig()
+local function loadConfig()
 	
 	Config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
 	--Config.ip_Mod = loadjson(_basedir.."ip_Mod.json")
@@ -101,53 +101,53 @@ loadConfig()
 
 -- table 相关
 --
-	function tableToString(obj)
-	    local lua = ""  
-	    local t = type(obj)  
-	    if t == "number" then  
-	        lua = lua .. obj  
-	    elseif t == "boolean" then  
-	        lua = lua .. tostring(obj)  
-	    elseif t == "string" then  
-	        lua = lua .. string.format("%q", obj)  
-	    elseif t == "table" then  
-	        lua = lua .. "{\n"  
-	    for k, v in pairs(obj) do  
-	        lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-	    end  
-	    local metatable = getmetatable(obj)  
-	        if metatable ~= nil and type(metatable.__index) == "table" then  
-	        for k, v in pairs(metatable.__index) do  
-	            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-	        end  
-	    end  
-	        lua = lua .. "}"  
-	    elseif t == "nil" then  
-	        return nil  
-	    else  
-	        error("can not tableToString a " .. t .. " type.")  
-	    end  
-	    return lua  
-	end
+local function tableToString(obj)
+    local lua = ""  
+    local t = type(obj)  
+    if t == "number" then  
+        lua = lua .. obj  
+    elseif t == "boolean" then  
+        lua = lua .. tostring(obj)  
+    elseif t == "string" then  
+        lua = lua .. string.format("%q", obj)  
+    elseif t == "table" then  
+        lua = lua .. "{\n"  
+    for k, v in pairs(obj) do  
+        lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+    end  
+    local metatable = getmetatable(obj)  
+        if metatable ~= nil and type(metatable.__index) == "table" then  
+        for k, v in pairs(metatable.__index) do  
+            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+        end  
+    end  
+        lua = lua .. "}"  
+    elseif t == "nil" then  
+        return nil  
+    else  
+        error("can not tableToString a " .. t .. " type.")  
+    end  
+    return lua  
+end
 
-	function stringToTable(str)
-		if str == nil then return {} end
-	    local ret = loadstring("return "..str)()  
-		return ret
-	end
+local function stringToTable(str)
+	if str == nil then return {} end
+    local ret = loadstring("return "..str)()  
+	return ret
+end
 
-	function tableTojson(obj)
-	    local json_text = cjson_safe.encode(obj)  
-	    return json_text
-	end
+local function tableTojson(obj)
+    local json_text = cjson_safe.encode(obj)  
+    return json_text
+end
 
-	function stringTojson(obj)
-		local json = cjson_safe.decode(obj)  
-	    return json
-	end
+local function stringTojson(obj)
+	local json = cjson_safe.decode(obj)  
+    return json
+end
 
 --- ngx_find
-function ngx_find(str)
+local function ngx_find(str)
 	-- str = string.sub(str,"@ngx_time@",ngx.time())
 	-- ngx.re.gsub 效率要比string.sub要好一点，参考openresty最佳实践
 	str = ngx.re.gsub(str,"@ngx_localtime@",ngx.localtime())
@@ -160,57 +160,57 @@ function ngx_find(str)
 end
 
 -- sayHtml_ext(fileorhtml,ty)
-	function sayHtml_ext(html,ty)	
-		ngx.header.content_type = "text/html"
-		if html == nil then 
-			ngx.say("fileorhtml is nil")
-	    	ngx.exit(200)
-	    elseif type(html) == "table" then
-	    	if ty == nil then	    		
-	    		ngx.say(tableTojson(html))
-	    		ngx.exit(200)
-	    	else
-	    		ngx.say(tableToString(html))
-	    		ngx.exit(200)
-	    	end
-	    else
-		    ngx.say(ngx_find(html))
-		    ngx.exit(200)
-		end	
-	end
+local function sayHtml_ext(html,ty)	
+	ngx.header.content_type = "text/html"
+	if html == nil then 
+		ngx.say("fileorhtml is nil")
+    	ngx.exit(200)
+    elseif type(html) == "table" then
+    	if ty == nil then	    		
+    		ngx.say(tableTojson(html))
+    		ngx.exit(200)
+    	else
+    		ngx.say(tableToString(html))
+    		ngx.exit(200)
+    	end
+    else
+	    ngx.say(ngx_find(html))
+	    ngx.exit(200)
+	end	
+end
 
-	function sayFile(filename)
-		ngx.header.content_type = "text/html"
-		local str = readfile(Config.base.htmlPath..filename)
-		if str == nil then str = filename end
-		ngx.say(str)
-		ngx.exit(200)
-	end
+local function sayFile(filename)
+	ngx.header.content_type = "text/html"
+	local str = readfile(Config.base.htmlPath..filename)
+	if str == nil then str = filename end
+	ngx.say(str)
+	ngx.exit(200)
+end
 
-	function sayLua(lua)
-		local re = dofile(Config.base.htmlPath..lua)
-		--debug("sayLua  init re :"..tostring( re ))
-		return re
-	end
+local function sayLua(lua)
+	local re = dofile(Config.base.htmlPath..lua)
+	--debug("sayLua  init re :"..tostring( re ))
+	return re
+end
 
 
 -- debug(msg,filename) 记录debug日志
 -- 更新记录IP 2016年6月7日 22:22:15
-	function Pub_debug(msg,filename,ip)
-		if Config.base.debug_Mod == false then return end --- 判断debug开启状态
-		if filename == nil then
-			filename = "debug"
-		end
-		local filepath = Config.base.logPath..filename..".log"
-		--init_debug(filepath)
-		local host = ngx.req.get_headers()["Host"] or "unknow_host"
-		local url = ngx.var.uri or "unknow_url"
-		local method=ngx.req.get_method() or "unknow_method"
-		--local request_uri = ngx.var.request_uri or "unknow_req_uri"
-		local time = ngx.localtime()
-		local str = string.format("%s Host:%s Method:%s Url:%s Ip:%s Msg:%s",time,host,method,url,ip,msg)
-		writefile(filepath,str)
+local function debug(msg,filename,ip)
+	if Config.base.debug_Mod == false then return end --- 判断debug开启状态
+	if filename == nil then
+		filename = "debug"
 	end
+	local filepath = Config.base.logPath..filename..".log"
+	--init_debug(filepath)
+	local host = ngx.req.get_headers()["Host"] or "unknow_host"
+	local url = ngx.var.uri or "unknow_url"
+	local method=ngx.req.get_method() or "unknow_method"
+	--local request_uri = ngx.var.request_uri or "unknow_req_uri"
+	local time = ngx.localtime()
+	local str = string.format("%s Host:%s Method:%s Url:%s Ip:%s Msg:%s",time,host,method,url,ip,msg)
+	writefile(filepath,str)
+end
 
 -- guid() 局部函数用于生成唯一随机字符串
 local function guid()
@@ -222,9 +222,9 @@ local function guid()
 end
 
 -- 设置token 并缓存3分钟
-function set_token(token)
+local function set_token(token)
 	if token == nil then token = guid()	end -- 没有值自动生成一个guid
-	local ditc_token = ngx.shared.token_list;
+	local ditc_token = ngx.shared.token_dict;
 	if ditc_token:get(token) == nil then 
 		ditc_token:set(token,true,3*60)  --- -- 缓存3分钟 非重复插入
 		return token

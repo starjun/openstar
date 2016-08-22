@@ -21,15 +21,15 @@
     },
     {
         "state": "on",
-        "action": ["next"],
-        "next":["ip",["106.37.236.170","1.1.1.1"],"table"],
+        "action": ["next","ip"],
+        "ip":[["106.37.236.170","1.1.1.1"],"table"],
         "hostname": [["101.200.122.200","127.0.0.1"],"table"],
         "url": ["/api/.*","jio"]
     },
     {
         "state": "on",
-        "action": ["next"],
-        "next":["args","keytoken","@token@"],
+        "action": ["next","args"],
+        "args":["true","@token@","keytoken"],
         "hostname": ["127.0.0.1:5460",""],
         "url": ["/api/debug",""]
     },   
@@ -42,8 +42,8 @@
     },
     {
         "state": "on",
-        "action": ["next"],
-        "next":["args","keyby","^[\\w]{6}$"],
+        "action": ["next","args"],
+        "args":["^[\\w]{6}$","jio","keyby"],
         "hostname": [["127.0.0.1:5460","127.0.0.1"],"table"],
         "url": ["/api/time",""]
     },
