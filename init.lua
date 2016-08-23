@@ -112,15 +112,15 @@ local function tableToString(obj)
         lua = lua .. string.format("%q", obj)  
     elseif t == "table" then  
         lua = lua .. "{\n"  
-    for k, v in pairs(obj) do  
-        lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-    end  
-    local metatable = getmetatable(obj)  
-        if metatable ~= nil and type(metatable.__index) == "table" then  
-        for k, v in pairs(metatable.__index) do  
-            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-        end  
-    end  
+	    for k, v in pairs(obj) do  
+	        lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+	    end  
+    	local metatable = getmetatable(obj)  
+	    if metatable ~= nil and type(metatable.__index) == "table" then  
+	        for k, v in pairs(metatable.__index) do  
+	            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+	        end  
+	    end  
         lua = lua .. "}"  
     elseif t == "nil" then  
         return nil  
