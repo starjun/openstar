@@ -1,12 +1,22 @@
 -----  access_all by zj  -----
 local remoteIp = ngx.var.remote_addr
 local headers = ngx.req.get_headers()
-local host = headers["Host"] or "unknown-host"
-local method = ngx.var.request_method or "unknown-method"
+
+local host = ngx.unescape_uri(headers["Host"])
+local referer = ngx.unescape_uri(headers["referer"])
+local agent = ngx.unescape_uri(headers["user_agent"])
+
+local method = ngx.unescape_uri(ngx.var.request_method)
 local url = ngx.unescape_uri(ngx.var.uri)
-local referer = headers["referer"] or "unknown-referer"
-local agent = headers["user_agent"] or "unknown-agent"	
---local request_url = ngx.unescape_uri(ngx.var.request_uri)
+local request_url = ngx.unescape_uri(ngx.var.request_uri)
+
+local base_msg = {}
+base_msg.remoteIp = remoteIp
+base_msg.host = host
+base_msg.method = method
+base_msg.request_url = request_url
+base_msg.agent = agent
+base_msg.referer = referer
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
@@ -17,138 +27,13 @@ local token_dict = ngx.shared.token_dict
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
+base_msg.config_base = config_base
+
+local optl = require("optl")
+
 --- 2016年8月4日 增加全局Mod开关
 if config_base["Mod_state"] == "off" then
 	return
-end
-
-local function readfile(filepath)
-	local fd = io.open(filepath,"r")
-	if fd == nil then return end -- 文件读取错误返回
-    local str = fd:read("*a") --- 全部内容读取
-    fd:close()
-    return str
-end
-
-local function writefile(filepath,msg,ty)
-	if ty == nil then ty = "a+" end
-	-- w+ 覆盖
-    local fd = io.open(filepath,ty) --- 默认追加方式写入
-    if fd == nil then return end -- 文件读取错误返回
-    fd:write("\n"..tostring(msg))
-    fd:flush()
-    fd:close()
-end
-
-local function debug(_msg,_filename,_ip)
-	if config_base.debug_Mod == false then return end --- 判断debug开启状态
-	if _filename == nil then
-		_filename = "debug"
-	end
-	local filepath = config_base.logPath or "./"
-	filepath = filepath.._filename..".log"
-	local time = ngx.localtime()
-	local str = string.format("%s Host:%s Method:%s Url:%s Ip:%s Msg:%s",time,host,method,url,_ip,_msg)
-	writefile(filepath,str)
-end
-
-local function tableToString(obj)
-    local lua = ""  
-    local t = type(obj)  
-    if t == "number" then  
-        lua = lua .. obj  
-    elseif t == "boolean" then  
-        lua = lua .. tostring(obj)  
-    elseif t == "string" then  
-        lua = lua .. string.format("%q", obj)  
-    elseif t == "table" then  
-        lua = lua .. "{\n"  
-	    for k, v in pairs(obj) do  
-	        lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-	    end  
-	    local metatable = getmetatable(obj)  
-	        if metatable ~= nil and type(metatable.__index) == "table" then  
-	        for k, v in pairs(metatable.__index) do  
-	            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-	        end  
-	    end  
-        lua = lua .. "}"  
-    elseif t == "nil" then  
-        return nil  
-    else  
-        error("can not tableToString a " .. t .. " type.")  
-    end  
-    return lua  
-end
-
-local function tableTojson(obj)
-    local json_text = cjson_safe.encode(obj)  
-    return json_text
-end
-
-local function guid()
-    local random = require "resty-random"
-    return string.format('%s-%s',
-        random.token(10),
-        random.token(10)
-    )
-end
-
--- 设置token 并缓存3分钟
-local function set_token(token)
-	if token == nil then token = guid()	end -- 没有值自动生成一个guid
-	if token_dict:get(token) == nil then 
-		token_dict:set(token,true,3*60)  --- -- 缓存3分钟 非重复插入
-		return token
-	else
-		return set_token(nil)
-	end	
-end
-
-local function ngx_find(_str)
-	-- str = string.sub(str,"@ngx_time@",ngx.time())
-	-- ngx.re.gsub 效率要比string.sub要好一点，参考openresty最佳实践
-	_str = ngx.re.gsub(str,"@ngx_localtime@",ngx.localtime())
-	-- string.find 会走jit,所以就没有用ngx模块
-	-- 当前情况下，对token仅是全局替换一次，请注意
-	if string.find(_str,"@token@") ~= nil then		
-		str = ngx.re.gsub(_str,"@token@",set_token())
-	end	
-	return str
-end
-
-local function sayHtml_ext(html,ty)	
-	ngx.header.content_type = "text/html"
-	if html == nil then 
-		ngx.say("fileorhtml is nil")
-    	ngx.exit(200)
-    elseif type(html) == "table" then
-    	if ty == nil then	    		
-    		ngx.say(tableTojson(html))
-    		ngx.exit(200)
-    	else
-    		ngx.say(tableToString(html))
-    		ngx.exit(200)
-    	end
-    else
-	    ngx.say(ngx_find(html))
-	    ngx.exit(200)
-	end	
-end
-
-local function sayFile(filename)
-	ngx.header.content_type = "text/html"
-	local str
-	if filename == nil then str = "filename error" end
-	str = readfile(config_base.htmlPath..filename) or "read filename error"
-	ngx.say(str)
-	ngx.exit(200)
-end
-
-local function sayLua(lua)
-	local re = dofile(config_base.htmlPath..lua)
-	--debug("sayLua  init re :"..tostring( re ))
-	return re
 end
 
 --- 判断config_dict中模块开关是否开启
@@ -289,14 +174,15 @@ local get_date
 
 --- STEP 0
 local ip = loc_getRealIp(host,headers)
---debug("----------- STEP 0  "..ip)
+base_msg.ip = ip
+optl.debug(nil,base_msg,"----------- STEP 0")
 
 --- STEP 0.1
 -- 2016年7月29日19:14:31  检查
-if host == "unknown-host" then 
+if host == "" then 
 	Set_count_dict("black_host_method count")
-	debug("host_method_Mod : black","host_method_deny",ip)
-	action_deny()
+	optl.debug("host_method_deny.log",base_msg,"host_method_Mod : black")
+	action_deny(403)
 end
 
 ---  STEP 1 
@@ -309,7 +195,7 @@ if config_is_on("ip_Mod") then
 			return
 		elseif _ip_v == "log" then 
 			Set_count_dict("ip log count")
-	 		debug("ip_Mod : log","ip_log",ip)
+	 		optl.debug("ip_log.log",base_msg,"ip_Mod : log")
 		elseif _ip_v == "deny" then
 			Set_count_dict(ip)
 			action_deny()
@@ -321,7 +207,7 @@ if config_is_on("ip_Mod") then
 			return
 		elseif host_ip == "log" then 
 			Set_count_dict(host.."-ip log count")
-	 		debug(host.."-ip_Mod : log","ip_log",ip)
+	 		optl.debug("ip_log.log",base_msg,host.."-ip_Mod : log")
 		elseif host_ip == "deny" then
 			Set_count_dict(host.."-"..ip)
 			action_deny()
@@ -346,7 +232,8 @@ if config_is_on("host_method_Mod") then
 	end
 	if check ~= "allow" then
 		Set_count_dict("black_host_method count")
-	 	debug("host_method_Mod : black","host_method_deny",ip)
+	 	--debug("host_method_Mod : black","host_method_deny",ip)
+	 	optl.debug("host_method_deny.log",base_msg,"host_method_Mod : black")
 	 	action_deny()
 	end
 end
@@ -391,7 +278,8 @@ if config_is_on("app_Mod") then
 				
 				if v.action[1] == "deny" then
 					Set_count_dict("app_deny count")
-					debug("app_Mod deny No : "..i,"app_log",ip)
+					--debug("app_Mod deny No : "..i,"app_log",ip)
+					optl.debug("app_log.log",base_msg,"app_Mod deny No : "..i)
 					action_deny()
 					break
 
@@ -421,7 +309,8 @@ if config_is_on("app_Mod") then
 						--return
 					else
 						Set_count_dict("app_deny count")
-						debug("app_Mod deny No : "..i,"app_log",ip)
+						--debug("app_Mod deny No : "..i,"app_log",ip)
+						optl.debug("app_log.log",base_msg,"app_Mod deny No : "..i)
 						action_deny()
 						break
 					end					
@@ -429,25 +318,23 @@ if config_is_on("app_Mod") then
 				elseif v.action[1] == "log" then
 					local http_tmp = {}
 					http_tmp["headers"] = headers
-					get_date = ngx.unescape_uri(ngx.var.query_string)
-					http_tmp["get_date"] = get_date
-					http_tmp["remoteIp"] = remoteIp
 					if method == "POST" then
 						post_date = get_postargs()
 						http_tmp["post"] = post_date						
 					end
-					debug("app_Mod log Msg : "..tableTojson(http_tmp),"app_log",ip)
+					--debug("app_Mod log Msg : "..tableTojson(http_tmp),"app_log",ip)
+					optl.debug("app_log.log",base_msg,"app_Mod log Msg : "..optl.tableTojson(http_tmp))
 
 				elseif v.action[1] == "rehtml" then
-					sayHtml_ext(v.rehtml)
+					optl.sayHtml_ext(v.rehtml)
 					break
 
 				elseif v.action[1] == "reflie" then
-					sayFile(v.reflie)
+					optl.sayFile(v.reflie)
 					break
 
 				elseif v.action[1] == "relua" then
-					local re_saylua = sayLua(v.relua)
+					local re_saylua = optl.sayLua(v.relua)
 					if re_saylua == "break" then
 						ngx.exit(200)
 						break
@@ -509,10 +396,10 @@ if config_is_on("referer_Mod") then
 		-- nil
 	elseif check == "log" then
 		Set_count_dict("referer_deny count")
-		debug("referer_Mod "..referer.." No : "..no,"referer_log",ip)
+		optl.debug("referer_log.log",base_msg,"referer_Mod "..referer.." No : "..no)
 	elseif check == "deny" then
 		Set_count_dict("referer_deny count")
-		debug("referer_Mod "..referer.." No : "..no,"referer_deny",ip)
+		optl.debug("referer_deny.log",base_msg,"referer_Mod "..referer.." No : "..no)
 		action_deny()
 	else
 		
@@ -538,11 +425,11 @@ if config_is_on("url_Mod") then
 		return
 	elseif t ==	"deny" then
 		Set_count_dict("url_deny count")
-		debug("url_Mod No : "..no,"url_deny",ip)
+		optl.debug("url_deny.log",base_msg,"url_Mod No : "..no)
 		action_deny()
 	elseif t == "log" then
 		Set_count_dict("url_log count")
-		debug("url_Mod No : "..no,"url_log",ip)
+		optl.debug("url_log.log",base_msg,"url_Mod No : "..no)
 	end
 end
 --debug("----------- STEP 5")
@@ -556,7 +443,7 @@ if config_is_on("header_Mod") then
 			if host_url_remath(v.hostname,v.url) then
 				if remath(headers[v.header[1]],v.header[2],v.header[3]) then
 					Set_count_dict("black_header_method count")
-				 	debug("header_Mod No : "..i,"header_deny",ip)
+				 	optl.debug("header_deny.log",base_msg,"header_Mod No : "..i)
 				 	action_deny()
 				 	break
 				end
@@ -581,11 +468,11 @@ if config_is_on("agent_Mod") then
 						return
 					elseif v.action == "log" then
 						Set_count_dict("agent_deny count")
-						debug("agent_Mod : "..agent.." No : "..i,"agent_log",ip)
+						optl.debug("agent_log.log",base_msg,"agent_Mod : "..agent.." No : "..i)
 						break
 					else
 						Set_count_dict("agent_deny count")
-						debug("agent_Mod : "..agent.." No : "..i,"agent_deny",ip)
+						optl.debug("agent_deny.log",base_msg,"agent_Mod : "..agent.." No : "..i)
 						action_deny()
 						break
 					end
@@ -610,12 +497,12 @@ if config_is_on("cookie_Mod") and cookie ~= nil then
 				if remath(cookie,v.cookie[1],v.cookie[2]) then
 					if v.action == "deny" then
 						Set_count_dict("cookie_deny count")
-						debug("cookie_Mod : "..cookie.." No : "..i,"cookie_deny",ip)
+						optl.debug("cookie_deny.log",base_msg,"cookie_Mod : "..cookie.." No : "..i)
 						action_deny()
 						break
 					elseif v.action =="log" then
 						Set_count_dict("cookie_log count")
-						debug("cookie_Mod : "..cookie.." No : "..i,"cookie_log",ip)
+						optl.debug("cookie_log.log",base_msg,"cookie_Mod : "..cookie.." No : "..i)
 						break
 					elseif v.action == "allow" then
 						return
@@ -642,12 +529,12 @@ if config_is_on("args_Mod") then
 					if remath(args,v.args[1],v.args[2]) then
 						if v.action == "deny" then
 							Set_count_dict("args_deny count")
-							debug("args_Mod _args = "..args.." No : "..i,"args_deny",ip)
+							optl.debug("args_deny.log",base_msg,"args_Mod _args = "..args.." No : "..i)
 							action_deny()
 							break
 						elseif v.action == "log" then
 							Set_count_dict("args_log count")
-							debug("args_Mod _args = "..args.." No : "..i,"args_log",ip)
+							optl.debug("args_log.log",base_msg,"args_Mod _args = "..args.." No : "..i)
 							break
 						elseif v.action == "allow" then
 							return							
@@ -675,12 +562,12 @@ if config_is_on("post_Mod") and method == "POST" then
 					if remath(postargs,v.post[1],v.post[2]) then
 						if v.action == "deny" then
 							Set_count_dict("post_deny count")
-							debug("post_Mod : "..postargs.."No : "..i,"post_deny",ip)
+							optl.debug("post_deny.log",base_msg,"post_Mod : "..postargs.."No : "..i)
 							action_deny()
 							break
 						elseif v.action == "log" then
 							Set_count_dict("post_log count")
-							debug("post_Mod : "..postargs.."No : "..i,"post_log",ip)
+							debug("post_log.log",base_msg,"post_Mod : "..postargs.."No : "..i)
 							break
 						elseif v.action == "allow" then
 							return
@@ -712,7 +599,7 @@ if config_is_on("network_Mod") then
 						--debug("maxReqs is true")
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(ip,mod_ip,blacktime)
-						debug("network_Mod  check_network No : "..i,"network_log",ip)
+						optl.debug("network_log.log",base_msg,"network_Mod  check_network No : "..i)
 						action_deny()
 						break
 					else

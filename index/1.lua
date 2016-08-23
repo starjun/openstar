@@ -19,59 +19,73 @@ local function config_is_on(config_arg)
 	end
 end
 
--- 传入 (host  连接IP  http头)
-local function loc_getRealIp(host,remoteIP,headers)
-	if config_is_on("realIpFrom_Mod") then
-		local realipfrom = realIpFrom_Mod or {}
-		local ipfromset = realipfrom[host]		
-		if type(ipfromset) ~= "table" then return remoteIP end
-		if ipfromset.ips == "" then
-			local ip = headers[ipfromset.realipset]
-			if ip then
-				if type(ip) == "table" then ip = ip[1] end  --- http头中又多个取第一个
-			else
-				ip = remoteIP
-			end
-			return ip
-		else
-			for i,v in ipairs(ipfromset.ips) do
-				if v == remoteIP then
-					local ip = headers[ipfromset.realipset]
-					if ip then
-						if type(ip) == "table" then ip = ip[1] end  --- http头中又多个取第一个
-					else
-						ip = remoteIP
-					end
-					return ip
-				end
-			end
-			return remoteIP
-		end
-	end
-end
-local ip = loc_getRealIp(host,remoteIp,headers)
-
-
 --- remath(str,re_str,options)
+--- 常用二阶匹配规则
 local function remath(str,re_str,options)
-	if str == nil then return false end
+	if str == nil or re_str == nil or options == nil then return false end
 	if options == "" then
 		if str == re_str or re_str == "*" then
 			return true
 		end
 	elseif options == "table" then
+		if type(re_str) ~= "table" then return false end
 		for i,v in ipairs(re_str) do
 			if v == str then
 				return true
 			end
 		end
+	elseif options == "in" then --- 用于包含 查找 string.find
+		local from , to = string.find(str, re_str)
+		--if from ~= nil or (from == 1 and to == 0 ) then
+		--当re_str=""时的情况 没有处理
+		if from ~= nil then
+			return true
+		end
+	elseif options == "list" then
+		if type(re_str) ~= "table" then return false end
+		local re = re_str[str]
+		if re == true then
+			return true
+		end
+	elseif options == "@token@" then
+		local a = tostring(token_dict:get(str))
+		if a == re_str then 
+			token_dict:delete(str) -- 使用一次就删除token
+			return true
+		end
 	else
 		local from, to = ngx.re.find(str, re_str, options)
 	    if from ~= nil then
-	    	return true
+	    	return true,string.sub(str, from, to)
 	    end
 	end
 end
+
+-- 传入 (host  连接IP  http头)
+local function loc_getRealIp(_host,_headers)
+	if config_is_on("realIpFrom_Mod") then
+		local realipfrom = getDict_Config("realIpFrom_Mod")
+		local ipfromset = realipfrom[_host]
+		if type(ipfromset) ~= "table" then return remoteIp end
+		if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+			local ip = _headers[ipfromset.realipset]
+			if ip then
+				if type(ip) == "table" then ip = ip[1] end
+			else
+				ip = remoteIp
+			end
+			return ip
+		else
+			return remoteIp
+		end
+	else
+		return remoteIp
+	end
+end
+local ip = loc_getRealIp(host,headers)
+
+
+
 
 --- 匹配 host 和 url
 local function host_url_remath(_host,_url)

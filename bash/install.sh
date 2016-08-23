@@ -39,7 +39,7 @@ if [ "$1" = "install" ];then
 	chmod 750 nginx/sbin/nginx
 	chmod u+s nginx/sbin/nginx
 	chown root:nobody -R openstar/
-	chmod g+rw openstar/
+	chmod g+rw -R openstar/
 	nginx/sbin/nginx
 
 	##############################
@@ -54,7 +54,7 @@ elif [ "$1" = "openstar" ]; then
 	mkdir -p openstar/logs
 	chmod o+rw openstar/logs
 	chown root:nobody -R openstar/
-	chmod g+rw openstar/
+	chmod g+rw -R openstar/
 	# mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
 	# mv -f nginx/conf/waf.conf nginx/conf/waf.conf.bak
 	# mv -f nginx/conf/our.conf nginx/conf/our.conf.bak
