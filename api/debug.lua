@@ -62,6 +62,90 @@ local function remath(str,re_str,options)
     end
 end
 
+local function tableToString(obj)
+    local lua = ""  
+    local t = type(obj)  
+    if t == "number" then  
+        lua = lua .. obj  
+    elseif t == "boolean" then  
+        lua = lua .. tostring(obj)  
+    elseif t == "string" then  
+        lua = lua .. string.format("%q", obj)  
+    elseif t == "table" then  
+        lua = lua .. "{\n"  
+        for k, v in pairs(obj) do  
+            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+        end  
+        local metatable = getmetatable(obj)  
+            if metatable ~= nil and type(metatable.__index) == "table" then  
+            for k, v in pairs(metatable.__index) do  
+                lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
+            end  
+        end  
+        lua = lua .. "}"  
+    elseif t == "nil" then  
+        return nil  
+    else  
+        error("can not tableToString a " .. t .. " type.")  
+    end  
+    return lua  
+end
+
+local function tableTojson(obj)
+    local json_text = cjson_safe.encode(obj)  
+    return json_text
+end
+
+local function guid()
+    local random = require "resty-random"
+    return string.format('%s-%s',
+        random.token(10),
+        random.token(10)
+    )
+end
+
+-- 设置token 并缓存3分钟
+local function set_token(token)
+    if token == nil then token = guid() end -- 没有值自动生成一个guid
+    if token_dict:get(token) == nil then 
+        token_dict:set(token,true,3*60)  --- -- 缓存3分钟 非重复插入
+        return token
+    else
+        return set_token(nil)
+    end 
+end
+
+local function ngx_find(_str)
+    -- str = string.sub(str,"@ngx_time@",ngx.time())
+    -- ngx.re.gsub 效率要比string.sub要好一点，参考openresty最佳实践
+    _str = ngx.re.gsub(str,"@ngx_localtime@",ngx.localtime())
+    -- string.find 会走jit,所以就没有用ngx模块
+    -- 当前情况下，对token仅是全局替换一次，请注意
+    if string.find(_str,"@token@") ~= nil then      
+        str = ngx.re.gsub(_str,"@token@",set_token())
+    end 
+    return str
+end
+
+local function sayHtml_ext(html,ty) 
+    ngx.header.content_type = "text/html"
+    if html == nil then 
+        ngx.say("fileorhtml is nil")
+        ngx.exit(200)
+    elseif type(html) == "table" then
+        if ty == nil then               
+            ngx.say(tableTojson(html))
+            ngx.exit(200)
+        else
+            ngx.say(tableToString(html))
+            ngx.exit(200)
+        end
+    else
+        ngx.say(ngx_find(html))
+        ngx.exit(200)
+    end 
+end
+
 -- 传入 (host  连接IP  http头)
 local function loc_getRealIp(_host,_headers)
     if config_is_on("realIpFrom_Mod") then
