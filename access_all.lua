@@ -15,6 +15,7 @@ base_msg.remoteIp = remoteIp
 base_msg.host = host
 base_msg.method = method
 base_msg.request_url = request_url
+base_msg.url = url
 base_msg.agent = agent
 base_msg.referer = referer
 
@@ -175,7 +176,7 @@ local get_date
 --- STEP 0
 local ip = loc_getRealIp(host,headers)
 base_msg.ip = ip
-optl.debug(nil,base_msg,"----------- STEP 0")
+optl.debug(nil,base_msg,"---- STEP 0 ----")
 
 --- STEP 0.1
 -- 2016年7月29日19:14:31  检查
@@ -196,7 +197,7 @@ if config_is_on("ip_Mod") then
 		elseif _ip_v == "log" then 
 			Set_count_dict("ip log count")
 	 		optl.debug("ip_log.log",base_msg,"ip_Mod : log")
-		elseif _ip_v == "deny" then
+		else
 			Set_count_dict(ip)
 			action_deny()
 		end
@@ -208,13 +209,12 @@ if config_is_on("ip_Mod") then
 		elseif host_ip == "log" then 
 			Set_count_dict(host.."-ip log count")
 	 		optl.debug("ip_log.log",base_msg,host.."-ip_Mod : log")
-		elseif host_ip == "deny" then
+		else
 			Set_count_dict(host.."-"..ip)
 			action_deny()
 		end
 	end
 end
---debug("----------- STEP 1")
 
 ---  STEP 2
 -- host and method  访问控制(白名单)
@@ -318,23 +318,25 @@ if config_is_on("app_Mod") then
 				elseif v.action[1] == "log" then
 					local http_tmp = {}
 					http_tmp["headers"] = headers
+					get_date = ngx.unescape_uri(ngx.var.query_string)
+					http_tmp["get_date"] = get_date
 					if method == "POST" then
 						post_date = get_postargs()
 						http_tmp["post"] = post_date						
 					end
 					--debug("app_Mod log Msg : "..tableTojson(http_tmp),"app_log",ip)
 					optl.debug("app_log.log",base_msg,"app_Mod log Msg : "..optl.tableTojson(http_tmp))
-
 				elseif v.action[1] == "rehtml" then
 					optl.sayHtml_ext(v.rehtml)
 					break
 
-				elseif v.action[1] == "reflie" then
-					optl.sayFile(v.reflie)
+				elseif v.action[1] == "refile" then
+					optl.sayFile(config_base.htmlPath..v.refile)
 					break
 
 				elseif v.action[1] == "relua" then
-					local re_saylua = optl.sayLua(v.relua)
+					local re_saylua = optl.sayLua(config_base.htmlPath..v.relua)
+					--ngx.say(config_base.htmlPath..v.relua)
 					if re_saylua == "break" then
 						ngx.exit(200)
 						break
@@ -396,10 +398,10 @@ if config_is_on("referer_Mod") then
 		-- nil
 	elseif check == "log" then
 		Set_count_dict("referer_deny count")
-		optl.debug("referer_log.log",base_msg,"referer_Mod "..referer.." No : "..no)
+		optl.debug("referer_log.log",base_msg,"referer_Mod  No : "..no)
 	elseif check == "deny" then
 		Set_count_dict("referer_deny count")
-		optl.debug("referer_deny.log",base_msg,"referer_Mod "..referer.." No : "..no)
+		optl.debug("referer_deny.log",base_msg,"referer_Mod  No : "..no)
 		action_deny()
 	else
 		
@@ -445,7 +447,6 @@ if config_is_on("header_Mod") then
 					Set_count_dict("black_header_method count")
 				 	optl.debug("header_deny.log",base_msg,"header_Mod No : "..i)
 				 	action_deny()
-				 	break
 				end
 			end
 		end
@@ -468,11 +469,11 @@ if config_is_on("agent_Mod") then
 						return
 					elseif v.action == "log" then
 						Set_count_dict("agent_deny count")
-						optl.debug("agent_log.log",base_msg,"agent_Mod : "..agent.." No : "..i)
+						optl.debug("agent_log.log",base_msg,"agent_Mod No : "..i)
 						break
 					else
 						Set_count_dict("agent_deny count")
-						optl.debug("agent_deny.log",base_msg,"agent_Mod : "..agent.." No : "..i)
+						optl.debug("agent_deny.log",base_msg,"agent_Mod No : "..i)
 						action_deny()
 						break
 					end
@@ -567,7 +568,7 @@ if config_is_on("post_Mod") and method == "POST" then
 							break
 						elseif v.action == "log" then
 							Set_count_dict("post_log count")
-							debug("post_log.log",base_msg,"post_Mod : "..postargs.."No : "..i)
+							optl.debug("post_log.log",base_msg,"post_Mod : "..postargs.."No : "..i)
 							break
 						elseif v.action == "allow" then
 							return
@@ -600,7 +601,8 @@ if config_is_on("network_Mod") then
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(ip,mod_ip,blacktime)
 						optl.debug("network_log.log",base_msg,"network_Mod  check_network No : "..i)
-						action_deny()
+						--action_deny()
+						ngx.say("frist network deny")
 						break
 					else
 					    limit_ip_dict:incr(mod_ip,1)

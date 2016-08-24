@@ -1,5 +1,6 @@
 
 local headers = ngx.req.get_headers()
+local host = ngx.unescape_uri(headers["Host"])
 local method = ngx.var.request_method
 local args = ngx.req.get_uri_args() or {}
 local url = ngx.unescape_uri(ngx.var.uri)
@@ -44,7 +45,7 @@ local function remath(str,re_str,options)
     elseif options == "in" then --- 用于包含 查找 string.find
         local from , to = string.find(str, re_str)
         --if from ~= nil or (from == 1 and to == 0 ) then
-        --当re_str=""时的情况
+        --当re_str=""时的情况 没有处理
         if from ~= nil then
             return true
         end
@@ -52,6 +53,12 @@ local function remath(str,re_str,options)
         if type(re_str) ~= "table" then return false end
         local re = re_str[str]
         if re == true then
+            return true
+        end
+    elseif options == "@token@" then
+        local a = tostring(token_dict:get(str))
+        if a == re_str then 
+            token_dict:delete(str) -- 使用一次就删除token
             return true
         end
     else
@@ -124,8 +131,10 @@ local debug_tb = {
     _bodybyte = ngx.var.body_bytes_sent or "-"  
 }
 
+local optl = require("optl")
+
 if method == "GET" then
-    sayHtml_ext(debug_tb)
+    optl.sayHtml_ext(debug_tb)
 elseif method == "POST" then
     ngx.req.read_body()
     local data = ngx.req.get_body_data()
@@ -142,7 +151,7 @@ elseif method == "POST" then
         end
     end
     debug_tb["_PostData"] = data
-    sayHtml_ext(debug_tb)
+    optl.sayHtml_ext(debug_tb)
 else
     ngx.say("method error")
 end

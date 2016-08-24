@@ -1,7 +1,8 @@
 
 --- 文件读写
 local function readfile(_filepath)
-    local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
+    -- local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
+    local fd = io.open(_filepath,"r")
     if fd == nil then return end
     local str = fd:read("*a") --- 全部内容读取
     fd:close()
@@ -11,7 +12,8 @@ end
 local function writefile(_filepath,_msg,_ty)
     _ty = nil or "a+"
     -- w+ 覆盖
-    local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
+    -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
+    local fd = io.open(_filepath,_ty)
     if fd == nil then return end -- 文件读取错误返回
     fd:write("\n"..tostring(_msg))
     fd:flush()
@@ -152,12 +154,14 @@ local function debug(_filename,_base_msg,_info)
     local method = _base_msg.method
     local status = ngx.var.status
     local request_url = _base_msg.request_url
+    local url = _base_msg.url
     local agent = _base_msg.agent
     local referer = _base_msg.referer
-    local str = string.format([[%s "%s" "%s" [%s] "%s" "%s" "%s" "%s" "%s" "%s"]],remoteIp,host,ip,time,method,status,request_url,agent,referer,_info)
+    local str = string.format([[%s "%s" "%s" [%s] "%s" "%s" "%s" "%s" "%s" "%s"]],remoteIp,host,ip,time,method,status,url,agent,referer,_info)
     
     writefile(filepath,str)
 end
+
 
 local optl={}
 

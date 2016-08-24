@@ -2,15 +2,15 @@
 {
 	"openstar_version":"v 1.1",
 
-	"redis_Mod" : {"state":"off","ip":"127.0.0.1","Port" : 6379,"Password":"yesorno@123"},
+	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":"yesorno@123"},
 
 	"Mod_state":"on",
 
-	"realIpFrom_Mod" : "off",
+	"realIpFrom_Mod" : "on",
 
 	"ip_Mod" : "on",
 
-	"host_method_Mod" : "off",
+	"host_method_Mod" : "on",
 
 	"rewrite_Mod" : "on",
 
@@ -22,7 +22,7 @@
 
 	"header_Mod" : "on",
 
-	"agent_Mod" : "off",
+	"agent_Mod" : "on",
 
 	"cookie_Mod" : "on",
 
@@ -30,7 +30,7 @@
 
 	"post_Mod" : "on",
 
-	"network_Mod" : "off",
+	"network_Mod" : "on",
 
 	"replace_Mod" : "off",
 

@@ -1,23 +1,13 @@
 
 -----  自定义lua脚本 by zj -----
-local remoteIp = ngx.var.remote_addr
+
 local headers = ngx.req.get_headers()
-local host = ngx.req.get_headers()["Host"] or "unknownhost"
-local method = ngx.var.request_method
+local host = ngx.unescape_uri(headers["Host"])
 local url = ngx.unescape_uri(ngx.var.uri)
-local referer = headers["referer"] or "unknownreferer"
-local agent = headers["user_agent"] or "unknownagent"	
-local request_url = ngx.unescape_uri(ngx.var.request_uri)
 
 
-local config_dict = ngx.shared.config_dict
+local token_dict = ngx.shared.token_dict
 
---- config_is_on()
-local function config_is_on(config_arg)	
-	if config_dict:get(config_arg) == "on" then
-		return true
-	end
-end
 
 --- remath(str,re_str,options)
 --- 常用二阶匹配规则
@@ -61,32 +51,6 @@ local function remath(str,re_str,options)
 	end
 end
 
--- 传入 (host  连接IP  http头)
-local function loc_getRealIp(_host,_headers)
-	if config_is_on("realIpFrom_Mod") then
-		local realipfrom = getDict_Config("realIpFrom_Mod")
-		local ipfromset = realipfrom[_host]
-		if type(ipfromset) ~= "table" then return remoteIp end
-		if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
-			local ip = _headers[ipfromset.realipset]
-			if ip then
-				if type(ip) == "table" then ip = ip[1] end
-			else
-				ip = remoteIp
-			end
-			return ip
-		else
-			return remoteIp
-		end
-	else
-		return remoteIp
-	end
-end
-local ip = loc_getRealIp(host,headers)
-
-
-
-
 --- 匹配 host 和 url
 local function host_url_remath(_host,_url)
 	if remath(host,_host[1],_host[2]) and remath(url,_url[1],_url[2]) then
@@ -94,16 +58,10 @@ local function host_url_remath(_host,_url)
 	end
 end
 
---- 
-local function get_argByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
 
 local tb_do = {
 				host={"*",""},
-				url={[[/api/time]],""}
+				url={[[/api/debug]],""}
 			}
 
 

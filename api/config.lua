@@ -1,6 +1,8 @@
 
 local cjson_safe = require "cjson.safe"
 
+local optl = require("optl")
+
 local function get_argByName(name)
 	local x = 'arg_'..name
     local _name = ngx.unescape_uri(ngx.var[x])
@@ -19,33 +21,21 @@ end
 
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
-
--- 写文件(filepath,msg,ty)  默认追加方式写入
-local function writefile(filepath,msg,ty)
-	if ty == nil then ty = "a+" end
-	-- w+ 覆盖
-    local fd = io.open(filepath,ty) --- 默认追加方式写入
-    if fd == nil then return end -- 文件读取错误返回
-    fd:write("\n"..tostring(msg))
-    fd:flush()
-    fd:close()
-end
-
 if _action == "save" then
 
 	if _name == "all_config" then
 		for k,v in pairs(config) do
 			if k == "base" then
 				if _debug == "no" then
-					writefile(config_base.baseDir.."config.json",v,"w+")
+					optl.writefile(config_base.baseDir.."config.json",v,"w+")
 				else
-					writefile(config_base.baseDir.."config_bak.json",v,"w+")
+					optl.writefile(config_base.baseDir.."config_bak.json",v,"w+")
 				end
 			else
 				if _debug == "no" then
-					writefile(config_base.jsonPath..k..".json",v,"w+")
+					optl.writefile(config_base.jsonPath..k..".json",v,"w+")
 				else
-					writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
+					optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
 				end
 			end
 		end
@@ -55,26 +45,26 @@ if _action == "save" then
 		if not msg then return ngx.say("name is error") end 
 		if _name == "base" then
 			if _debug == "no" then
-				writefile(config_base.baseDir.."config.json",msg,"w+")
+				optl.writefile(config_base.baseDir.."config.json",msg,"w+")
 			else
-				writefile(config_base.baseDir.."config_bak.json",msg,"w+")
+				optl.writefile(config_base.baseDir.."config_bak.json",msg,"w+")
 			end
 		else
 			if _debug == "no" then
-				writefile(config_base.jsonPath.._name..".json",msg,"w+")
+				optl.writefile(config_base.jsonPath.._name..".json",msg,"w+")
 			else
-				writefile(config_base.jsonPath.._name.."_bak.json",msg,"w+")
+				optl.writefile(config_base.jsonPath.._name.."_bak.json",msg,"w+")
 			end
 		end
-		sayHtml_ext(msg)
+		optl.sayHtml_ext(msg)
 	end
 
 elseif _action =="load" then
 
 	loadConfig()
-
+	ngx.say("ok!")
 else
-    sayHtml_ext({action="error"})
+    optl.sayHtml_ext({action="error"})
 end
 
 

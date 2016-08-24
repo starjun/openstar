@@ -85,7 +85,7 @@ end
 
 
 --- 载入config.json全局基础配置
-local function loadConfig()
+function loadConfig()
 
 	config.base = loadjson(config_json)
 	local _basedir = config.base.jsonPath or "./"
