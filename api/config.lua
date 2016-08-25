@@ -10,7 +10,7 @@ local function get_argByName(name)
 end
 
 local _action = get_argByName("action")
-local _name = get_argByName("name")
+local _mod = get_argByName("mod")
 local _debug = get_argByName("debug")
 local config_dict = ngx.shared.config_dict
 
@@ -23,7 +23,7 @@ local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 if _action == "save" then
 
-	if _name == "all_config" then
+	if _mod == "all_mod" then
 		for k,v in pairs(config) do
 			if k == "base" then
 				if _debug == "no" then
@@ -41,9 +41,9 @@ if _action == "save" then
 		end
 		ngx.say("it is ok")
 	else
-		local msg = config[_name]
-		if not msg then return ngx.say("name is error") end 
-		if _name == "base" then
+		local msg = config[_mod]
+		if not msg then return ngx.say("mod is Non-existent") end 
+		if _mod == "base" then
 			if _debug == "no" then
 				optl.writefile(config_base.baseDir.."config.json",msg,"w+")
 			else
@@ -51,12 +51,12 @@ if _action == "save" then
 			end
 		else
 			if _debug == "no" then
-				optl.writefile(config_base.jsonPath.._name..".json",msg,"w+")
+				optl.writefile(config_base.jsonPath.._mod..".json",msg,"w+")
 			else
-				optl.writefile(config_base.jsonPath.._name.."_bak.json",msg,"w+")
+				optl.writefile(config_base.jsonPath.._mod.."_bak.json",msg,"w+")
 			end
 		end
-		optl.sayHtml_ext(msg)
+		optl.sayHtml_ext({mod=msg})
 	end
 
 elseif _action =="load" then
@@ -64,7 +64,7 @@ elseif _action =="load" then
 	loadConfig()
 	ngx.say("ok!")
 else
-    optl.sayHtml_ext({action="error"})
+    optl.sayHtml_ext({code="error",msg="action is Non-existent"})
 end
 
 

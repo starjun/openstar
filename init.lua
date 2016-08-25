@@ -85,6 +85,7 @@ end
 
 
 --- 载入config.json全局基础配置
+--- 唯一一个全局函数
 function loadConfig()
 
 	config.base = loadjson(config_json)

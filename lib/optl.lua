@@ -10,7 +10,7 @@ local function readfile(_filepath)
 end
 
 local function writefile(_filepath,_msg,_ty)
-    _ty = nil or "a+"
+    _ty = _ty or "a+"
     -- w+ 覆盖
     -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
     local fd = io.open(_filepath,_ty)

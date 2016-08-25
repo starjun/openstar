@@ -6,7 +6,7 @@ local function get_argByName(name)
 end
 
 local _action = get_argByName("action")
-local _key = get_argByName("key")
+local _id = get_argByName("id")
 local _value = get_argByName("value")
 local _time = tonumber( get_argByName("time")) or 0
 
@@ -19,55 +19,55 @@ local optl = require("optl")
 --- add 
 if _action == "add" then
 
-	if _key == "" then
-		optl.sayHtml_ext({})
+	if _id == "" then
+		optl.sayHtml_ext({code="error",msg="id is nil"})
 	else		
 		if _value ~= "allow" then _value = "deny" end
-		local re = tmpdict:safe_add(_key,_value,_time)
+		local re = tmpdict:safe_add(_id,_value,_time)
 		-- 非重复插入(lru不启用)
-		optl.sayHtml_ext({add=re,key=_key,value=_value})
+		optl.sayHtml_ext({add=re,id=_id,value=_value})
 	end
 --- del
 elseif _action == "del" then
 
-	if _key == "" then
+	if _id == "" then
 		optl.sayHtml_ext({})
-	elseif _key == "all_key" then
-	    local re = tmpdict:flush_all()
+	elseif _id == "all_id" then
+	    tmpdict:flush_all()
 		local re1 = tmpdict:flush_expired(0)
-		optl.sayHtml_ext({flush_all=re,flush_expired=re1})
+		optl.sayHtml_ext({flush_expired=re1})
 	else
-		local re = tmpdict:delete(_key)
+		local re = tmpdict:delete(_id)
 		local re1 = tmpdict:flush_expired(0)
 		optl.sayHtml_ext({delete=re,flush_expired=re1})
 	end
 --- set 
 elseif _action == "set" then
-	if _key == "" then
-		optl.sayHtml_ext({})
+	if _id == "" then
+		optl.sayHtml_ext({code="error",msg="id is nil"})
 	else
 		local _value = get_argByName("value")
 		if _value ~= "allow" then _value = "deny" end
-		local re = tmpdict:replace(_key,_value)
-		optl.sayHtml_ext({replace=re})
+		local re = tmpdict:replace(_id,_value,_time)
+		optl.sayHtml_ext({id=_id,value=_value,replace=re})
 	end
 --- get 
 elseif _action == "get" then
 
-	if _key == "count_key" then
+	if _id == "count_id" then
 		local _tb = tmpdict:get_keys(0)
-		optl.sayHtml_ext(table.getn(_tb))
-	elseif _key == "all_key" then
+		optl.sayHtml_ext({count=table.getn(_tb)})
+	elseif _id == "all_id" then
 		local _tb,tb_all = tmpdict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
 			tb_all[v] = tmpdict:get(v)
 		end
 		optl.sayHtml_ext(tb_all)
-	elseif _key == "" then
+	elseif _id == "" then
 		local _tb = tmpdict:get_keys(1024)
 		optl.sayHtml_ext(_tb)
 	else
-		optl.sayHtml_ext(tmpdict:get(_key))
+		optl.sayHtml_ext({id=_id,value=tmpdict:get(_id)})
 	end
 
 else

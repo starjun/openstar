@@ -92,6 +92,23 @@ local function loc_getRealIp(_host,_headers)
     end
 end
 
+local function get_postargs()   
+    ngx.req.read_body()
+    local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
+    if not data then 
+        local datafile = ngx.req.get_body_file()
+        if datafile then
+            local fh, err = io.open(datafile, "r")
+            if fh then
+                fh:seek("set")
+                data = fh:read("*a")
+                fh:close()
+            end
+        end
+    end
+    return ngx.unescape_uri(data)
+end
+
 if jit then 
     lua_version = jit.version
 else 
@@ -136,21 +153,7 @@ local optl = require("optl")
 if method == "GET" then
     optl.sayHtml_ext(debug_tb)
 elseif method == "POST" then
-    ngx.req.read_body()
-    local data = ngx.req.get_body_data()
-    if not data then 
-        local datafile = ngx.req.get_body_file()
-        if datafile then
-            local fh, err = io.open(datafile, "r")
-            if fh then
-                fh:seek("set")
-                local body_data = fh:read("*a")
-                fh:close()
-                data = body_data
-            end
-        end
-    end
-    debug_tb["_PostData"] = data
+    debug_tb["_PostData"] = get_postargs()
     optl.sayHtml_ext(debug_tb)
 else
     ngx.say("method error")
