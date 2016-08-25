@@ -1,9 +1,10 @@
 #!/bin/bash
 
+down_path_redis=/opt/redis
+down_url=http://download.redis.io/releases/redis-3.2.1.tar.gz
+
 install_path_redis=/opt/redis/redis-3.2.1
 psd=yesorno
-
-install_path_redis=/opt/redis
 
 if [ "$1" = "start" ];then
      ${install_path_redis}/src/redis-server ${install_path_redis}/redis.conf &
@@ -15,9 +16,9 @@ elif [ "$1" = "stop" ]; then
 	 fi
 elif [ "$1" = "install" ]; then
 	#yum install redis -y
-	mkdir -p ${install_path_redis}
-	cd ${install_path_redis}
-	wget http://download.redis.io/releases/redis-3.2.1.tar.gz
+	mkdir -p ${down_path_redis}
+	cd ${down_path_redis}
+	wget ${down_url}
 	tar zxvf redis-3.2.1.tar.gz
 	cd redis-3.2.1
 	make	

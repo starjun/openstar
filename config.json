@@ -2,7 +2,7 @@
 {
 	"openstar_version":"v 1.1",
 
-	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":"yesorno@123"},
+	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
 
 	"Mod_state":"on",
 

@@ -34,6 +34,7 @@ if _action == "get" then
 		optl.sayHtml_ext(_tb)
 	else
 		optl.sayHtml_ext({id=_id,value=tmpdict:get(_id)})
+		--ngx.say(tmpdict:get(_id))
 	end
 
 else
