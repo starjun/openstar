@@ -31,7 +31,7 @@ if _action == "add" then
 elseif _action == "del" then
 
 	if _id == "" then
-		optl.sayHtml_ext({})
+		optl.sayHtml_ext({code="error",msg="id is nil"})
 	elseif _id == "all_id" then
 	    tmpdict:flush_all()
 		local re1 = tmpdict:flush_expired(0)
