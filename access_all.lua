@@ -32,6 +32,7 @@ base_msg.config_base = config_base
 
 local optl = require("optl")
 
+
 --- 2016年8月4日 增加全局Mod开关
 if config_base["Mod_state"] == "off" then
 	return
