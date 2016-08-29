@@ -124,7 +124,7 @@ local function host_url_remath(_host,_url)
 end
 
 --- 获取单个args值
-local function get_argByName(name)
+local function get_argsByName(name)
 	local x = 'arg_'..name
     local _name = ngx.unescape_uri(ngx.var[x])
     return _name
@@ -292,7 +292,7 @@ if config_is_on("app_Mod") then
 					--debug("app_Mod action = allow")
 					local check
 					if v.action[2] == "args" then
-						local get_args = get_argByName(v.args[3])
+						local get_args = get_argsByName(v.args[3])
 						--debug("get_args by keyby : "..get_args.."")
 						if remath(get_args,v.args[1],v.args[2]) then
 							check = "next"

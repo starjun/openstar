@@ -18,7 +18,7 @@ local function writefile(_filepath,_msg,_ty)
     -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
     local fd = io.open(_filepath,_ty)
     if fd == nil then 
-        ngx.log(ngx.ERR,"writefile error")
+        ngx.log(ngx.ERR,"writefile error msg : "..tostring(_msg))
         return 
     end -- 文件读取错误返回
     fd:write("\n"..tostring(_msg))
@@ -83,16 +83,73 @@ local function guid()
     )
 end
 
+
+local token_dict = ngx.shared.token_dict
+
 -- 设置token 并缓存3分钟
 local function set_token(_token)
-    _token = _token or guid()
-    local token_dict = ngx.shared.token_dict;
+    _token = _token or guid()    
     if token_dict:get(_token) == nil then 
         token_dict:set(_token,true,3*60)  --- -- 缓存3分钟 非重复插入
         return _token
     else
         return set_token()
     end 
+end
+
+--- remath(_str,_re_str,_options)
+--- 常用二阶匹配规则
+local function remath(_str,_re_str,_options)
+    if _str == nil or _re_str == nil or _options == nil then return false end
+    if _options == "" then
+        if _str == _re_str or _re_str == "*" then
+            return true
+        end
+    elseif _options == "table" then
+        if type(_re_str) ~= "table" then return false end
+        for i,v in ipairs(_re_str) do
+            if v == _str then
+                return true
+            end
+        end
+    elseif _options == "in" then --- 用于包含 查找 string.find
+        local from , to = string.find(_str, _re_str)
+        --if from ~= nil or (from == 1 and to == 0 ) then
+        --当re_str=""时的情况 没有处理
+        if from ~= nil then
+            return true
+        end
+    elseif _options == "list" then
+        if type(_re_str) ~= "table" then return false end
+        local re = _re_str[_str]
+        if re == true then
+            return true
+        end
+    elseif _options == "@token@" then
+        local a = tostring(token_dict:get(_str))
+        if a == _re_str then 
+            token_dict:delete(_str) -- 使用一次就删除token
+            return true
+        end
+    else
+        local from, to = ngx.re.find(_str, _re_str, _options)
+        if from ~= nil then
+            return true,string.sub(_str, from, to)
+        end
+    end
+end
+
+local count_dict = ngx.shared.count_dict
+
+--- 拦截计数
+local function set_count_dict(_key)
+    if _key == nil then return end
+    local key_count = count_dict:get(_key)
+    if key_count == nil then 
+        count_dict:set(_key,1)
+    else
+        count_dict:incr(_key,1)
+    end
 end
 
 --- ngx_find
@@ -168,6 +225,56 @@ local function debug(_filename,_base_msg,_info)
     writefile(filepath,str)
 end
 
+--- 请求相关
+
+    --- 获取单个args值
+    local function get_argsByName(_name)
+        --if _name == nil then return "" end
+        --调用时 先判断下nil的情况
+        local x = 'arg_'.._name
+        local _name = ngx.unescape_uri(ngx.var[x])
+        return _name
+        -- local args_name = ngx.req.get_uri_args()[_name]
+        -- if type(args_name) == "table" then args_name = args_name[1] end
+        -- return ngx.unescape_uri(args_name)
+    end
+
+    --- 获取所有args参数
+    local function get_args()
+        return ngx.unescape_uri(ngx.var.query_string)
+    end
+
+    --- 获取单个post值
+    local function get_postByName(_name)
+        --if _name == nil then return "" end
+        ngx.req.read_body()
+        local posts_name = ngx.req.get_post_args()[_name]
+        if type(posts_name) == "table" then posts_name = posts_name[1] end
+        return ngx.unescape_uri(posts_name)
+    end
+
+    --- 获取所有POST参数（包含表单）
+    local function get_posts()   
+        ngx.req.read_body()
+        local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
+        if not data then 
+            local datafile = ngx.req.get_body_file()
+            if datafile then
+                local fh, err = io.open(datafile, "r")
+                if fh then
+                    fh:seek("set")
+                    data = fh:read("*a")
+                    fh:close()
+                end
+            end
+        end
+        return ngx.unescape_uri(data)
+    end
+
+    --- 获取header原始字符串
+    local function get_headers(_bool)
+        return ngx.unescape_uri(ngx.req.raw_header(_bool))
+    end
 
 local optl={}
 
@@ -182,7 +289,11 @@ optl.stringTotable = stringTotable
 optl.tableTojson = tableTojson
 optl.stringTojson = stringTojson
 
+--- ==
+optl.guid = guid
 optl.set_token = set_token
+optl.remath = remath
+optl.set_count_dict = set_count_dict
 optl.ngx_find = ngx_find
 
 --- say相关
@@ -193,5 +304,11 @@ optl.sayLua = sayLua
 --- log 相关
 optl.debug = debug
 
+--- 请求相关
+optl.get_argsByName = get_argsByName
+optl.get_args = get_args
+optl.get_postByName = get_postByName
+optl.get_posts = get_posts
+optl.get_headers = get_headers
 
 return optl
