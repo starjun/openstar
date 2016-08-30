@@ -42,8 +42,8 @@ if _action == "get" then
 			end
 			optl.sayHtml_ext({count=cnt})
 		else
-			--- realIpFrom_Mod 和 base 特殊处理
-			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" then
+			--- realIpFrom_Mod 和 base 和 denyHost_Mod 特殊处理
+			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_Mod" then
 				_id = tonumber(_id)
 			end			
 			optl.sayHtml_ext({id=_id,value=_tb[_id]})
@@ -55,8 +55,7 @@ elseif _action == "set" then
 	local _tb = tmpdict:get(_mod)
 	if _tb == nil then optl.sayHtml_ext({code="error",msg="mod is Non-existent"}) end
 
-	if _id == "" then
-	-- id 参数不存在 （整体set）
+	if _id == "" then -- id 参数不存在 （整体set）
 		local tmp_value = cjson_safe.decode(_value)--将value参数的值 转换成json/table
 		if type(tmp_value) == "table" then
 			local _old_value = cjson_safe.decode(tmpdict:get(_mod))--将原有数据取出 并转成 json/table
@@ -65,8 +64,7 @@ elseif _action == "set" then
 		else
 			optl.sayHtml_ext({code="error",msg="value to json error"})
 		end
-	else
-		
+	else		
 		if _value_type == "json" then
 			_value = cjson_safe.decode(_value) ---- 将value参数的值 转换成json/table
 			if type(_value) ~= "table" then
@@ -76,7 +74,7 @@ elseif _action == "set" then
 		
 		_tb = cjson_safe.decode(_tb) or {}
 		--- realIpFrom_Mod base 特殊处理
-		if _mod ~= "realIpFrom_Mod" and _mod ~= "base" then
+		if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_Mod" then
 			_id = tonumber(_id)
 		end
 		local _old_value = _tb[_id]
@@ -85,7 +83,6 @@ elseif _action == "set" then
 		_tb[_id] = _value
 		local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
 		optl.sayHtml_ext({replace=re,old_value=_old_value,new_value=_value})
-			
 
 	end
 elseif _action == "add" then
@@ -105,7 +102,7 @@ elseif _action == "add" then
 	_tb = cjson_safe.decode(_tb) or {}
 	
 	
-	if _mod == "realIpFrom_Mod"  then
+	if _mod == "realIpFrom_Mod"  or _mod == "denyHost_Mod" then
 		if _tb[_id] == nil and _id ~= "" then
 			_tb[_id] = _value
 			local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
@@ -129,7 +126,7 @@ elseif _action == "del" then
 	_tb = cjson_safe.decode(_tb) or {}
 	
 
-	if _mod == "realIpFrom_Mod" then
+	if _mod == "realIpFrom_Mod" or _mod == "denyHost_Mod" then
 		local rr = _tb[_id]
 		if rr == nil then
 			optl.sayHtml_ext({code="error",msg="id is Non-existent"})

@@ -44,6 +44,6 @@
 
 	"htmlPath" : "/opt/openresty/openstar/index/",
 
-	"sayHtml" : "request error!"
+	"sayHtml" : {"state":"on","deny_msg":403}
 
 }

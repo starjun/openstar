@@ -2,9 +2,9 @@
 --- 文件读写
 local function readfile(_filepath)
     -- local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
-    local fd = io.open(_filepath,"r")
+    local fd,err = io.open(_filepath,"r")
     if fd == nil then 
-        ngx.log(ngx.ERR,"readfile error")
+        ngx.log(ngx.ERR,"readfile error : "..tostring(err))
         return
     end
     local str = fd:read("*a") --- 全部内容读取
@@ -16,9 +16,9 @@ local function writefile(_filepath,_msg,_ty)
     _ty = _ty or "a+"
     -- w+ 覆盖
     -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
-    local fd = io.open(_filepath,_ty)
+    local fd,err = io.open(_filepath,_ty)
     if fd == nil then 
-        ngx.log(ngx.ERR,"writefile error msg : "..tostring(_msg))
+        ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg).." error : "..tostring(err))
         return 
     end -- 文件读取错误返回
     fd:write("\n"..tostring(_msg))
@@ -87,6 +87,7 @@ end
 local token_dict = ngx.shared.token_dict
 
 -- 设置token 并缓存3分钟
+-- 未做错误处理
 local function set_token(_token)
     _token = _token or guid()    
     if token_dict:get(_token) == nil then 

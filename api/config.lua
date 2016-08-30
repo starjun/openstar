@@ -27,9 +27,9 @@ if _action == "save" then
 		for k,v in pairs(config) do
 			if k == "base" then
 				if _debug == "no" then
-					optl.writefile(config_base.baseDir.."config.json",v,"w+")
+					optl.writefile(config_base.baseDir..k..".json",v,"w+")
 				else
-					optl.writefile(config_base.baseDir.."config_bak.json",v,"w+")
+					optl.writefile(config_base.baseDir..k.."_bak.json",v,"w+")
 				end
 			else
 				if _debug == "no" then
@@ -45,9 +45,9 @@ if _action == "save" then
 		if not msg then return ngx.say("mod is Non-existent") end 
 		if _mod == "base" then
 			if _debug == "no" then
-				optl.writefile(config_base.baseDir.."config.json",msg,"w+")
+				optl.writefile(config_base.baseDir.._mod..".json",msg,"w+")
 			else
-				optl.writefile(config_base.baseDir.."config_bak.json",msg,"w+")
+				optl.writefile(config_base.baseDir.._mod.."_bak.json",msg,"w+")
 			end
 		else
 			if _debug == "no" then

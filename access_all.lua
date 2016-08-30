@@ -142,15 +142,23 @@ local function Set_count_dict(_key)
 end
 
 -- action_deny(code) 拒绝访问
-local function action_deny(code)
-	if code == nil or type(code) ~= "number" then
-		ngx.header["Content-Type"] = "text/plain"
-		--local default = [[<!DOCTYPE html><html><head><title>Error</title><style>body {width: 35em;margin: 0 auto;font-family: Tahoma, Verdana, Arial, sans-serif;}</style></head><body><h1>An error occurred.</h1><p>Sorry, the page you are looking for is currently unavailable.<br/>Please try again later.</p><p>If you are the system administrator of this resource then you should checkthe <a href="http://nginx.org/r/error_log">error log</a> for details.</p><p><em>Faithfully yours, nginx.</em></p></body></html>]]
-		local msg = config_base.sayHtml or "OpenStar request error"
-		ngx.say(msg) 
-		return ngx.exit(200)
+local function action_deny()
+	if config_base.sayHtml.state == "on" then
+		local tb = getDict_Config("denyHost_Mod")
+		local host_deny_msg = tb[host] or {}
+		local tp_denymsg = type(host_deny_msg.deny_msg)
+		if tp_denymsg == "number" then
+			ngx.exit(host_deny_msg.deny_msg)
+		elseif  tp_denymsg == "string" then
+			ngx.say(host_deny_msg.deny_msg)
+			ngx.exit(200)
+		end
+	end
+	if type(config_base.sayHtml.deny_msg) == "number" then
+		ngx.exit(config_base.sayHtml.deny_msg)
 	else
-		return ngx.exit(code)
+		ngx.say(config_base.sayHtml.deny_msg)
+		ngx.exit(200)
 	end
 end
 
@@ -184,7 +192,7 @@ optl.debug(nil,base_msg,"---- STEP 0 ----")
 if host == "" then 
 	Set_count_dict("black_host_method count")
 	optl.debug("host_method_deny.log",base_msg,"host_method_Mod : black")
-	action_deny(403)
+	ngx.exit(403)
 end
 
 ---  STEP 1 

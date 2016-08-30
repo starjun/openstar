@@ -3,7 +3,7 @@ local config = {}
 local cjson_safe = require "cjson.safe"
 
 --- config.json 文件绝对路径 [需要自行根据自己服务器情况设置]
-local config_json = "/opt/openresty/openstar/config.json"
+local config_json = "/opt/openresty/openstar/base.json"
 
 --- 将全局配置参数存放到共享内存（config_dict）中
 local config_dict = ngx.shared.config_dict
@@ -108,6 +108,10 @@ function loadConfig()
 	config.post_Mod = loadjson(_basedir.."post_Mod.json")
 	config.network_Mod = loadjson(_basedir.."network_Mod.json")
 	config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
+	--- 2016年8月30日增加 denyHost_Mod
+	if config.base.sayHtml.state == "on" then
+		config.denyHost_Mod = loadjson(_basedir.."denyHost_Mod.json")
+	end
 	
 	for k,v in pairs(config) do
 		v = cjson_safe.encode(v)
