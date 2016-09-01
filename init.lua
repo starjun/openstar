@@ -142,7 +142,7 @@ function loadConfig()
 			config_dict:safe_set(host,state,0)
 			local tmp = loadjson(_basedir.."host_json/"..host..".json")
 			tmp = cjson_safe.encode(tmp)
-			config_dict:safe_set(host,state,0)
+			config_dict:safe_set(host.."_Mod",tmp,0)
 		end
 	end
 

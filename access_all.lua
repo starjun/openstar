@@ -610,8 +610,8 @@ if config_is_on("network_Mod") then
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(ip,mod_ip,blacktime)
 						optl.debug("network_log.log",base_msg,"network_Mod  check_network No : "..i)
-						--action_deny()
-						ngx.say("frist network deny")
+						action_deny()
+						--ngx.say("frist network deny")
 						break
 					else
 					    limit_ip_dict:incr(mod_ip,1)
@@ -623,3 +623,60 @@ if config_is_on("network_Mod") then
 end
 
 --debug("----------- STEP 11")
+
+--- STEP 11.1
+if config_dict:get(host) == "on" then
+	local tb = getDict_Config(host.."_Mod")
+	local _action,no
+	for i,v in ipairs(tb) do
+		no = i
+		if v.action[2] == "url" then
+			if remath(url,v.url[1],v.url[2]) then
+				_action = v.action[1]
+				break
+			end
+		elseif v.action[2] == "referer" then
+			if remath(referer,v.referer[1],v.referer[2]) then
+				_action = v.action[1]
+				break
+			end
+		elseif v.action[2] == "useragent" then
+			if remath(agent,v.useragent[1],v.useragent[2]) then
+				_action = v.action[1]
+				break
+			end
+		elseif v.action[2] == "network" then
+			if remath(url,v.url[1],v.url[2]) then
+				local mod_host_ip = ip.." host_network_Mod No "..i
+				local ip_count = limit_ip_dict:get(mod_host_ip)
+				if ip_count == nil then
+					local pTime =  v.network.pTime or 10
+					limit_ip_dict:set(mod_host_ip,1,pTime)
+				else
+					local maxReqs = v.network.maxReqs or 50
+					if ip_count >= maxReqs then
+						--debug("maxReqs is true")
+						local blacktime = v.network.blackTime or 10*60
+						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
+						optl.debug(host..".log",base_msg,"network_Mod  check_network No : "..i)
+						_action = v.action[1]
+						break
+					else
+					    limit_ip_dict:incr(mod_host_ip,1)
+					end
+				end
+			end
+		end
+	end
+
+	if _action == "deny" then
+		Set_count_dict(host.." deny count")
+		optl.debug(host..".log",base_msg,"deny No: "..no)
+		action_deny()
+	elseif _action == "log" then
+		Set_count_dict(host.." log count")
+		optl.debug(host..".log",base_msg,"log No: "..no)
+	elseif _action == "allow" then
+		return
+	end
+end
