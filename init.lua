@@ -134,6 +134,18 @@ function loadConfig()
 		end
 	end
 
+	--- 读取host规则json
+	local host_tb = loadjson(_basedir.."hostJson.json")
+	for i,v in ipairs(host_tb) do
+		local host,state = v[1],v[2] or "off"
+		if host ~= nil then
+			config_dict:safe_set(host,state,0)
+			local tmp = loadjson(_basedir.."host_json/"..host..".json")
+			tmp = cjson_safe.encode(tmp)
+			config_dict:safe_set(host,state,0)
+		end
+	end
+
 end
 
 loadConfig()
