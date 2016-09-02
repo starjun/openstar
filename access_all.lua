@@ -24,6 +24,7 @@ local limit_ip_dict = ngx.shared.limit_ip_dict
 local ip_dict = ngx.shared.ip_dict
 local count_dict = ngx.shared.count_dict
 local token_dict = ngx.shared.token_dict
+local host_dict = ngx.shared.host_dict
 
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
@@ -115,7 +116,6 @@ local function loc_getRealIp(_host,_headers)
 	end
 end
 
-
 --- 匹配 host 和 url
 local function host_url_remath(_host,_url)
 	if remath(host,_host[1],_host[2]) and remath(url,_url[1],_url[2]) then
@@ -162,7 +162,7 @@ local function action_deny()
 	end
 end
 
-local function get_postargs()	
+local function get_postargs()
 	ngx.req.read_body()
 	local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
 	if not data then 
@@ -190,8 +190,8 @@ optl.debug(nil,base_msg,"---- STEP 0 ----")
 --- STEP 0.1
 -- 2016年7月29日19:14:31  检查
 if host == "" then 
-	Set_count_dict("black_host_method count")
-	optl.debug("host_method_deny.log",base_msg,"host_method_Mod : black")
+	Set_count_dict("host_method deny count")
+	optl.debug("host_method.log",base_msg,"deny")
 	ngx.exit(403)
 end
 
@@ -205,7 +205,7 @@ if config_is_on("ip_Mod") then
 			return
 		elseif _ip_v == "log" then 
 			Set_count_dict("ip log count")
-	 		optl.debug("ip_log.log",base_msg,"ip_Mod : log")
+	 		optl.debug("ip.log",base_msg,"log")
 		else
 			Set_count_dict(ip)
 			action_deny()
@@ -217,7 +217,7 @@ if config_is_on("ip_Mod") then
 			return
 		elseif host_ip == "log" then 
 			Set_count_dict(host.."-ip log count")
-	 		optl.debug("ip_log.log",base_msg,host.."-ip_Mod : log")
+	 		optl.debug("ip.log",base_msg,host.."-ip log")
 		else
 			Set_count_dict(host.."-"..ip)
 			action_deny()
@@ -240,15 +240,14 @@ if config_is_on("host_method_Mod") then
 		end
 	end
 	if check ~= "allow" then
-		Set_count_dict("black_host_method count")
-	 	--debug("host_method_Mod : black","host_method_deny",ip)
-	 	optl.debug("host_method_deny.log",base_msg,"host_method_Mod : black")
+		Set_count_dict("host_method deny count")
+	 	optl.debug("host_method.log",base_msg,"deny")
 	 	action_deny()
 	end
 end
 --debug("----------- STEP 2")
 
---- STEP 2.1
+--- STEP 3
 -- rewrite 跳转阶段(set-cookie)
 -- 本来想着放到rewrite阶段使用的，方便统一都放到access阶段了。
 if config_is_on("rewrite_Mod") then
@@ -275,7 +274,66 @@ if config_is_on("rewrite_Mod") then
 	end
 end
 
--- --- STEP 3
+
+--- STEP 4
+-- host_Mod 规则过滤
+if host_dict:get(host) == "on" then
+	local tb = cjson_safe.decode(host_dict:get(host.."_HostMod")) or {}
+	local _action,no
+	for i,v in ipairs(tb) do
+		no = i
+		if v.action[2] == "url" then
+			if remath(url,v.url[1],v.url[2]) then
+				_action = v.action[1]
+				break
+			end
+		elseif v.action[2] == "referer" then
+			if remath(referer,v.referer[1],v.referer[2]) and remath(url,v.url[1],v.url[2])  then
+				_action = v.action[1]
+				break
+			end
+		elseif v.action[2] == "useragent" then
+			if remath(agent,v.useragent[1],v.useragent[2]) then				
+				_action = v.action[1]
+				break
+			end
+		elseif v.action[2] == "network" then
+			if remath(url,v.url[1],v.url[2]) then
+				local mod_host_ip = ip.." host_network_Mod No "..i
+				local ip_count = limit_ip_dict:get(mod_host_ip)
+				if ip_count == nil then
+					local pTime =  v.network.pTime or 10
+					limit_ip_dict:set(mod_host_ip,1,pTime)
+				else
+					local maxReqs = v.network.maxReqs or 50
+					if ip_count >= maxReqs then
+						--debug("maxReqs is true")
+						local blacktime = v.network.blackTime or 10*60
+						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
+						optl.debug(host..".log",base_msg,"network_Mod  check_network No : "..i)
+						_action = v.action[1]
+						break
+					else
+					    limit_ip_dict:incr(mod_host_ip,1)
+					end
+				end
+			end
+		end
+	end
+
+	if _action == "deny" then
+		Set_count_dict(host.." deny count")
+		optl.debug(host..".log",base_msg,"deny No: "..no)
+		action_deny()
+	elseif _action == "log" then
+		Set_count_dict(host.." log count")
+		optl.debug(host..".log",base_msg,"log No: "..no)
+	elseif _action == "allow" then
+		return
+	end
+end
+
+-- --- STEP 4
 -- -- app_Mod 访问控制 （自定义action）
 -- -- 目前支持的 deny allow log rehtml refile relua
 if config_is_on("app_Mod") then
@@ -286,9 +344,9 @@ if config_is_on("app_Mod") then
 			if host_url_remath(v.hostname,v.url) then
 				
 				if v.action[1] == "deny" then
-					Set_count_dict("app_deny count")
+					Set_count_dict("app deny count")
 					--debug("app_Mod deny No : "..i,"app_log",ip)
-					optl.debug("app_log.log",base_msg,"app_Mod deny No : "..i)
+					optl.debug("app.log",base_msg,"deny No : "..i)
 					action_deny()
 					break
 
@@ -317,9 +375,9 @@ if config_is_on("app_Mod") then
 					if check == "next" then
 						--return
 					else
-						Set_count_dict("app_deny count")
+						Set_count_dict("app deny count")
 						--debug("app_Mod deny No : "..i,"app_log",ip)
-						optl.debug("app_log.log",base_msg,"app_Mod deny No : "..i)
+						optl.debug("app.log",base_msg,"deny No : "..i)
 						action_deny()
 						break
 					end					
@@ -334,7 +392,7 @@ if config_is_on("app_Mod") then
 						http_tmp["post"] = post_date						
 					end
 					--debug("app_Mod log Msg : "..tableTojson(http_tmp),"app_log",ip)
-					optl.debug("app_log.log",base_msg,"app_Mod log Msg : "..optl.tableTojson(http_tmp))
+					optl.debug("app.log",base_msg,"log Msg : "..optl.tableTojson(http_tmp))
 				elseif v.action[1] == "rehtml" then
 					optl.sayHtml_ext(v.rehtml)
 					break
@@ -360,9 +418,8 @@ if config_is_on("app_Mod") then
 		end
 	end
 end
---debug("----------- STEP 3")
 
--- --- STEP 4
+-- --- STEP 5
 -- -- referer (白名单/log记录/next)
 if config_is_on("referer_Mod") then
 	local check,no
@@ -407,18 +464,17 @@ if config_is_on("referer_Mod") then
 		-- nil
 	elseif check == "log" then
 		Set_count_dict("referer_deny count")
-		optl.debug("referer_log.log",base_msg,"referer_Mod  No : "..no)
+		optl.debug("referer.log",base_msg,"log  No : "..no)
 	elseif check == "deny" then
 		Set_count_dict("referer_deny count")
-		optl.debug("referer_deny.log",base_msg,"referer_Mod  No : "..no)
+		optl.debug("referer.log",base_msg,"deny  No : "..no)
 		action_deny()
 	else
 		
 	end
 end
---debug("----------- STEP 4")
 
---- STEP 5
+--- STEP 6
 -- url 过滤(黑/白名单)
 if config_is_on("url_Mod") then
 	local url_mod = getDict_Config("url_Mod")
@@ -435,17 +491,16 @@ if config_is_on("url_Mod") then
 	if t == "allow" then --- 跳出后续规则
 		return
 	elseif t ==	"deny" then
-		Set_count_dict("url_deny count")
-		optl.debug("url_deny.log",base_msg,"url_Mod No : "..no)
+		Set_count_dict("url deny count")
+		optl.debug("url.log",base_msg,"deny No : "..no)
 		action_deny()
 	elseif t == "log" then
-		Set_count_dict("url_log count")
-		optl.debug("url_log.log",base_msg,"url_Mod No : "..no)
+		Set_count_dict("url log count")
+		optl.debug("url.log",base_msg,"log No : "..no)
 	end
 end
---debug("----------- STEP 5")
 
---- STEP 6
+--- STEP 7
 -- header 过滤(黑名单) [scanner]
 if config_is_on("header_Mod") then
 	local tb_mod = getDict_Config("header_Mod")
@@ -453,8 +508,8 @@ if config_is_on("header_Mod") then
 		if v.state == "on" then			
 			if host_url_remath(v.hostname,v.url) then
 				if remath(headers[v.header[1]],v.header[2],v.header[3]) then
-					Set_count_dict("black_header_method count")
-				 	optl.debug("header_deny.log",base_msg,"header_Mod No : "..i)
+					Set_count_dict("header_method deny count")
+				 	optl.debug("header.log",base_msg,"deny No : "..i)
 				 	action_deny()
 				end
 			end
@@ -462,9 +517,7 @@ if config_is_on("header_Mod") then
 	end
 end
 
---debug("----------- STEP 6")
-
---- STEP 7
+--- STEP 8
 -- useragent(黑、白名单/log记录)
 if config_is_on("agent_Mod") then	
 	local uagent_mod = getDict_Config("useragent_Mod")
@@ -477,12 +530,12 @@ if config_is_on("agent_Mod") then
 					if v.action == "allow" then
 						return
 					elseif v.action == "log" then
-						Set_count_dict("agent_deny count")
-						optl.debug("agent_log.log",base_msg,"agent_Mod No : "..i)
+						Set_count_dict("agent deny count")
+						optl.debug("agent.log",base_msg,"log No : "..i)
 						break
 					else
-						Set_count_dict("agent_deny count")
-						optl.debug("agent_deny.log",base_msg,"agent_Mod No : "..i)
+						Set_count_dict("agent deny count")
+						optl.debug("agent.log",base_msg,"deny No : "..i)
 						action_deny()
 						break
 					end
@@ -492,9 +545,7 @@ if config_is_on("agent_Mod") then
 	end
 end
 
---debug("----------- STEP 7")
-
---- STEP 8
+--- STEP 9
 -- cookie (黑/白名单/log记录)
 local cookie = headers["cookie"]
 
@@ -506,13 +557,13 @@ if config_is_on("cookie_Mod") and cookie ~= nil then
 			if remath(host,v.hostname[1],v.hostname[2]) then
 				if remath(cookie,v.cookie[1],v.cookie[2]) then
 					if v.action == "deny" then
-						Set_count_dict("cookie_deny count")
-						optl.debug("cookie_deny.log",base_msg,"cookie_Mod : "..cookie.." No : "..i)
+						Set_count_dict("cookie deny count")
+						optl.debug("cookie.log",base_msg,"deny _cookie : "..cookie.." No : "..i)
 						action_deny()
 						break
 					elseif v.action =="log" then
-						Set_count_dict("cookie_log count")
-						optl.debug("cookie_log.log",base_msg,"cookie_Mod : "..cookie.." No : "..i)
+						Set_count_dict("cookie log count")
+						optl.debug("cookie.log",base_msg,"log _cookie : "..cookie.." No : "..i)
 						break
 					elseif v.action == "allow" then
 						return
@@ -523,9 +574,7 @@ if config_is_on("cookie_Mod") and cookie ~= nil then
 	end
 end
 
---debug("----------- STEP 8")
-
---- STEP 9
+--- STEP 10
 -- args (黑/白名单/log记录)
 if config_is_on("args_Mod") then
 	--debug("args_Mod is on")
@@ -538,13 +587,13 @@ if config_is_on("args_Mod") then
 				if remath(host,v.hostname[1],v.hostname[2]) then			
 					if remath(args,v.args[1],v.args[2]) then
 						if v.action == "deny" then
-							Set_count_dict("args_deny count")
-							optl.debug("args_deny.log",base_msg,"args_Mod _args = "..args.." No : "..i)
+							Set_count_dict("args deny count")
+							optl.debug("args.log",base_msg,"deny _args = "..args.." No : "..i)
 							action_deny()
 							break
 						elseif v.action == "log" then
-							Set_count_dict("args_log count")
-							optl.debug("args_log.log",base_msg,"args_Mod _args = "..args.." No : "..i)
+							Set_count_dict("args log count")
+							optl.debug("args.log",base_msg,"log _args = "..args.." No : "..i)
 							break
 						elseif v.action == "allow" then
 							return							
@@ -555,9 +604,8 @@ if config_is_on("args_Mod") then
 		end
 	end
 end
---debug("----------- STEP 9")
 
---- STEP 10
+--- STEP 11
 -- post (黑/白名单)
 
 if config_is_on("post_Mod") and method == "POST" then
@@ -571,13 +619,13 @@ if config_is_on("post_Mod") and method == "POST" then
 				if remath(host,v.hostname[1],v.hostname[2]) then
 					if remath(postargs,v.post[1],v.post[2]) then
 						if v.action == "deny" then
-							Set_count_dict("post_deny count")
-							optl.debug("post_deny.log",base_msg,"post_Mod : "..postargs.."No : "..i)
+							Set_count_dict("post deny count")
+							optl.debug("post.log",base_msg,"deny _post : "..postargs.."No : "..i)
 							action_deny()
 							break
 						elseif v.action == "log" then
-							Set_count_dict("post_log count")
-							optl.debug("post_log.log",base_msg,"post_Mod : "..postargs.."No : "..i)
+							Set_count_dict("post log count")
+							optl.debug("post.log",base_msg,"deny _post : "..postargs.."No : "..i)
 							break
 						elseif v.action == "allow" then
 							return
@@ -589,9 +637,9 @@ if config_is_on("post_Mod") and method == "POST" then
 	end
 end
 
---debug("----------- STEP 10")
 
---- STEP 11
+
+--- STEP 13
 -- network_Mod 访问控制
 if config_is_on("network_Mod") then
 	local tb_networkMod = getDict_Config("network_Mod")
@@ -606,10 +654,23 @@ if config_is_on("network_Mod") then
 				else
 					local maxReqs = v.network.maxReqs or 50
 					if ip_count >= maxReqs then
-						--debug("maxReqs is true")
 						local blacktime = v.network.blackTime or 10*60
-						ip_dict:safe_set(ip,mod_ip,blacktime)
-						optl.debug("network_log.log",base_msg,"network_Mod  check_network No : "..i)
+						if v.hostname[2] == "" then
+							if v.hostname[1] == "*" then
+								ip_dict:safe_set(ip,mod_ip,blacktime)
+							else
+								ip_dict:safe_set(host.."-"..ip,mod_ip,blacktime)
+							end
+						elseif v.hostname[2] == "table" then
+							for j,vj in ipairs(v.hostname[1]) do
+								ip_dict:safe_set(vj.."-"..ip,mod_ip,blacktime)
+							end
+						elseif v.hostname[2] == "list" then
+							for j,vj in pairs(v.hostname[1]) do
+								ip_dict:safe_set(j.."-"..ip,mod_ip,blacktime)
+							end							
+						end
+						optl.debug("network.log",base_msg,"deny  No : "..i)
 						action_deny()
 						--ngx.say("frist network deny")
 						break
@@ -622,61 +683,3 @@ if config_is_on("network_Mod") then
 	end
 end
 
---debug("----------- STEP 11")
-
---- STEP 11.1
-if config_dict:get(host) == "on" then
-	local tb = getDict_Config(host.."_Mod")
-	local _action,no
-	for i,v in ipairs(tb) do
-		no = i
-		if v.action[2] == "url" then
-			if remath(url,v.url[1],v.url[2]) then
-				_action = v.action[1]
-				break
-			end
-		elseif v.action[2] == "referer" then
-			if remath(referer,v.referer[1],v.referer[2]) then
-				_action = v.action[1]
-				break
-			end
-		elseif v.action[2] == "useragent" then
-			if remath(agent,v.useragent[1],v.useragent[2]) then
-				_action = v.action[1]
-				break
-			end
-		elseif v.action[2] == "network" then
-			if remath(url,v.url[1],v.url[2]) then
-				local mod_host_ip = ip.." host_network_Mod No "..i
-				local ip_count = limit_ip_dict:get(mod_host_ip)
-				if ip_count == nil then
-					local pTime =  v.network.pTime or 10
-					limit_ip_dict:set(mod_host_ip,1,pTime)
-				else
-					local maxReqs = v.network.maxReqs or 50
-					if ip_count >= maxReqs then
-						--debug("maxReqs is true")
-						local blacktime = v.network.blackTime or 10*60
-						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
-						optl.debug(host..".log",base_msg,"network_Mod  check_network No : "..i)
-						_action = v.action[1]
-						break
-					else
-					    limit_ip_dict:incr(mod_host_ip,1)
-					end
-				end
-			end
-		end
-	end
-
-	if _action == "deny" then
-		Set_count_dict(host.." deny count")
-		optl.debug(host..".log",base_msg,"deny No: "..no)
-		action_deny()
-	elseif _action == "log" then
-		Set_count_dict(host.." log count")
-		optl.debug(host..".log",base_msg,"log No: "..no)
-	elseif _action == "allow" then
-		return
-	end
-end

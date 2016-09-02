@@ -1,6 +1,6 @@
 
 {
-	"openstar_version":"v 1.1",
+	"openstar_version":"v 1.3",
 
 	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
 
@@ -44,6 +44,6 @@
 
 	"htmlPath" : "/opt/openresty/openstar/index/",
 
-	"sayHtml" : {"state":"on","deny_msg":"403"}
+	"sayHtml" : {"state":"on","deny_msg":403}
 
 }

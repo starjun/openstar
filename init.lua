@@ -7,6 +7,7 @@ local config_json = "/opt/openresty/openstar/base.json"
 
 --- 将全局配置参数存放到共享内存（config_dict）中
 local config_dict = ngx.shared.config_dict
+local host_dict = ngx.shared.host_dict
 
 --- 读取文件（全部读取）
 --- loadjson()调用
@@ -19,63 +20,6 @@ local function readfile(_filepath)
     return str
 end
 
---- 写文件(_filepath,msg,ty)  默认追加方式写入
---- init_debug()
-local function writefile(_filepath,_msg,_ty)
-    _ty = _ty or "a+"
-    -- w+ 覆盖
-    -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
-    local fd = io.open(_filepath,_ty)
-    if fd == nil then return end -- 文件读取错误返回
-    fd:write("\n"..tostring(_msg))
-    fd:flush()
-    fd:close()
-end
-
---- init_debug()调用
-local function tableToString(_obj)
-        local lua = ""  
-        local t = type(_obj)  
-        if t == "number" then  
-            lua = lua .. _obj  
-        elseif t == "boolean" then  
-            lua = lua .. tostring(_obj)  
-        elseif t == "string" then  
-            lua = lua .. string.format("%q", _obj)  
-        elseif t == "table" then  
-            lua = lua .. "{\n"  
-	        for k, v in pairs(_obj) do  
-	            lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-	        end  
-        	local metatable = getmetatable(_obj)  
-	        if metatable ~= nil and type(metatable.__index) == "table" then  
-	            for k, v in pairs(metatable.__index) do  
-	                lua = lua .. "[" .. tableToString(k) .. "]=" .. tableToString(v) .. ",\n"  
-	            end  
-        	end  
-            lua = lua .. "}"  
-        elseif t == "nil" then  
-            return nil  
-        else  
-            error("can not tableToString a " .. t .. " type.")  
-        end  
-        return lua  
-end
-
--- init_debug(msg) 阶段调试记录LOG
--- 暂无调用
-local function init_debug(_msg)
-	if config.base.debug_Mod == false then return end  --- 判断debug开启状态
-	local filepath = config.base.logPath.."debug.log"
-	local time = ngx.localtime()
-	if type(_msg) == "table" then
-		local str_msg = tableToString(_msg)
-		writefile(filepath,time.."- init_debug: "..tostring(str_msg))
-	else
-		writefile(filepath,time.."- init_debug: "..tostring(_msg))
-	end
-end
-
 --- 载入JSON文件
 --- loadConfig()调用
 local function loadjson(_path_name)
@@ -83,9 +27,6 @@ local function loadjson(_path_name)
 	local json = cjson_safe.decode(x) or {}
 	return json
 end
-
-
-
 
 --- 载入config.json全局基础配置
 --- 唯一一个全局函数
@@ -134,15 +75,15 @@ function loadConfig()
 		end
 	end
 
-	--- 读取host规则json
+	--- 读取host规则json 到host_dict
 	local host_tb = loadjson(_basedir.."hostJson.json")
 	for i,v in ipairs(host_tb) do
 		local host,state = v[1],v[2] or "off"
 		if host ~= nil then
-			config_dict:safe_set(host,state,0)
+			host_dict:safe_set(host,state,0)
 			local tmp = loadjson(_basedir.."host_json/"..host..".json")
 			tmp = cjson_safe.encode(tmp)
-			config_dict:safe_set(host.."_Mod",tmp,0)
+			host_dict:safe_set(host.."_HostMod",tmp,0)
 		end
 	end
 
