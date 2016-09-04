@@ -31,6 +31,12 @@ if _action == "save" then
 				else
 					optl.writefile(config_base.baseDir..k.."_bak.json",v,"w+")
 				end
+			elseif k == "denyHost_msg" then
+				if _debug == "no" then
+					optl.writefile(config_base.baseDir.."host_json/"..k..".json",v,"w+")
+				else
+					optl.writefile(config_base.baseDir.."host_json/"..k.."_bak.json",v,"w+")
+				end
 			else
 				if _debug == "no" then
 					optl.writefile(config_base.jsonPath..k..".json",v,"w+")
@@ -49,6 +55,12 @@ if _action == "save" then
 			else
 				optl.writefile(config_base.baseDir.._mod.."_bak.json",msg,"w+")
 			end
+		elseif _mod == "denyHost_msg" then
+			if _debug == "no" then
+				optl.writefile(config_base.baseDir.."host_json/".._mod..".json",msg,"w+")
+			else
+				optl.writefile(config_base.baseDir.."host_json/".._mod.."_bak.json",msg,"w+")
+			end
 		else
 			if _debug == "no" then
 				optl.writefile(config_base.jsonPath.._mod..".json",msg,"w+")
@@ -62,7 +74,7 @@ if _action == "save" then
 elseif _action =="load" then
 
 	loadConfig()
-	ngx.say("ok!")
+	ngx.say("it is ok")
 else
     optl.sayHtml_ext({code="error",msg="action is Non-existent"})
 end

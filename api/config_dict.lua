@@ -15,6 +15,9 @@ local _value = get_argByName("value")
 local _value_type = get_argByName("value_type")
 local tmpdict = ngx.shared.config_dict
 
+local cjson_safe = require "cjson.safe"
+local config_base = cjson_safe.decode(tmpdict:get("base")) or {}
+
 if _action == "get" then
 
 	if _mod == "all_mod" then
@@ -34,6 +37,7 @@ if _action == "get" then
 		if _tb == nil then optl.sayHtml_ext({code="error",msg="mod is Non-existent"}) end
 		_tb = cjson_safe.decode(_tb) or {}
 		if _id == "" then
+			_tb.state = config_base[_mod]
 			optl.sayHtml_ext(_tb)
 		elseif _id == "count_id" then
 			local cnt = 0
@@ -43,7 +47,7 @@ if _action == "get" then
 			optl.sayHtml_ext({count=cnt})
 		else
 			--- realIpFrom_Mod 和 base 和 denyHost_Mod 特殊处理
-			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_Mod" then
+			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_msg" then
 				_id = tonumber(_id)
 			end			
 			optl.sayHtml_ext({id=_id,value=_tb[_id]})
@@ -74,7 +78,7 @@ elseif _action == "set" then
 		
 		_tb = cjson_safe.decode(_tb) or {}
 		--- realIpFrom_Mod base 特殊处理
-		if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_Mod" then
+		if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_msg" then
 			_id = tonumber(_id)
 		end
 		local _old_value = _tb[_id]
@@ -102,7 +106,7 @@ elseif _action == "add" then
 	_tb = cjson_safe.decode(_tb) or {}
 	
 	
-	if _mod == "realIpFrom_Mod"  or _mod == "denyHost_Mod" then
+	if _mod == "realIpFrom_Mod"  or _mod == "denyHost_msg" then
 		if _tb[_id] == nil and _id ~= "" then
 			_tb[_id] = _value
 			local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
@@ -126,7 +130,7 @@ elseif _action == "del" then
 	_tb = cjson_safe.decode(_tb) or {}
 	
 
-	if _mod == "realIpFrom_Mod" or _mod == "denyHost_Mod" then
+	if _mod == "realIpFrom_Mod" or _mod == "denyHost_msg" then
 		local rr = _tb[_id]
 		if rr == nil then
 			optl.sayHtml_ext({code="error",msg="id is Non-existent"})

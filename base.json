@@ -22,7 +22,7 @@
 
 	"header_Mod" : "on",
 
-	"agent_Mod" : "on",
+	"useragent_Mod" : "on",
 
 	"cookie_Mod" : "on",
 
@@ -32,7 +32,7 @@
 
 	"network_Mod" : "on",
 
-	"replace_Mod" : "off",
+	"replace_Mod" : "on",
 
 	"debug_Mod" : true,
 
@@ -44,6 +44,6 @@
 
 	"htmlPath" : "/opt/openresty/openstar/index/",
 
-	"sayHtml" : {"state":"on","deny_msg":403}
+	"sayHtml" : {"state":"on","deny_msg":404}
 
 }

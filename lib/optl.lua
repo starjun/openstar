@@ -74,7 +74,7 @@ local function stringTojson(_obj)
     return json
 end
 
--- guid() 局部函数用于生成唯一随机字符串
+-- 用于生成唯一随机字符串
 local function guid()
     local random = require "resty-random"
     return string.format('%s-%s',
@@ -98,7 +98,6 @@ local function set_token(_token)
     end 
 end
 
---- remath(_str,_re_str,_options)
 --- 常用二阶匹配规则
 local function remath(_str,_re_str,_options)
     if _str == nil or _re_str == nil or _options == nil then return false end
@@ -113,7 +112,7 @@ local function remath(_str,_re_str,_options)
                 return true
             end
         end
-    elseif _options == "in" then --- 用于包含 查找 string.find
+    elseif _options == "in" then --- 用于包含 查找 string.find       
         local from , to = string.find(_str, _re_str)
         --if from ~= nil or (from == 1 and to == 0 ) then
         --当re_str=""时的情况 没有处理
@@ -153,7 +152,7 @@ local function set_count_dict(_key)
     end
 end
 
---- ngx_find
+
 local function ngx_find(_str)
     -- str = string.gsub(str,"@ngx_time@",ngx.time())
     -- ngx.re.gsub 效率要比string.gsub要好一点，参考openresty最佳实践
@@ -167,7 +166,6 @@ local function ngx_find(_str)
     return _str
 end
 
--- sayHtml_ext(fileorhtml,ty)
 local function sayHtml_ext(_html,_ty) 
     ngx.header.content_type = "text/html"
     if _html == nil then 
@@ -176,7 +174,7 @@ local function sayHtml_ext(_html,_ty)
         if _ty == nil then               
             _html = tableTojson(_html)
         else
-            _html = tableToString(_html)
+            _html = tableTostring(_html)
         end
     end
     ngx.say(ngx_find(_html))
@@ -194,11 +192,10 @@ end
 local function sayLua(_luapath)
     --local re = dofile(Config.base.htmlPath..lua)
     local re = dofile(_luapath)
-    --debug("sayLua  init re :"..tostring( re ))
     return re
 end
 
--- debug(msg,filename) 记录debug日志
+-- 记录debug日志
 -- 更新记录IP 2016年6月7日 22:22:15
 local function debug(_filename,_base_msg,_info)
     if _base_msg.config_base.debug_Mod == false then return end --- 判断debug开启状态
@@ -274,6 +271,7 @@ end
 
     --- 获取header原始字符串
     local function get_headers(_bool)
+        -- _bool 是否包含 `GET / HTTP/1.1` 请求头
         return ngx.unescape_uri(ngx.req.raw_header(_bool))
     end
 

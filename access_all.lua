@@ -2,9 +2,9 @@
 local remoteIp = ngx.var.remote_addr
 local headers = ngx.req.get_headers()
 
-local host = ngx.unescape_uri(headers["Host"])
-local referer = ngx.unescape_uri(headers["referer"])
-local agent = ngx.unescape_uri(headers["user_agent"])
+local host = ngx.unescape_uri(ngx.var.http_host)
+local referer = ngx.unescape_uri(ngx.var.http_referer)
+local agent = ngx.unescape_uri(ngx.var.http_user_agent)
 
 local method = ngx.unescape_uri(ngx.var.request_method)
 local url = ngx.unescape_uri(ngx.var.uri)
@@ -33,7 +33,6 @@ base_msg.config_base = config_base
 
 local optl = require("optl")
 
-
 --- 2016年8月4日 增加全局Mod开关
 if config_base["Mod_state"] == "off" then
 	return
@@ -54,59 +53,17 @@ end
 
 --- remath(str,re_str,options)
 --- 常用二阶匹配规则
-local function remath(str,re_str,options)
-	if str == nil or re_str == nil or options == nil then return false end
-	if options == "" then
-		if str == re_str or re_str == "*" then
-			return true
-		end
-	elseif options == "table" then
-		if type(re_str) ~= "table" then return false end
-		for i,v in ipairs(re_str) do
-			if v == str then
-				return true
-			end
-		end
-	elseif options == "in" then --- 用于包含 查找 string.find
-		local from , to = string.find(str, re_str)
-		--if from ~= nil or (from == 1 and to == 0 ) then
-		--当re_str=""时的情况 没有处理
-		if from ~= nil then
-			return true
-		end
-	elseif options == "list" then
-		if type(re_str) ~= "table" then return false end
-		local re = re_str[str]
-		if re == true then
-			return true
-		end
-	elseif options == "@token@" then
-		local a = tostring(token_dict:get(str))
-		if a == re_str then 
-			token_dict:delete(str) -- 使用一次就删除token
-			return true
-		end
-	else
-		local from, to = ngx.re.find(str, re_str, options)
-	    if from ~= nil then
-	    	return true,string.sub(str, from, to)
-	    end
-	end
-end
+local remath = optl.remath
 
 -- 传入 (host  连接IP  http头)
-local function loc_getRealIp(_host,_headers)
+local function loc_getRealIp(_host)
 	if config_is_on("realIpFrom_Mod") then
 		local realipfrom = getDict_Config("realIpFrom_Mod")
 		local ipfromset = realipfrom[_host]
 		if type(ipfromset) ~= "table" then return remoteIp end
 		if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
-			local ip = _headers[ipfromset.realipset]
-			if ip then
-				if type(ip) == "table" then ip = ip[1] end
-			else
-				ip = remoteIp
-			end
+			local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
+        	local ip = ngx.unescape_uri(ngx.var[x])
 			return ip
 		else
 			return remoteIp
@@ -124,32 +81,20 @@ local function host_url_remath(_host,_url)
 end
 
 --- 获取单个args值
-local function get_argsByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
+local get_argsByName = optl.get_argsByName
 
 --- 拦截计数 2016年6月7日 21:52:52 up 从全局变成local
-local function Set_count_dict(_key)
-	if _key == nil then return end
-	local key_count = count_dict:get(_key)
-	if key_count == nil then 
-		count_dict:set(_key,1)
-	else
-		count_dict:incr(_key,1)
-	end
-end
+local Set_count_dict = optl.set_count_dict
 
 -- action_deny(code) 拒绝访问
 local function action_deny()
 	if config_base.sayHtml.state == "on" then
-		local tb = getDict_Config("denyHost_Mod")
+		local tb = getDict_Config("denyHost_msg")
 		local host_deny_msg = tb[host] or {}
 		local tp_denymsg = type(host_deny_msg.deny_msg)
 		if tp_denymsg == "number" then
 			ngx.exit(host_deny_msg.deny_msg)
-		elseif  tp_denymsg == "string" then
+		elseif tp_denymsg == "string" then
 			ngx.say(host_deny_msg.deny_msg)
 			ngx.exit(200)
 		end
@@ -157,27 +102,12 @@ local function action_deny()
 	if type(config_base.sayHtml.deny_msg) == "number" then
 		ngx.exit(config_base.sayHtml.deny_msg)
 	else
-		ngx.say(config_base.sayHtml.deny_msg)
+		ngx.say(tostring(config_base.sayHtml.deny_msg))
 		ngx.exit(200)
 	end
 end
 
-local function get_postargs()
-	ngx.req.read_body()
-	local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
-	if not data then 
-		local datafile = ngx.req.get_body_file()
-		if datafile then
-			local fh, err = io.open(datafile, "r")
-			if fh then
-				fh:seek("set")
-                data = fh:read("*a")
-                fh:close()
-			end
-		end
-	end
-	return ngx.unescape_uri(data)
-end
+local get_postargs = optl.get_posts
 
 local post_date
 local get_date
@@ -192,7 +122,7 @@ optl.debug(nil,base_msg,"---- STEP 0 ----")
 if host == "" then 
 	Set_count_dict("host_method deny count")
 	optl.debug("host_method.log",base_msg,"deny")
-	ngx.exit(403)
+	ngx.exit(404)
 end
 
 ---  STEP 1 
@@ -217,7 +147,7 @@ if config_is_on("ip_Mod") then
 			return
 		elseif host_ip == "log" then 
 			Set_count_dict(host.."-ip log count")
-	 		optl.debug("ip.log",base_msg,host.."-ip log")
+	 		optl.debug(host..".log",base_msg,"log")
 		else
 			Set_count_dict(host.."-"..ip)
 			action_deny()
@@ -310,7 +240,7 @@ if host_dict:get(host) == "on" then
 						--debug("maxReqs is true")
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
-						optl.debug(host..".log",base_msg,"network_Mod  check_network No : "..i)
+						optl.debug(host..".log",base_msg,"network_Mod  deny No : "..i)
 						_action = v.action[1]
 						break
 					else
@@ -333,7 +263,7 @@ if host_dict:get(host) == "on" then
 	end
 end
 
--- --- STEP 4
+-- --- STEP 5
 -- -- app_Mod 访问控制 （自定义action）
 -- -- 目前支持的 deny allow log rehtml refile relua
 if config_is_on("app_Mod") then
@@ -419,7 +349,7 @@ if config_is_on("app_Mod") then
 	end
 end
 
--- --- STEP 5
+-- --- STEP 6
 -- -- referer (白名单/log记录/next)
 if config_is_on("referer_Mod") then
 	local check,no
@@ -474,7 +404,7 @@ if config_is_on("referer_Mod") then
 	end
 end
 
---- STEP 6
+--- STEP 7
 -- url 过滤(黑/白名单)
 if config_is_on("url_Mod") then
 	local url_mod = getDict_Config("url_Mod")
@@ -500,7 +430,7 @@ if config_is_on("url_Mod") then
 	end
 end
 
---- STEP 7
+--- STEP 8
 -- header 过滤(黑名单) [scanner]
 if config_is_on("header_Mod") then
 	local tb_mod = getDict_Config("header_Mod")
@@ -517,9 +447,9 @@ if config_is_on("header_Mod") then
 	end
 end
 
---- STEP 8
+--- STEP 9
 -- useragent(黑、白名单/log记录)
-if config_is_on("agent_Mod") then	
+if config_is_on("useragent_Mod") then	
 	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" then
@@ -545,9 +475,9 @@ if config_is_on("agent_Mod") then
 	end
 end
 
---- STEP 9
+--- STEP 10
 -- cookie (黑/白名单/log记录)
-local cookie = headers["cookie"]
+local cookie = ngx.var.http_cookie
 
 if config_is_on("cookie_Mod") and cookie ~= nil then
 	cookie = ngx.unescape_uri(cookie)
@@ -574,7 +504,7 @@ if config_is_on("cookie_Mod") and cookie ~= nil then
 	end
 end
 
---- STEP 10
+--- STEP 11
 -- args (黑/白名单/log记录)
 if config_is_on("args_Mod") then
 	--debug("args_Mod is on")
@@ -605,7 +535,7 @@ if config_is_on("args_Mod") then
 	end
 end
 
---- STEP 11
+--- STEP 12
 -- post (黑/白名单)
 
 if config_is_on("post_Mod") and method == "POST" then
@@ -636,7 +566,6 @@ if config_is_on("post_Mod") and method == "POST" then
 		end
 	end
 end
-
 
 
 --- STEP 13

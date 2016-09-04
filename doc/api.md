@@ -7,307 +7,49 @@ API相关介绍：
 # 模块介绍
 
  - base
- 表示基本配置 EG:
-```
-对应文件/openstar/config.json
-{
-	"openstar_version":"v 1.1",
-	## 版本号标记
-	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
-	## 连接redis相关配置，ip、端口、密码
-	"Mod_state":"on",
-	## 全局模块开关 on 表示启用，off 表示关闭所有过滤模块
-	"realIpFrom_Mod" : "on",
-	## 表示是否启用通过http头来获取用户真实IP
-	"ip_Mod" : "on",
-	## 表示是否启用IP黑/白名单、log记录
-	"host_method_Mod" : "on",
-	## 表示是否启用host && method 白名单过滤规则
-	"rewrite_Mod" : "on",
-	## 表示是否启用跳转规则（目前跳转只有set cookie）
-	"app_Mod" : "on",
-	## 表示是否启用自定义应用过滤规则
-	"referer_Mod" : "on",
-	## 表示是否启用referer过滤规则
-	"url_Mod" : "on",
-	## 表示是否启用url过滤规则
-	"header_Mod" : "on",
-	## 表示是否启用http头过滤规则
-	"agent_Mod" : "on",
-	## 表示是否启用useragent过滤规则
-	"cookie_Mod" : "on",
-	## 表示是否启用cookie过滤规则
-	"args_Mod" : "on",
-	## 表示是否启用get参数过滤规则
-	"post_Mod" : "on",
-	## 表示是否启用post参数过滤规则
-	"network_Mod" : "on",
-	## 表示是否启用连接频率限制规则
-	"replace_Mod" : "off",
-	## 表示是否启用返回内容替换规则
-	"debug_Mod" : true,
-	## 表示调用debug记录日志函数是否开启记录
-	"baseDir" : "/opt/openresty/openstar/",
-	## 表示openstar的基本路径（绝对路径）
-	"logPath" : "/opt/openresty/openstar/logs/",
-	## 表示配置log记录的路径
-	"jsonPath" : "/opt/openresty/openstar/conf_json/",
-	## 表示配置过滤模块的文件夹路径
-	"htmlPath" : "/opt/openresty/openstar/index/",
-	## 表示配置一些静态资源路径
-	"sayHtml" : "request error!"
-	## 表示应用层拦截时显示的信息
-}
+ 表示基本配置，参考readme.md的说明即可
 
-```
  - realIpFrom_Mod
  表示配置设置从http头中获取用户真实IP
-```
-对应文件/openstar/conf_json/realIpFrom_Mod.json
-即base模块中的jsonPath目录下对应规则模块json文件，后面的以此类推
-{
-    "127.0.0.1:5460": {
-        "ips": [["101.254.241.149","106.37.236.170"],"table"],
-        "realipset": "x-for-f"
-    }
-}
-```
+
  - ip_Mod
  ip过滤模块
-```
-[
-    {
-        "ip": "127.0.0.1",
-        "action": "allow"
-    },
-    {
-    	"ip":"www.g.com-1.1.1.1",
-    	"action":"deny"
-    }
-]
-```
+
  - host_method_Mod
  host && method 过滤模块
-```
-[
 
-    {
-        "state": "on",
-        "method": [["GET","POST"],"table"],
-        "hostname": ["*",""]
-    }
-    
-]
-```
  - rewrite_Mod
  跳转规则模块
-```
-[
-    {
-        "state": "on",
-        "action": ["set-cookie","asjldisdafpopliu8909jk34jk"],
-        "hostname": ["101.200.122.200",""],
-        "url": ["^/rewrite$","jio"]
-    }
-]
-```
+
  - app_Mod
  自定义应用规则模块
-```
-[
-    {
-        "state": "on",
-        "action": ["deny"],
-        "hostname": ["101.200.122.200",""],
-        "url": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
-    },
-    {
-        "state": "on",
-        "action": ["rehtml"],
-        "rehtml": "<html>hi~!</html>",
-        "hostname": ["101.200.122.200",""],
-        "url": ["/rehtml",""]
-    },
-    {
-        "state": "on",
-        "action": ["reflie"],
-        "reflie": "2.txt",
-        "hostname": ["101.200.122.200",""],
-        "url": ["/refile",""]
-    },
-    {
-        "state": "on",
-        "action": ["next","ip"],
-        "ip":[["106.37.236.170","1.1.1.1"],"table"],
-        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "url": ["/api/.*","jio"]
-    },
-    {
-        "state": "on",
-        "action": ["next","args"],
-        "args":["true","@token@","keytoken"],
-        "hostname": ["127.0.0.1:5460",""],
-        "url": ["/api/debug",""]
-    },   
-    {
-        "state": "on",
-        "action": ["relua"],
-        "relua":"1.lua",
-        "hostname": ["127.0.0.1:5460",""],
-        "url": ["/relua",""]
-    },
-    {
-        "state": "on",
-        "action": ["next","args"],
-        "args":["^[\\w]{6}$","jio","keyby"],
-        "hostname": [["127.0.0.1:5460","127.0.0.1"],"table"],
-        "url": ["/api/time",""]
-    },
-    {
-        "state": "on",
-        "action": ["log"],
-        "hostname": ["127.0.0.1:5460",""],
-        "url": ["/log",""]
-    }
-]
-```
+
  - referer_Mod
  referer过滤模块
-```
-[
-    {
-        "state": "on",
-        "url": ["^/abc.do$","jio"],
-        "hostname": ["pass.game.com",""],
-        "referer": ["^.*/(www\\.hao123\\.com|www3\\.hao123\\.com)$","jio"],
-        "action":"next"
-    },
-    {
-        "state": "on",
-        "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
-        "hostname": ["101.200.122.200",""],
-        "referer": ["*",""],
-        "action":"allow"
-    }
-]
-```
+
  - url_Mod
 url过滤模块
-```
-[
-    {
-        "state": "on",
-        "hostname": ["*",""],
-        "url": ["\\.(css|js|flv|swf|woff|txt)$","jio"],
-        "action": "allow"
-    },
-    {
-        "state": "on",
-        "hostname": [
-            ["127.0.0.1","passport.game.com"],"table"],
-        "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
-        "action": "allow"
-    },
-    {
-        "state": "on",
-        "hostname": ["*",""],
-        "url": ["\\.(svn|git|htaccess|bash_history)","jio"],
-        "action": "deny"
-    }
-]
-```
+
  - header_Mod
  header过滤模块
-```
-[
-    {
-        "state": "on",
-        "url": ["*",""],
-        "hostname": ["*",""],
-        "header": ["Acunetix_Aspect","*",""]        
-    }
-]
-```
+
  - useragent_Mod
  useragent过滤模块
-```
-[
-    {
-        "state": "on",
-        "action":"deny",
-        "useragent": [
-            "HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench",
-            "jio"
-        ],
-        "hostname": ["*",""]
-    }
-]
-```
+
  - cookie_Mod
  cookie过滤模块
-```
-[
-    {
-        "state": "on",
-        "cookie": ["\\.\\./","jio"],
-        "hostname": ["*",""],
-        "action": "deny"
-    }
-]
-```
+
  - args_Mod
  get参数过滤模块
-```
-[
-    {
-        "state": "on",
-        "args": ["\\.\\./","jio"],
-        "hostname": ["*",""],
-        "action": "deny"
-    }
-]
-```
+
  - post_Mod
  post参数过滤模块
-```
-[
-    {
-        "state": "on",
-        "post": ["\\.\\./","jio"],
-        "hostname": ["*",""],
-        "action": "deny"
-    }
-]
-```
+
  - network_Mod
  网络层连接频率限制模块
-```
-[
-    {
-        "state": "on",
-        "network":{"maxReqs":30,"pTime":10,"blackTime":600},
-        "hostname": ["*"],""],
-        "url": ["/api/time",""]
-    }
-]
-```
+
  - replace_Mod
  返回内容替换模块
-```
-[
-    {
-        "state": "on",
-        "url": ["^/api/ip_dict$","jio"],
-        "hostname": ["101.200.122.200",""],
-        "replace_list":
-            [
-             ["deny","","denyFUCK"],
-             ["allow","","allowPASS"],
-             ["lzcaptcha\\?key='\\s*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]
-            ]
-    }
-]
-```
 
 # /api/config
 配置文件操作

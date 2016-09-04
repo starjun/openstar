@@ -143,11 +143,26 @@ git clone
 ## 配置规则
 
 一般情况下匹配某一规则由2个参数组成，第二个参数标识第一个参数类型
-hostname：`["*",""]` 表示匹配所有域名（使用字符串匹配，非正则，非常快）
-hostname：`["*\\.game\\.com","jio"]` 表示使用正则匹配host（**ngx.re.find($host,参数1，参数2)**）
-hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` 表示匹配参数1列表中所有host
-hostname：`[{"127.0.0.1":true,"127.0.0.1:5460":true},"list"]` 表示匹配list中host为true的host
-hostname：`["127.0.0.1","in"]` 表示匹配host中包含127.0.0.1的host
+
+hostname：`["*",""]` 
+
+==>表示匹配所有域名（使用字符串匹配，非正则，非常快）
+
+hostname：`["*\\.game\\.com","jio"]` 
+
+==>表示使用正则匹配host（**ngx.re.find($host,参数1，参数2)**）
+
+hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]` 
+
+==>表示匹配参数1列表中所有host
+
+hostname：`[{"127.0.0.1":true,"127.0.0.1:5460":true},"list"]` 
+
+==>表示匹配list中host为true的host
+
+hostname：`["127.0.0.1","in"]` 
+
+==>表示匹配host中包含127.0.0.1的host
 
 ## 执行流程
 
@@ -206,7 +221,8 @@ hostname：`["127.0.0.1","in"]` 表示匹配host中包含127.0.0.1的host
 
   "redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
   #该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
-  #说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
+  #说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，
+  #和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
 
   "realIpFrom_Mod" : "on",
   #该参数是否开启从http头中取用户真实IP，适用于CDN后端等
