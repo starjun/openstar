@@ -4,6 +4,7 @@ local redis = require "resty.redis"
 local cjson_safe = require "cjson.safe"
 local optl = require("optl")
 
+local host_dict = ngx.shared.host_dict
 
 local config_dict = ngx.shared.config_dict
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
@@ -51,6 +52,99 @@ if 0 == count then
 elseif err then
     ngx.say("failed to get reused times: ", err)
     return
+end
+
+local function push_host_Mod()
+    local _tb_host,tb_host_all,tb_host_name = host_dict:get_keys(0),{},{}
+    for i,v in ipairs(_tb_host) do
+        local from , to = string.find(v, "_HostMod")
+        if from == nil then
+            local tmp_tb = {}
+            tmp_tb[1],tmp_tb[2] = v,host_dict:get(v)
+            table.insert(tb_host_name, tmp_tb)
+            tb_host_all[v.."_HostMod"] = host_dict:get(v.."_HostMod")
+        end
+    end
+    
+    tb_host_all["host_Mod"] = optl.tableTojson(tb_host_name)
+    tb_host_name = {}
+
+    red:init_pipeline()
+    for i,v in pairs(tb_host_all) do
+        table.insert(tb_host_name,i)
+        red:set(i,v)
+    end
+
+    local results, err = red:commit_pipeline()
+    if not results then
+        ngx.say("failed to commit the pipelined requests: ", err)
+        return
+    end
+
+    local res_tb ={}
+    for i, res in ipairs(results) do
+        if type(res) == "table" then
+            if not res[1] then
+                ngx.say("failed to run command ", i, ": ", res[2])
+            else
+                -- process the table value
+            end
+        else
+            -- process the scalar value                
+        end
+        res_tb[tb_host_name[i]] = res
+    end
+    optl.sayHtml_ext(res_tb)
+end
+
+local function pull_host_Mod()
+
+    local res, err = red:get("host_Mod")
+    if not res then
+        ngx.say("failed to get ".._key..": ", err)
+        return
+    end
+    if res == ngx.null then
+        ngx.say("key not found.")
+        return
+    end
+    local tb_host_Mod = optl.stringTojson(res) or {}
+
+    red:init_pipeline()
+    for i,v in ipairs(tb_host_Mod) do
+        red:get(v[1].."_HostMod")
+    end
+
+    local results, err = red:commit_pipeline()
+    if not results then
+        ngx.say("failed to commit the pipelined requests: ", err)
+        return
+    end
+
+    local res_tb ={}
+    for i, res in ipairs(results) do
+        if type(res) == "table" then
+            if not res[1] then
+                ngx.say("failed to run command ", i, ": ", res[2])
+            else
+                -- process the table value
+            end
+        else
+            -- process the scalar value
+        end
+        res_tb[tb_host_Mod[i][1].."_HostMod"] = res
+    end
+
+    host_dict:flush_all()    
+    host_dict:flush_expired(0)
+
+    for i,v in ipairs(tb_host_Mod) do
+        host_dict:safe_add(v[1],v[2],0)
+        host_dict:safe_add(v[1].."_HostMod",res_tb[v[1].."_HostMod"],0)
+    end
+   
+    ngx.say("It is Ok !")
+
 end
 
 if _action == "set" then
@@ -108,7 +202,7 @@ elseif _action == "push" then
             else
                 -- process the scalar value                
             end
-            res_tb[i] = res
+            res_tb[_tb[i]] = res
         end
         optl.sayHtml_ext(res_tb)
 
@@ -155,6 +249,10 @@ elseif _action == "push" then
 
         ngx.say("set count_dict result: ", ok)
 
+    elseif _key == "host_dict" then
+
+        push_host_Mod()
+
     else
         local _key_v = config_dict:get(_key)
         if _key_v == nil then
@@ -200,6 +298,11 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
             config_dict:replace(v,res_tb[i])
         end
         ngx.say("It is Ok !")
+
+    elseif _key == "host_dict" then
+
+       pull_host_Mod()
+
     else
         local res, err = red:get(_key)
         if not res then
