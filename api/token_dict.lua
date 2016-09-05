@@ -8,7 +8,6 @@ local function get_argByName(name)
     return _name
 end
 local _action = get_argByName("action")
-local _id = get_argByName("id")
 local _token = get_argByName("token")
 local tmpdict = ngx.shared.token_dict
 
@@ -16,20 +15,20 @@ local tmpdict = ngx.shared.token_dict
 
 if _action == "get" then
 	
-	if _id == "count_id" then
+	if _token == "count_token" then
 		local _tb = tmpdict:get_keys(0)
-		optl.sayHtml_ext(table.getn(_tb))
-	elseif _id == "all_id" then
+		optl.sayHtml_ext({count_id=table.getn(_tb)})
+	elseif _token == "all_token" then
 		local _tb,tb_all = tmpdict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
 			tb_all[v] = tmpdict:get(v)
 		end
 		optl.sayHtml_ext(tb_all)
-	elseif _id == "" then
+	elseif _token == "" then
 		local _tb = tmpdict:get_keys(1024)
 		optl.sayHtml_ext(_tb)
 	else
-		optl.sayHtml_ext(tmpdict:get(_id))
+		optl.sayHtml_ext({token=_token,value=tmpdict:get(_token)})
 	end
 
 elseif _action == "set" then
@@ -39,7 +38,7 @@ elseif _action == "set" then
 		optl.sayHtml_ext({_token=re})
 	else
 		local re = optl.set_token(_token)
-		optl.sayHtml_ext({_token = re})
+		optl.sayHtml_ext({token = re,value=tmpdict:get(_token)})
 	end
 
 else

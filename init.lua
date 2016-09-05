@@ -82,9 +82,7 @@ function loadConfig()
 	config.post_Mod = loadjson(_basedir.."post_Mod.json")
 	config.network_Mod = loadjson(_basedir.."network_Mod.json")
 	config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
-	
-	--- 2016年8月30日增加 denyHost_msg
-	config.denyHost_msg = loadjson(_basedir.."host_json/denyHost_msg.json")
+	config.denyMsg = loadjson(_basedir.."denyMsg.json")
 
 	for k,v in pairs(config) do
 		v = cjson_safe.encode(v)

@@ -13,6 +13,7 @@ local _mod = get_argByName("mod")
 local _id = get_argByName("id")
 local _value = get_argByName("value")
 local _value_type = get_argByName("value_type")
+
 local tmpdict = ngx.shared.config_dict
 
 local cjson_safe = require "cjson.safe"
@@ -28,7 +29,7 @@ if _action == "get" then
 		optl.sayHtml_ext(tb_all)
 	elseif _mod == "count_mod" then
 		local _tb = tmpdict:get_keys(0)
-		optl.sayHtml_ext(table.getn(_tb))
+		optl.sayHtml_ext({count=table.getn(_tb)})
 	elseif _mod == "" then
 		local _tb = tmpdict:get_keys(0)
 		optl.sayHtml_ext(_tb)
@@ -47,7 +48,7 @@ if _action == "get" then
 			optl.sayHtml_ext({count=cnt})
 		else
 			--- realIpFrom_Mod 和 base 和 denyHost_Mod 特殊处理
-			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_msg" then
+			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyMsg" then
 				_id = tonumber(_id)
 			end			
 			optl.sayHtml_ext({id=_id,value=_tb[_id]})
@@ -64,7 +65,7 @@ elseif _action == "set" then
 		if type(tmp_value) == "table" then
 			local _old_value = cjson_safe.decode(tmpdict:get(_mod))--将原有数据取出 并转成 json/table
 			local re = tmpdict:replace(_mod,_value)--将对应mod整体进行替换
-			optl.sayHtml_ext({replace=re,old_value=_old_value,new_value=tmp_value})
+			optl.sayHtml_ext({code=re,old_value=_old_value,new_value=tmp_value})
 		else
 			optl.sayHtml_ext({code="error",msg="value to json error"})
 		end
@@ -78,15 +79,16 @@ elseif _action == "set" then
 		
 		_tb = cjson_safe.decode(_tb) or {}
 		--- realIpFrom_Mod base 特殊处理
-		if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyHost_msg" then
+		if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyMsg" then
 			_id = tonumber(_id)
 		end
 		local _old_value = _tb[_id]
 		--- 判断id是否存在
 		if _old_value == nil then optl.sayHtml_ext({code="error",msg="id is nil"}) end
+
 		_tb[_id] = _value
 		local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
-		optl.sayHtml_ext({replace=re,old_value=_old_value,new_value=_value})
+		optl.sayHtml_ext({code=re,old_value=_old_value,new_value=_value})
 
 	end
 elseif _action == "add" then
@@ -106,11 +108,11 @@ elseif _action == "add" then
 	_tb = cjson_safe.decode(_tb) or {}
 	
 	
-	if _mod == "realIpFrom_Mod"  or _mod == "denyHost_msg" then
+	if _mod == "realIpFrom_Mod"  or _mod == "denyMsg" then
 		if _tb[_id] == nil and _id ~= "" then
 			_tb[_id] = _value
 			local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
-			optl.sayHtml_ext({mod=_mod,value=tmpdict:get(_mod)})
+			optl.sayHtml_ext({code=re,mod=_mod,value=_value})
 		else
 		 	optl.sayHtml_ext({code="error",msg="id is existent"})
 		end 
@@ -120,7 +122,7 @@ elseif _action == "add" then
 	else
 		table.insert(_tb,_value)
 		local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
-		optl.sayHtml_ext({mod=_mod,value=tmpdict:get(_mod)})
+		optl.sayHtml_ext({code=re,mod=_mod,value=_value})
 	end
 elseif _action == "del" then
 	
@@ -130,14 +132,14 @@ elseif _action == "del" then
 	_tb = cjson_safe.decode(_tb) or {}
 	
 
-	if _mod == "realIpFrom_Mod" or _mod == "denyHost_msg" then
+	if _mod == "realIpFrom_Mod" or _mod == "denyMsg" then
 		local rr = _tb[_id]
 		if rr == nil then
 			optl.sayHtml_ext({code="error",msg="id is Non-existent"})
 		else
 			_tb[_id] = nil
 			local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
-			optl.sayHtml_ext({mod=_mod,id=_id,re=re})
+			optl.sayHtml_ext({code=re,mod=_mod,id=_id})
 		end
 	elseif _mod == "base" then
 		optl.sayHtml_ext({code="error",msg="base does not support del"})
@@ -151,7 +153,7 @@ elseif _action == "del" then
 				optl.sayHtml_ext({code="error",msg="id is Non-existent"})
 			else
 				local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
-				optl.sayHtml_ext({mod=_mod,id=_id,re=re})
+				optl.sayHtml_ext({mod=_mod,id=_id,code=re})
 			end		
 		end			
 	end

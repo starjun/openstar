@@ -177,7 +177,7 @@ local function sayHtml_ext(_html,_ty)
             _html = tableTostring(_html)
         end
     end
-    ngx.say(ngx_find(_html))
+    ngx.say(ngx_find(tostring(_html)))
     ngx.exit(200)
 end
 

@@ -28,7 +28,7 @@ if _action == "add" then
 		host_state = _value
 		local re = tmpdict:safe_add(_host,host_state,0)
 		-- 非重复插入(lru不启用)
-		optl.sayHtml_ext({add=re,id=_id,value=host_state})		
+		optl.sayHtml_ext({code=re,id=_id,value=host_state})		
 	end
 
 	local host_state = tmpdict:get(_host)
@@ -57,7 +57,7 @@ if _action == "add" then
 		host_mod = optl.tableTojson(host_mod)
 		re = tmpdict:replace(_host.."_HostMod",host_mod)			
 	end
-	optl.sayHtml_ext({add_mod=re,value=_value})
+	optl.sayHtml_ext({code=re,value=_value})
 	
 elseif _action == "del" then
 
@@ -79,7 +79,7 @@ elseif _action == "del" then
 		optl.sayHtml_ext({code="error",msg="id is Non-existent"})
 	else
 		local re = tmpdict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
-		optl.sayHtml_ext({del=re,id=_id,value=rr})
+		optl.sayHtml_ext({code=re,id=_id,value=rr})
 	end
 
 elseif _action == "set" then
@@ -92,7 +92,7 @@ elseif _action == "set" then
 	if _id == "state" then
 		if _value ~= "on" then _value = "off" end
 		local re = tmpdict:replace(_host,_value)
-		optl.sayHtml_ext({set_state=re,host=_host})
+		optl.sayHtml_ext({code=re,host=_host,state=_value})
 	end
 
 	_id = tonumber(_id)
@@ -117,7 +117,7 @@ elseif _action == "set" then
 
 	host_mod[_id] = _value
 	local re = tmpdict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
-	optl.sayHtml_ext({set=re,old_value=_old_value,new_value=_value})
+	optl.sayHtml_ext({code=re,old_value=old_host_id_mod,new_value=_value})
 
 elseif _action == "get" then
 

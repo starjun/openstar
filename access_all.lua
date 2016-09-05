@@ -55,7 +55,7 @@ end
 --- 常用二阶匹配规则
 local remath = optl.remath
 
--- 传入 (host  连接IP  http头)
+-- 传入 (host)
 local function loc_getRealIp(_host)
 	if config_is_on("realIpFrom_Mod") then
 		local realipfrom = getDict_Config("realIpFrom_Mod")
@@ -88,8 +88,8 @@ local Set_count_dict = optl.set_count_dict
 
 -- action_deny(code) 拒绝访问
 local function action_deny()
-	if config_base.sayHtml.state == "on" then
-		local tb = getDict_Config("denyHost_msg")
+	if config_base.denyMsg.state == "on" then
+		local tb = getDict_Config("denyMsg")
 		local host_deny_msg = tb[host] or {}
 		local tp_denymsg = type(host_deny_msg.deny_msg)
 		if tp_denymsg == "number" then
@@ -99,10 +99,10 @@ local function action_deny()
 			ngx.exit(200)
 		end
 	end
-	if type(config_base.sayHtml.deny_msg) == "number" then
-		ngx.exit(config_base.sayHtml.deny_msg)
+	if type(config_base.denyMsg.msg) == "number" then
+		ngx.exit(config_base.denyMsg.msg)
 	else
-		ngx.say(tostring(config_base.sayHtml.deny_msg))
+		ngx.say(tostring(config_base.denyMsg.msg))
 		ngx.exit(200)
 	end
 end
@@ -162,7 +162,7 @@ if config_is_on("host_method_Mod") then
 	local tb_mod = getDict_Config("host_method_Mod")
 	local check
 	for i,v in ipairs(tb_mod) do
-		if v.state == "on" then
+		if v.state == "on" then			
 			if remath(host,v.hostname[1],v.hostname[2]) and remath(method,v.method[1],v.method[2]) then
 				check = "allow"
 				break

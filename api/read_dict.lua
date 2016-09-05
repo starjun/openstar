@@ -22,7 +22,7 @@ if _action == "get" then
 	
 	if _id == "count_id" then
 		local _tb = tmpdict:get_keys(0)
-		optl.sayHtml_ext(table.getn(_tb))
+		optl.sayHtml_ext({count_id=table.getn(_tb)})
 	elseif _id == "all_id" then
 		local _tb,tb_all = tmpdict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
