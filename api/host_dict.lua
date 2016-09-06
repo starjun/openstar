@@ -1,19 +1,18 @@
 
-local function get_argByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
+local optl = require("optl")
 
-local _action = get_argByName("action")
-local _host = get_argByName("host")
-local _id = get_argByName("id")
-local _value = get_argByName("value")
-local _value_type = get_argByName("value_type")
+
+local get_argsByName = optl.get_argsByName
+
+local _action = get_argsByName("action")
+local _host = get_argsByName("host")
+local _id = get_argsByName("id")
+local _value = get_argsByName("value")
+local _value_type = get_argsByName("value_type")
 
 local tmpdict = ngx.shared["host_dict"]
 
-local optl = require("optl")
+
 
 -- 用于host_dict操作接口  对ip列表进行增 删 改 查 操作
 

@@ -1,15 +1,12 @@
 
-
-local function get_argByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
-local _action = get_argByName("action")
-local _id = get_argByName("id")
-local _dict = get_argByName("dict")
-
 local optl = require("optl")
+
+local get_argsByName = optl.get_argsByName
+
+local _action = get_argsByName("action")
+local _id = get_argsByName("id")
+local _dict = get_argsByName("dict")
+
 
 --- 用于给 limit_ip_dict,count_dict 等查询数据使用
 

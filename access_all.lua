@@ -597,7 +597,9 @@ if config_is_on("network_Mod") then
 						elseif v.hostname[2] == "list" then
 							for j,vj in pairs(v.hostname[1]) do
 								ip_dict:safe_set(j.."-"..ip,mod_ip,blacktime)
-							end							
+							end
+						else
+							ip_dict:safe_set(host.."-"..ip,mod_ip,blacktime)
 						end
 						optl.debug("network.log",base_msg,"deny  No : "..i)
 						action_deny()

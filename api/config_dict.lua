@@ -2,17 +2,13 @@
 local cjson_safe = require "cjson.safe"
 local optl = require("optl")
 
-local function get_argByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
+local get_argsByName = optl.get_argsByName
 
-local _action = get_argByName("action")
-local _mod = get_argByName("mod")
-local _id = get_argByName("id")
-local _value = get_argByName("value")
-local _value_type = get_argByName("value_type")
+local _action = get_argsByName("action")
+local _mod = get_argsByName("mod")
+local _id = get_argsByName("id")
+local _value = get_argsByName("value")
+local _value_type = get_argsByName("value_type")
 
 local tmpdict = ngx.shared.config_dict
 

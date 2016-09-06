@@ -1,14 +1,12 @@
 
-local function get_argByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
+local optl = require("optl")
 
-local _action = get_argByName("action")
-local _id = get_argByName("id")
-local _value = get_argByName("value")
-local _time = tonumber( get_argByName("time")) or 0
+local get_argsByName = optl.get_argsByName
+
+local _action = get_argsByName("action")
+local _id = get_argsByName("id")
+local _value = get_argsByName("value")
+local _time = tonumber( get_argsByName("time")) or 0
 
 local ip_dict = ngx.shared["ip_dict"]
 local config_dict = ngx.shared.config_dict
@@ -16,7 +14,7 @@ local config_dict = ngx.shared.config_dict
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
-local optl = require("optl")
+
 
 -- 用于ip_dict操作接口  对ip列表进行增 删 改 查 操作
 

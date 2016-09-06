@@ -3,15 +3,11 @@ local cjson_safe = require "cjson.safe"
 
 local optl = require("optl")
 
-local function get_argByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
+local get_argsByName = optl.get_argsByName
 
-local _action = get_argByName("action")
-local _mod = get_argByName("mod")
-local _debug = get_argByName("debug")
+local _action = get_argsByName("action")
+local _mod = get_argsByName("mod")
+local _debug = get_argsByName("debug")
 
 local config_dict = ngx.shared.config_dict
 local host_dict = ngx.shared.host_dict
