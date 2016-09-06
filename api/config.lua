@@ -32,9 +32,6 @@ local function  hostMod()
 	end
 	--optl.sayHtml_ext({_tb_host=_tb_host,tb_host_mod=tb_host_mod,tb_host_name=tb_host_name})
 	local j_tb_host_name = optl.tableTojson(tb_host_name)
-	if j_tb_host_name == nil then
-		optl.sayHtml_ext({code="error",msg="host_Mod host is Non-existent"})
-	end
 
 	if _debug == "no" then
 		optl.writefile(config_base.jsonPath.."host_json/host_Mod.json",j_tb_host_name,"w+")

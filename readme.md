@@ -282,7 +282,7 @@ hostname：`["127.0.0.1","in"]`
   "htmlPath" : "/opt/openresty/openstar/index/",
   #该参数表示在app_Mod规则中一些文件、脚本存放路径
 
-  "sayHtml" : {"state":"on","deny_msg":403}
+  "denyMsg" : {"state":"on","msg":403}
   #该参数表示，应用层拒绝访问时，显示的内容配置（现支持基于host配置内容/状态码）关联对应denyHost_Mod.json文件
 }
 

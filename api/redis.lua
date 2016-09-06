@@ -260,30 +260,30 @@ if _action == "set" then
 
 	ngx.say("set result: ", ok)
 
-elseif _action == "ttl" then
+-- elseif _action == "ttl" then
 
-    if _key == "" then _key = "ttl_test" end
-    ok, err = red:ttl(_key)
-    if not ok then
-        return ngx.say("failed to ttl :",err)
-    end
+--     if _key == "" then _key = "ttl_test" end
+--     ok, err = red:ttl(_key)
+--     if not ok then
+--         return ngx.say("failed to ttl :",err)
+--     end
 
-    ngx.say(ok)
+--     ngx.say(ok)
 
-elseif _action == "select" then
-    ok, err = red:select(1)
-    if not ok then
-        ngx.say("failed to select : ", err)
-        return
-    end
-    ok, err = red:set("fuck", "fuck you")
+-- elseif _action == "select" then
+--     ok, err = red:select(1)
+--     if not ok then
+--         ngx.say("failed to select : ", err)
+--         return
+--     end
+--     ok, err = red:set("fuck", "fuck you")
 
-    if not ok then
-        ngx.say("failed to set ".._key..": ", err)
-        return
-    end
+--     if not ok then
+--         ngx.say("failed to set ".._key..": ", err)
+--         return
+--     end
 
-    ngx.say("set result: ", ok)
+--     ngx.say("set result: ", ok)
 
 elseif _action == "get" then
 
@@ -302,7 +302,7 @@ elseif _action == "get" then
 
 elseif _action == "push" then
 
-    if _key == "config_dict" then  --保存dict中的config_dict到redis        
+    if _key == "config_dict" then  --保存dict中的config_dict到redis
         local _tb = config_dict:get_keys(0)
         red:init_pipeline()
         for i,v in ipairs(_tb) do
@@ -318,15 +318,6 @@ elseif _action == "push" then
 
         local res_tb ={}
         for i, res in ipairs(results) do
-            if type(res) == "table" then
-                if not res[1] then
-                    ngx.say("failed to run command ", i, ": ", res[2])
-                else
-                    -- process the table value
-                end
-            else
-                -- process the scalar value                
-            end
             res_tb[_tb[i]] = res
         end
         optl.sayHtml_ext(res_tb)

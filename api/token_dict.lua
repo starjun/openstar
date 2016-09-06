@@ -2,13 +2,9 @@
 
 local optl = require("optl")
 
-local function get_argByName(name)
-	local x = 'arg_'..name
-    local _name = ngx.unescape_uri(ngx.var[x])
-    return _name
-end
-local _action = get_argByName("action")
-local _token = get_argByName("token")
+local get_argsByName = optl.get_argsByName
+local _action = get_argsByName("action")
+local _token = get_argsByName("token")
 local tmpdict = ngx.shared.token_dict
 
 --- token_list [dict] 操作接口 查询和设置

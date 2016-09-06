@@ -122,9 +122,10 @@ elseif _action == "add" then
 	end
 elseif _action == "del" then
 	
-
+	-- 判断mod 是否存在
 	local _tb = tmpdict:get(_mod)
 	if _tb == nil then optl.sayHtml_ext({code="error",msg="mod is Non-existent"}) end
+	-- 转换成json/table
 	_tb = cjson_safe.decode(_tb) or {}
 	
 

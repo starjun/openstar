@@ -351,5 +351,37 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 这里就不在解释了，注意的是`replace_list`这个是个内容替换的list，`@token@`就是动态的替换成服务器生成的`token`了。
 
 
+## host_Mod 配置
+其对应文件在`conf_json/host_json/host_Mod.json` 和 `conf_json/host_json/$host.json`
+先看几个列子,比较好理解
+```
+[
+
+    {
+        "state": "on",
+        "action": ["allow","url"],
+        "url": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
+    },
+    {
+        "state": "on",
+        "action":["log","referer"],
+        "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+        "referer": ["hao123","in"]
+        
+    },
+    {
+        "state": "on",
+        "action":["deny","useragent"],
+        "useragent": ["baidu","in"]
+    },
+    {
+        "state": "on",
+        "action":["deny","network"],
+        "network":{"maxReqs":30,"pTime":10,"blackTime":600},
+        "url": ["/index.html",""]
+    }
+]
+```
+
 
 [1]: https://github.com/loveshell/ngx_lua_waf
