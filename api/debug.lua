@@ -42,6 +42,9 @@ local function loc_getRealIp(_host)
         if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
             local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
             local ip = ngx.unescape_uri(ngx.var[x])
+            if ip == "" then
+                ip = remoteIp
+            end
             return ip
         else
             return remoteIp

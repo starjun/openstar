@@ -131,6 +131,22 @@ local function remath(_str,_re_str,_options)
             token_dict:delete(_str) -- 使用一次就删除token
             return true
         end
+    elseif _options == "cidr" then
+        if type(_re_str) ~= "table" then return false end
+        for i,v in ipairs(_re_str) do
+
+            local cidr = require "cidr"
+            local first_address, last_address = cidr.parse_cidr(v)  
+            --ip_cidr formats like 192.168.10.10/24
+
+            local ip_num = cidr.ip_2_number(_str)  
+            --// get the ip to decimal.
+
+            if ip_num >= first_address and ip_num <= last_address then  
+            --// judge if ip lies between the cidr.
+                return true
+            end
+        end
     else
         local from, to = ngx.re.find(_str, _re_str, _options)
         if from ~= nil then

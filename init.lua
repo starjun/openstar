@@ -2,12 +2,13 @@
 local config = {}
 local cjson_safe = require "cjson.safe"
 
---- config.json 文件绝对路径 [需要自行根据自己服务器情况设置]
-local config_json = "/opt/openresty/openstar/base.json"
+--- base.json 文件绝对路径 [需要自行根据自己服务器情况设置]
+local base_json = "/opt/openresty/openstar/base.json"
 
---- 将全局配置参数存放到共享内存（config_dict）中
+--- 将全局配置参数存放到共享内存（*_dict）中
 local config_dict = ngx.shared.config_dict
 local host_dict = ngx.shared.host_dict
+local ip_dict = ngx.shared.ip_dict
 
 --- 读取文件（全部读取）
 --- loadjson()调用
@@ -31,7 +32,7 @@ end
 --- 唯一一个全局函数
 function loadConfig()
 
-	config.base = loadjson(config_json)
+	config.base = loadjson(base_json)
 	local _basedir = config.base.jsonPath or "./"
 	
 	-- STEP 0
@@ -40,15 +41,14 @@ function loadConfig()
 	-- STEP 1
 	--- 将ip_mod放入 ip_dict 中
 	local tb_ip_mod = loadjson(_basedir.."ip_Mod.json")
-	local _dict = ngx.shared["ip_dict"]
 	for i,v in ipairs(tb_ip_mod) do
 		if v.action == "allow" then
-			_dict:safe_set(v.ip,"allow",0)
+			ip_dict:safe_set(v.ip,"allow",0)
 			--- key 存在会覆盖 lru算法关闭
 		elseif v.action == "deny" then
-			_dict:safe_set(v.ip,"deny",0)
+			ip_dict:safe_set(v.ip,"deny",0)
 		else
-			_dict:safe_set(v.ip,"log",0)
+			ip_dict:safe_set(v.ip,"log",0)
 		end
 	end
 
@@ -82,6 +82,8 @@ function loadConfig()
 	config.post_Mod = loadjson(_basedir.."post_Mod.json")
 	config.network_Mod = loadjson(_basedir.."network_Mod.json")
 	config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
+
+	-- denyMsg list 
 	config.denyMsg = loadjson(_basedir.."denyMsg.json")
 
 	for k,v in pairs(config) do

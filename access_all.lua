@@ -64,6 +64,9 @@ local function loc_getRealIp(_host)
 		if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
 			local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
         	local ip = ngx.unescape_uri(ngx.var[x])
+        	if ip == "" then
+        		ip = remoteIp
+        	end
 			return ip
 		else
 			return remoteIp
@@ -113,7 +116,7 @@ local post_date
 local get_date
 
 --- STEP 0
-local ip = loc_getRealIp(host,headers)
+local ip = loc_getRealIp(host)
 base_msg.ip = ip
 optl.debug(nil,base_msg,"---- STEP 0 ----")
 
@@ -138,7 +141,7 @@ if config_is_on("ip_Mod") then
 	 		optl.debug("ip.log",base_msg,"log")
 		else
 			Set_count_dict(ip)
-			action_deny()
+			action_deny()			
 		end
 	end
 	local host_ip = ip_dict:get(host.."-"..ip)
@@ -408,26 +411,24 @@ end
 -- url 过滤(黑/白名单)
 if config_is_on("url_Mod") then
 	local url_mod = getDict_Config("url_Mod")
-	local t,no
 	for i, v in ipairs( url_mod ) do
-		no = i
 		if v.state == "on" then
 			if host_url_remath(v.hostname,v.url) then
-				t = v.action
-				break
+				if v.action == "allow" then --- 跳出后续规则
+					return
+				elseif v.action ==	"deny" then
+					Set_count_dict("url deny count")
+					optl.debug("url.log",base_msg,"deny No : "..i)
+					action_deny()
+					break
+				elseif v.action == "log" then
+					Set_count_dict("url log count")
+					optl.debug("url.log",base_msg,"log No : "..i)
+				end
 			end
 		end
 	end
-	if t == "allow" then --- 跳出后续规则
-		return
-	elseif t ==	"deny" then
-		Set_count_dict("url deny count")
-		optl.debug("url.log",base_msg,"deny No : "..no)
-		action_deny()
-	elseif t == "log" then
-		Set_count_dict("url log count")
-		optl.debug("url.log",base_msg,"log No : "..no)
-	end
+	
 end
 
 --- STEP 8
@@ -441,6 +442,7 @@ if config_is_on("header_Mod") then
 					Set_count_dict("header_method deny count")
 				 	optl.debug("header.log",base_msg,"deny No : "..i)
 				 	action_deny()
+				 	break
 				end
 			end
 		end
@@ -493,8 +495,7 @@ if config_is_on("cookie_Mod") and cookie ~= nil then
 						break
 					elseif v.action =="log" then
 						Set_count_dict("cookie log count")
-						optl.debug("cookie.log",base_msg,"log _cookie : "..cookie.." No : "..i)
-						break
+						optl.debug("cookie.log",base_msg,"log _cookie : "..cookie.." No : "..i)						
 					elseif v.action == "allow" then
 						return
 					end
@@ -523,8 +524,7 @@ if config_is_on("args_Mod") then
 							break
 						elseif v.action == "log" then
 							Set_count_dict("args log count")
-							optl.debug("args.log",base_msg,"log _args = "..args.." No : "..i)
-							break
+							optl.debug("args.log",base_msg,"log _args = "..args.." No : "..i)							
 						elseif v.action == "allow" then
 							return							
 						end
@@ -555,8 +555,7 @@ if config_is_on("post_Mod") and method == "POST" then
 							break
 						elseif v.action == "log" then
 							Set_count_dict("post log count")
-							optl.debug("post.log",base_msg,"deny _post : "..postargs.."No : "..i)
-							break
+							optl.debug("post.log",base_msg,"deny _post : "..postargs.."No : "..i)							
 						elseif v.action == "allow" then
 							return
 						end

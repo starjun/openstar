@@ -57,6 +57,12 @@
 "realipset":"x-for-f"}
 }
 
+#使用cidr匹配ips,使用ip段方式表示
+#2016年9月18日添加 
+{
+"id.test.com":{"ips":[["1.1.1.1/24","123.12.32.12/24"],"cidr"],
+"realipset":"x-for-f"}
+}
 ```
 说明一下，目前host为节点，目前不支持通过正则或者list来匹配host。
 
