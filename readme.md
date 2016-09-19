@@ -219,7 +219,8 @@ hostname：`["127.0.0.1","in"]`
   #该参数就是OpenStar标记版本更新的
 
   "Mod_state":"on",
-  #该参数是全局规则开关，目前支持`on off`,后续增加`log` 表示仅记录
+  #该参数是全局规则开关，目前支持`on off log`
+  #增加`log` 表示仅记录,即原来的拦截就会失效
 
   "redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
   #该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
@@ -339,6 +340,7 @@ hostname：`["127.0.0.1","in"]`
 ## STEP 4：host_Mod
  - 说明：
  该模块是匹配对应host进行规则匹配，在conf_json/host_json/目录下，本地的基于host的匹配规则
+ 支持host.state状态支持[on log off],log即表示原匹配被拦截将失效，off表示不做任何规则的过滤
 
 ## STEP 5：app_Mod（自定义action）
  - 说明：
