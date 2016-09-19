@@ -11,13 +11,13 @@ local url = ngx.unescape_uri(ngx.var.uri)
 local request_url = ngx.unescape_uri(ngx.var.request_uri)
 
 local base_msg = {}
-base_msg.remoteIp = remoteIp
-base_msg.host = host
-base_msg.method = method
-base_msg.request_url = request_url
-base_msg.url = url
-base_msg.agent = agent
-base_msg.referer = referer
+	base_msg.remoteIp = remoteIp
+	base_msg.host = host
+	base_msg.method = method
+	base_msg.request_url = request_url
+	base_msg.url = url
+	base_msg.agent = agent
+	base_msg.referer = referer
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
@@ -33,8 +33,11 @@ base_msg.config_base = config_base
 
 local optl = require("optl")
 
+local host_Mod_state = host_dict:get(host)
+
 --- 2016年8月4日 增加全局Mod开关
-if config_base["Mod_state"] == "off" then
+--  增加基于host的过滤模块开关判断
+if config_base["Mod_state"] == "off" or host_Mod_state == "off" then
 	return
 end
 
@@ -91,6 +94,12 @@ local Set_count_dict = optl.set_count_dict
 
 -- action_deny(code) 拒绝访问
 local function action_deny()
+	-- 2016年9月19日
+	-- 增加Mod_state = log , host_Mod state = log
+	-- 在拒绝请求都进行了log记录，仅ip黑名单的没有记录（因为量的问题），故可直接return
+	if config_base["Mod_state"] == "log" or host_Mod_state == "log" then
+		return
+	end
 	if config_base.denyMsg.state == "on" then
 		local tb = getDict_Config("denyMsg")
 		local host_deny_msg = tb[host] or {}
@@ -110,6 +119,7 @@ local function action_deny()
 	end
 end
 
+-- 获取所有post的内容
 local get_postargs = optl.get_posts
 
 local post_date
@@ -210,7 +220,7 @@ end
 
 --- STEP 4
 -- host_Mod 规则过滤
-if host_dict:get(host) == "on" then
+if  host_Mod_state == "on" then
 	local tb = cjson_safe.decode(host_dict:get(host.."_HostMod")) or {}
 	local _action,no
 	for i,v in ipairs(tb) do
