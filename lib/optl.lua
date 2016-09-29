@@ -24,6 +24,7 @@ local function writefile(_filepath,_msg,_ty)
     fd:write("\n"..tostring(_msg))
     fd:flush()
     fd:close()
+    return true
 end
 
 --- table转换
@@ -91,8 +92,8 @@ local token_dict = ngx.shared.token_dict
 local function set_token(_token)
     _token = _token or guid()    
     if token_dict:get(_token) == nil then 
-        token_dict:set(_token,true,3*60)  --- -- 缓存3分钟 非重复插入
-        return _token
+        local re = token_dict:set(_token,true,3*60)  --- -- 缓存3分钟 非重复插入
+        return re,_token
     else
         return set_token()
     end 

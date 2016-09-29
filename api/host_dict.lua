@@ -1,4 +1,8 @@
 
+----  对host_dict 进行操作  增 删 改 查
+----  host_dict 存放的是基于host的过滤规则列表 和 host过滤开关
+--    host_dict 数据源  =  host_Host.json 和 conf_json/host_json/%host%.json 读取到内存的数据
+
 local optl = require("optl")
 
 
@@ -13,7 +17,7 @@ local _value_type = get_argsByName("value_type")
 local tmpdict = ngx.shared["host_dict"]
 
 
-
+local _code = "ok"
 -- 用于host_dict操作接口  对ip列表进行增 删 改 查 操作
 
 if _action == "add" then
@@ -26,8 +30,11 @@ if _action == "add" then
 		if _value ~= "on" then _value = "off" end
 		host_state = _value
 		local re = tmpdict:safe_add(_host,host_state,0)
+		if re ~= true then
+			_code = "error"
+		end
 		-- 非重复插入(lru不启用)
-		optl.sayHtml_ext({code=re,id=_id,value=host_state})		
+		optl.sayHtml_ext({code=_code,id=_id,value=host_state})		
 	end
 
 	local host_state = tmpdict:get(_host)
@@ -38,25 +45,20 @@ if _action == "add" then
 	if _value_type == "json" then
 		_value = optl.stringTojson(_value)
 		if type(_value) ~= "table" then
-		optl.sayHtml_ext({code="error",msg="value to json error"})
+			optl.sayHtml_ext({code="error",msg="value to json error"})
 		end
 	end
 
-	local host_mod = tmpdict:get(_host.."_HostMod")
-	host_mod = optl.stringTojson(host_mod)
+	local host_mod = optl.stringTojson(tmpdict:get(_host.."_HostMod")) or {}
 
-	local re
-	if host_mod == nil then
-		host_mod = {}
-		table.insert(host_mod,_value)
-		host_mod = optl.tableTojson(host_mod)
-		re = tmpdict:safe_add(_host.."_HostMod",host_mod,0)
-	else
-		table.insert(host_mod,_value)
-		host_mod = optl.tableTojson(host_mod)
-		re = tmpdict:replace(_host.."_HostMod",host_mod)			
+	table.insert(host_mod,_value)
+	host_mod = optl.tableTojson(host_mod)
+	local re = tmpdict:safe_set(_host.."_HostMod",host_mod,0)
+
+	if re ~= true then
+		_code = "error"
 	end
-	optl.sayHtml_ext({code=re,value=_value})
+	optl.sayHtml_ext({code=_code,value=_value})
 	
 elseif _action == "del" then
 
@@ -65,8 +67,7 @@ elseif _action == "del" then
 		optl.sayHtml_ext({code="error",msg="host is Non-existent"})
 	end
 
-	local host_mod = tmpdict:get(_host.."_HostMod")
-	host_mod = optl.stringTojson(host_mod) or {}
+	local host_mod = optl.stringTojson(tmpdict:get(_host.."_HostMod")) or {}
 
 	_id = tonumber(_id)
 	if _id == nil then
@@ -78,7 +79,10 @@ elseif _action == "del" then
 		optl.sayHtml_ext({code="error",msg="id is Non-existent"})
 	else
 		local re = tmpdict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
-		optl.sayHtml_ext({code=re,id=_id,value=rr})
+		if re ~= true then
+			_code = "error"
+		end
+		optl.sayHtml_ext({code=_code,id=_id,value=rr})
 	end
 
 elseif _action == "set" then
@@ -91,7 +95,10 @@ elseif _action == "set" then
 	if _id == "state" then
 		if _value ~= "on" then _value = "off" end
 		local re = tmpdict:replace(_host,_value)
-		optl.sayHtml_ext({code=re,host=_host,state=_value})
+		if re ~= true then
+			_code = "error"
+		end
+		optl.sayHtml_ext({code=_code,host=_host,state=_value})
 	end
 
 	_id = tonumber(_id)
@@ -106,8 +113,7 @@ elseif _action == "set" then
 		end
 	end
 
-	local host_mod = tmpdict:get(_host.."_HostMod")
-	host_mod = optl.stringTojson(host_mod) or {}
+	local host_mod = optl.stringTojson(tmpdict:get(_host.."_HostMod")) or {}
 
 	local old_host_id_mod = host_mod[_id]
 	if old_host_id_mod == nil then
@@ -116,7 +122,10 @@ elseif _action == "set" then
 
 	host_mod[_id] = _value
 	local re = tmpdict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
-	optl.sayHtml_ext({code=re,old_value=old_host_id_mod,new_value=_value})
+	if re ~= true then
+		_code = "error"
+	end
+	optl.sayHtml_ext({code=_code,old_value=old_host_id_mod,new_value=_value})
 
 elseif _action == "get" then
 

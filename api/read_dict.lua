@@ -1,11 +1,15 @@
 
+---- 对所有dict  查询操作  config_dict  host_dict  ip_dict  count_dict token_dict limit_ip_dict
+-- 仅支持查询
+
+
 local optl = require("optl")
 
 local get_argsByName = optl.get_argsByName
 
 local _action = get_argsByName("action")
-local _id = get_argsByName("id")
 local _dict = get_argsByName("dict")
+local _id = get_argsByName("id")
 
 
 --- 用于给 limit_ip_dict,count_dict 等查询数据使用

@@ -1,4 +1,7 @@
 
+---- 调试使用原样将数据包格式化后返回
+
+
 local headers = ngx.req.get_headers()
 local host = ngx.unescape_uri(headers["Host"])
 local method = ngx.var.request_method
@@ -102,5 +105,5 @@ elseif method == "POST" then
     debug_tb["_PostData"] = get_postargs()
     optl.sayHtml_ext(debug_tb)
 else
-    ngx.say("method error")
+    optl.sayHtml_ext({code="error",msg="method error"})
 end

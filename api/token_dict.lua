@@ -1,4 +1,6 @@
 
+---- 对token_dict 相关操作  增 删 改 查
+--   在app_Mod 中 有添加无状态token操作
 
 local optl = require("optl")
 
@@ -8,7 +10,7 @@ local _token = get_argsByName("token")
 local tmpdict = ngx.shared.token_dict
 
 --- token_list [dict] 操作接口 查询和设置
-
+local _code = "ok"
 if _action == "get" then
 	
 	if _token == "count_token" then
@@ -30,11 +32,17 @@ if _action == "get" then
 elseif _action == "set" then
 
 	if _token == "" then
-		local re = optl.set_token()
-		optl.sayHtml_ext({_token=re})
+		local re,_tk = optl.set_token()
+		if re ~= true then
+			_code = "error"
+		end
+		optl.sayHtml_ext({code=_code,token=_tk})
 	else
-		local re = optl.set_token(_token)
-		optl.sayHtml_ext({token = re,value=tmpdict:get(_token)})
+		local re,_tk = optl.set_token(_token)
+		if re ~= true then
+			_code = "error"
+		end
+		optl.sayHtml_ext({code = _code,token=tmpdict:get(_token)})
 	end
 
 else

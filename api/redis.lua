@@ -1,4 +1,19 @@
 
+----  对redis 的操作
+--    连接的redis配置是在base.json 中
+--    主要使用的是 从redis 拉取数据到本机内存  / 推送本机配置到redis (内存中的配置)
+--    配置包括 config_dic / host_dict / count_dict / 部分ip_dict 数据
+--    ip_dict 中暂时仅包含永久数据 time=0 动态生成在 暂时没有同步到redis
+
+--    redis DB 0 存放 config_dict 和 host_dict
+--    config_dict 的key = base realIpFrom_Mod deny_Msg url_Mod header_Mod
+--         useragent_Mod cookie_Mod args_Mod post_Mod network_Mod 
+--         replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
+--    host_dict 的 key = host_Mod %host%_HostMod
+--    redis DB 1 存放 ip_dict
+--    ip_dict 的 key = %ip% %host%-ip
+
+
 -- local redis_iresty = require "redis_iresty"
 local redis = require "resty.redis"
 local cjson_safe = require "cjson.safe"
@@ -95,16 +110,16 @@ local function push_host_Mod()
     end
 
     local res_tb ={}
-    res_tb.code = "ok"
+    local _code = "ok"
     for i, res in ipairs(results) do
         if res ~= "OK" then
-            res_tb.code = "error"
+            _code = "error"
         end
         res_tb[tb_host_name[i]] = res
     end
 
     -- 执行结果都在res_tb中
-    sayHtml_ext(res_tb)
+    sayHtml_ext({code = _code,msg=res_tb})
 end
 
 local function pull_host_Mod()
@@ -146,7 +161,7 @@ local function pull_host_Mod()
     end
 
     local _msg = {}
-    _msg.code = "ok"
+    local _code = "ok"
     -- 清空本地 host_dict
     host_dict:flush_all()    
     _msg.flush_expired = host_dict:flush_expired(0)
@@ -155,18 +170,18 @@ local function pull_host_Mod()
         local  re = host_dict:safe_add(v[1],v[2],0)
         _msg[v[1]] = re
         if re ~= true then
-            _msg.code = "error"
+            _code = "error"
         end
         local re = host_dict:safe_add(v[1].."_HostMod",res_tb[v[1].."_HostMod"],0)
         if re ~= true then
-            _msg.code = "error"
+            _code = "error"
         end
         _msg[v[1].."_HostMod"] = re
     end
     
     -- 执行结果 host_dict:safe_add 没判断
     --ngx.say("It is Ok !")
-    sayHtml_ext(_msg)
+    sayHtml_ext({code = _code,msg=_msg})
 end
 
 -- 仅推送init阶段 时增加的 永久IP名单列表
@@ -208,15 +223,15 @@ local function push_ip_Mod()
     end
 
     local res_tb ={}
-    res_tb.code = "ok"
+    local _code = "ok"
     for i, res in ipairs(results) do
         if res ~= "OK" then
-           res_tb.code = "error"
+           _code = "error"
         end
         res_tb[_tb[i]] = res
     end
     -- 执行结果 都是 res_tb 中
-    sayHtml_ext(res_tb)
+    sayHtml_ext({code = _code ,msg = res_tb})
 end
 
 local function pull_ip_Mod()
@@ -290,25 +305,25 @@ local function pull_ip_Mod()
 
     -- 将redis中的数据添加
     local _msg = {}
-    _msg.code = "ok"
+    local _code = "ok"
     for i,v in pairs(res_tb) do        
         if v.time ~= 0 then 
             if v.time == -1 then v.time = 0 end
             local re = ip_dict:safe_set(i,v.value,v.time)
             if re ~= true then
-                _msg.code = "error"
+                _code = "error"
             end
             _msg[i] = re
         end
     end
     -- safe_add 操作结果没有判断
     --ngx.say("It is Ok !")
-    sayHtml_ext(_msg)
+    sayHtml_ext({code = _code,msg=_msg})
 end
 
 if _action == "set" then
 
-	ok, err = red:set(_key, _value)
+	local ok, err = red:set(_key, _value)
 	if not ok then
         local _msg = "failed to set key : "..tostring(err)
         sayHtml_ext({code="error",msg=_msg})
@@ -383,63 +398,60 @@ elseif _action == "push" then
         end
 
         local res_tb ={}
-        res_tb.code = "ok"
+        local _code = "ok"
         for i, res in ipairs(results) do
             if res ~= "OK" then
-                res_tb.code = "error"
+                _code = "error"
             end
             res_tb[_tb[i]] = res
         end
-        sayHtml_ext(res_tb)
+        sayHtml_ext({code=_code,msg=res_tb})
 
     elseif _key == "count_dict" then -- 保存dict中的count_dict到redis
 
         --- 0 获取远程数据
-        local res, err = red:get(_key)
-        if not res then
-            local _msg = "failed to get key :"..tostring(err)
-            sayHtml_ext({code="error",msg=_msg})
-            --ngx.say("failed to get "..tostring(_key)..": ", err)
-            return
-        end
-        -- if res == ngx.null then
-        --     ngx.say("key not found.")
-        --     return
-        -- end
-        res = cjson_safe.decode(res) or {}
+            local res, err = red:get(_key)
+            if not res then
+                local _msg = "failed to get key :"..tostring(err)
+                sayHtml_ext({code="error",msg=_msg})
+                --ngx.say("failed to get "..tostring(_key)..": ", err)
+                return
+            end
+            -- if res == ngx.null then
+            --     ngx.say("key not found.")
+            --     return
+            -- end
+            res = cjson_safe.decode(res) or {}
 
         --- 1 合并本机数据
-        local count_dict = ngx.shared.count_dict
-        local _tb,tb_all = count_dict:get_keys(0),{}
-        for i,v in ipairs(_tb) do
-            tb_all[v] = count_dict:get(v)
-        end
-        
-        for k,v in pairs(res) do
-            if tb_all[k] == nil then
-                tb_all[k] = v
-            else
-                tb_all[k] = tonumber(v) + tonumber(tb_all[k])
+            local count_dict = ngx.shared.count_dict
+            local _tb,tb_all = count_dict:get_keys(0),{}
+            for i,v in ipairs(_tb) do
+                tb_all[v] = count_dict:get(v)
             end
-        end
+            
+            for k,v in pairs(res) do
+                if tb_all[k] == nil then
+                    tb_all[k] = v
+                else
+                    tb_all[k] = tonumber(v) + tonumber(tb_all[k])
+                end
+            end
 
         --- 2 合并后数据 push
-        local json_config = cjson_safe.encode(tb_all)
-        ok, err = red:set("count_dict", json_config)
-        if not ok then
-            local _msg = "failed to set count_dict: "..tostring(err)
-            sayHtml_ext({code="error",msg=_msg})
-            --ngx.say("failed to set count_dict: ", err)
-            return
-        end
+            local json_config = cjson_safe.encode(tb_all)
+            local ok, err = red:set("count_dict", json_config)
+            if not ok then
+                local _msg = "failed to set count_dict: "..tostring(err)
+                sayHtml_ext({code="error",msg=_msg})
+                --ngx.say("failed to set count_dict: ", err)
+                return
+            end
 
         --- 3 清空本地数据
-        local re = count_dict:flush_all()
-        local re1 = count_dict:flush_expired(0)
-
-        --ngx.say("set count_dict result: ", ok)
-        local _msg = {flush_all=re,flush_expired=re1}
-        sayHtml_ext({code="ok",msg=_msg})
+            count_dict:flush_all()
+            local re = count_dict:flush_expired(0)
+            sayHtml_ext({code="ok",msg=re})
 
     elseif _key == "host_dict" then
 
@@ -489,17 +501,17 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
             res_tb[i] = res
         end
         local _msg ={}
-        _msg.code = "ok"
+        local _code = "ok"
         for i,v in ipairs(_tb) do
             local re = config_dict:replace(v,res_tb[i])
             if re ~= true then
-               _msg.code = "error"
+               _code = "error"
             end
             _msg[v] = re
         end
         -- replace 执行结果没有判断
         --ngx.say("It is Ok !")
-        sayHtml_ext(_msg)
+        sayHtml_ext({code = _code,msg=_msg})
 
     elseif _key == "host_dict" then
 
@@ -510,6 +522,7 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
         pull_ip_Mod()
 
     else
+
         local res, err = red:get(_key)
         if not res then
             local _msg = "failed to get "..tostring(err)
@@ -524,17 +537,18 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
             return
         end
         local _msg = {}
-        _msg.code = "ok"
+        local _code = "ok"
         _msg.key = _key
         _msg.old_value = config_dict:get(_key)
         _msg.new_value = res
         local re = config_dict:replace(_key,res)
         if re ~= true then
-            _msg.code = "error"
+            _code = "error"
         end
         _msg.replace = re
         -- 执行结果 在 code 中
-        sayHtml_ext(_msg)
+        sayHtml_ext({code = _code,msg=_msg})
+
     end
 
 end
