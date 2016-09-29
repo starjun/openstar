@@ -7,45 +7,55 @@ local optl = require("optl")
 local host_dict = ngx.shared.host_dict
 local count_dict = ngx.shared.count_dict
 local ip_dict = ngx.shared.ip_dict
-
 local config_dict = ngx.shared.config_dict
+
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 local redis_mod = config_base.redis_Mod or {}
+
+
+local get_argsByName = optl.get_argsByName
+local sayHtml_ext = optl.sayHtml_ext
 
 -- 主配置中查看redis是否 启用
 if redis_mod.state == "off" then
     sayHtml_ext({code="error",msg="redis_Mod state is off"})
 end
 
-local get_argsByName = optl.get_argsByName
+
 
 local _action = get_argsByName("action")
 local _key = get_argsByName("key")
 local _value = get_argsByName("value")
 
 local red = redis:new()
-red:set_timeout(1000) -- 1 sec
+red:set_timeout(2000) -- 1 sec
 
 local ok, err = red:connect(redis_mod.ip, redis_mod.Port)
 if not ok then
-    ngx.say("failed to connect: ", err)
+    local _msg = "failed to connect: "..tostring(err)
+    sayHtml_ext({code="error",msg=_msg})
+    --ngx.say("failed to connect: ", err)
     return
 end
 
 -- 请注意这里 auth 的调用过程
-local count ,err , ok
-count, err = red:get_reused_times()
+
+local count, err = red:get_reused_times()
 if 0 == count then
     if redis_mod.Password ~= "" then
-        ok, err = red:auth(redis_mod.Password)
+        local ok, err = red:auth(redis_mod.Password)
         if not ok then
-            ngx.say("failed to auth: ", err)
+            local _msg = "failed to auth: "..tostring(err)
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("failed to auth: ", err)
             return
         end
     end
 elseif err then
-    ngx.say("failed to get reused times: ", err)
+    local _msg = "failed to get reused times: "..tostring(err)
+    sayHtml_ext({code="error",msg=_msg})
+    --ngx.say("failed to get reused times: ", err)
     return
 end
 
@@ -78,17 +88,23 @@ local function push_host_Mod()
 
     local results, err = red:commit_pipeline()
     if not results then
-        ngx.say("failed to commit the pipelined requests: ", err)
+        local _msg = "failed to commit the pipelined requests: "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to commit the pipelined requests: ", err)
         return
     end
 
     local res_tb ={}
+    res_tb.code = "ok"
     for i, res in ipairs(results) do
+        if res ~= "OK" then
+            res_tb.code = "error"
+        end
         res_tb[tb_host_name[i]] = res
     end
 
     -- 执行结果都在res_tb中
-    optl.sayHtml_ext(res_tb)
+    sayHtml_ext(res_tb)
 end
 
 local function pull_host_Mod()
@@ -96,11 +112,15 @@ local function pull_host_Mod()
     -- 获取所有host == > host_Mod
     local res, err = red:get("host_Mod")
     if not res then
-        ngx.say("failed to get ".._key..": ", err)
+        local _msg = "failed to get key : "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to get ".._key..": ", err)
         return
     end
     if res == ngx.null then
-        ngx.say("key not found.")
+        local _msg = "key not found."
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("key not found.")
         return
     end
     local tb_host_Mod = optl.stringTojson(res) or {}
@@ -114,7 +134,9 @@ local function pull_host_Mod()
 
     local results, err = red:commit_pipeline()
     if not results then
-        ngx.say("failed to commit the pipelined requests: ", err)
+        local _msg = "failed to commit the pipelined requests: "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to commit the pipelined requests: ", err)
         return
     end
 
@@ -123,17 +145,28 @@ local function pull_host_Mod()
         res_tb[tb_host_Mod[i][1].."_HostMod"] = res
     end
 
+    local _msg = {}
+    _msg.code = "ok"
     -- 清空本地 host_dict
     host_dict:flush_all()    
-    host_dict:flush_expired(0)
+    _msg.flush_expired = host_dict:flush_expired(0)
 
     for i,v in ipairs(tb_host_Mod) do
-        host_dict:safe_add(v[1],v[2],0)
-        host_dict:safe_add(v[1].."_HostMod",res_tb[v[1].."_HostMod"],0)
+        local  re = host_dict:safe_add(v[1],v[2],0)
+        _msg[v[1]] = re
+        if re ~= true then
+            _msg.code = "error"
+        end
+        local re = host_dict:safe_add(v[1].."_HostMod",res_tb[v[1].."_HostMod"],0)
+        if re ~= true then
+            _msg.code = "error"
+        end
+        _msg[v[1].."_HostMod"] = re
     end
     
     -- 执行结果 host_dict:safe_add 没判断
-    ngx.say("It is Ok !")
+    --ngx.say("It is Ok !")
+    sayHtml_ext(_msg)
 end
 
 -- 仅推送init阶段 时增加的 永久IP名单列表
@@ -153,7 +186,9 @@ local function push_ip_Mod()
     -- 切换ip_dict 数据库 1 
     ok, err = red:select(1)
     if not ok then
-        ngx.say("failed to select : ", err)
+        local _msg = "failed to select : "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to select : ", err)
         return
     end
 
@@ -166,16 +201,22 @@ local function push_ip_Mod()
     end
     local results, err = red:commit_pipeline()
     if not results then
-        ngx.say("failed to commit the pipelined requests: ", err)
+        local _msg = "failed to commit the pipelined requests: "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to commit the pipelined requests: ", err)
         return
     end
 
     local res_tb ={}
+    res_tb.code = "ok"
     for i, res in ipairs(results) do
+        if res ~= "OK" then
+           res_tb.code = "error"
+        end
         res_tb[_tb[i]] = res
     end
     -- 执行结果 都是 res_tb 中
-    optl.sayHtml_ext(res_tb)
+    sayHtml_ext(res_tb)
 end
 
 local function pull_ip_Mod()
@@ -183,14 +224,18 @@ local function pull_ip_Mod()
     -- 切换ip_dict 数据库
     ok, err = red:select(1)
     if not ok then
-        ngx.say("failed to select : ", err)
+        local _msg = "failed to select : "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to select : ", err)
         return
     end
 
     -- 获取所有keys
     ok, err = red:keys("*")
     if not ok then
-        ngx.say("failed to keys : ", err)
+        local _msg = "failed to keys : "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to keys : ", err)
         return
     end
 
@@ -202,7 +247,9 @@ local function pull_ip_Mod()
     end
     local results, err = red:commit_pipeline()
     if not results then
-        ngx.say("failed to commit the pipelined (get key) requests: ", err)
+        local _msg = "failed to commit the pipelined (get key) requests: "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to commit the pipelined (get key) requests: ", err)
         return
     end
     local res_tb ={}
@@ -219,7 +266,9 @@ local function pull_ip_Mod()
     end
     local results, err = red:commit_pipeline()
     if not results then
-        ngx.say("failed to commit the pipelined requests: ", err)
+        local _msg = "failed to commit the pipelined requests: "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to commit the pipelined requests: ", err)
         return
     end
 
@@ -240,25 +289,35 @@ local function pull_ip_Mod()
     -- ip_dict:flush_expired(0)
 
     -- 将redis中的数据添加
+    local _msg = {}
+    _msg.code = "ok"
     for i,v in pairs(res_tb) do        
         if v.time ~= 0 then 
             if v.time == -1 then v.time = 0 end
-            ip_dict:safe_set(i,v.value,v.time)
+            local re = ip_dict:safe_set(i,v.value,v.time)
+            if re ~= true then
+                _msg.code = "error"
+            end
+            _msg[i] = re
         end
     end
     -- safe_add 操作结果没有判断
-    ngx.say("It is Ok !")
+    --ngx.say("It is Ok !")
+    sayHtml_ext(_msg)
 end
 
 if _action == "set" then
 
 	ok, err = red:set(_key, _value)
 	if not ok then
-	    ngx.say("failed to set ".._key..": ", err)
+        local _msg = "failed to set key : "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+	    --ngx.say("failed to set ".._key..": ", err)
 	    return
 	end
 
-	ngx.say("set result: ", ok)
+	--ngx.say("set result: ", ok)
+    sayHtml_ext({code="ok",msg=ok})
 
 -- elseif _action == "ttl" then
 
@@ -289,16 +348,21 @@ elseif _action == "get" then
 
 	local res, err = red:get(_key)
     if not res then
-        ngx.say("failed to get ".._key..": ", err)
+        local _msg = "failed to get key: "..tostring(err)
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("failed to get ".._key..": ", err)
         return
     end
 
     if res == ngx.null then
-        ngx.say("key not found.")
+        local _msg = "key not found."
+        sayHtml_ext({code="error",msg=_msg})
+        --ngx.say("key not found.")
         return
     end
 
-    ngx.say(res)
+    --ngx.say(res)
+    sayHtml_ext({code="ok",key=_key,value=res})
 
 elseif _action == "push" then
 
@@ -312,22 +376,30 @@ elseif _action == "push" then
 
         local results, err = red:commit_pipeline()
         if not results then
-            ngx.say("failed to commit the pipelined requests: ", err)
+            local _msg = "failed to commit the pipelined requests: "..tostring(err)
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("failed to commit the pipelined requests: ", err)
             return
         end
 
         local res_tb ={}
+        res_tb.code = "ok"
         for i, res in ipairs(results) do
+            if res ~= "OK" then
+                res_tb.code = "error"
+            end
             res_tb[_tb[i]] = res
         end
-        optl.sayHtml_ext(res_tb)
+        sayHtml_ext(res_tb)
 
     elseif _key == "count_dict" then -- 保存dict中的count_dict到redis
 
         --- 0 获取远程数据
         local res, err = red:get(_key)
         if not res then
-            ngx.say("failed to get "..tostring(_key)..": ", err)
+            local _msg = "failed to get key :"..tostring(err)
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("failed to get "..tostring(_key)..": ", err)
             return
         end
         -- if res == ngx.null then
@@ -355,7 +427,9 @@ elseif _action == "push" then
         local json_config = cjson_safe.encode(tb_all)
         ok, err = red:set("count_dict", json_config)
         if not ok then
-            ngx.say("failed to set count_dict: ", err)
+            local _msg = "failed to set count_dict: "..tostring(err)
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("failed to set count_dict: ", err)
             return
         end
 
@@ -363,7 +437,9 @@ elseif _action == "push" then
         local re = count_dict:flush_all()
         local re1 = count_dict:flush_expired(0)
 
-        ngx.say("set count_dict result: ", ok)
+        --ngx.say("set count_dict result: ", ok)
+        local _msg = {flush_all=re,flush_expired=re1}
+        sayHtml_ext({code="ok",msg=_msg})
 
     elseif _key == "host_dict" then
 
@@ -376,14 +452,19 @@ elseif _action == "push" then
     else
         local _key_v = config_dict:get(_key)
         if _key_v == nil then
-            ngx.say("key is nil")
+            local _msg = "key is nil"
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("key is nil")
         else
             ok, err = red:set(_key, _key_v)
             if not ok then
-                ngx.say("failed to set config_dict: ", err)
+                local _msg = "failed to set config_dict: "..tostring(err)
+                sayHtml_ext({code="error",msg=_msg})
+                --ngx.say("failed to set config_dict: ", err)
                 return
             end
-            ngx.say("set ".._key.." result: ", ok)
+            --ngx.say("set ".._key.." result: ", ok)
+            sayHtml_ext({code="ok",msg=ok})
         end
     end
 
@@ -397,7 +478,9 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
         end
         local results, err = red:commit_pipeline()
         if not results then
-            ngx.say("failed to commit the pipelined requests: ", err)
+            local _msg = "failed to commit the pipelined requests: "..tostring(err)
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("failed to commit the pipelined requests: ", err)
             return
         end
 
@@ -405,11 +488,18 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
         for i, res in ipairs(results) do
             res_tb[i] = res
         end
+        local _msg ={}
+        _msg.code = "ok"
         for i,v in ipairs(_tb) do
-            config_dict:replace(v,res_tb[i])
+            local re = config_dict:replace(v,res_tb[i])
+            if re ~= true then
+               _msg.code = "error"
+            end
+            _msg[v] = re
         end
         -- replace 执行结果没有判断
-        ngx.say("It is Ok !")
+        --ngx.say("It is Ok !")
+        sayHtml_ext(_msg)
 
     elseif _key == "host_dict" then
 
@@ -422,17 +512,29 @@ elseif _action == "pull" then --- 从redis拉取配置到dict
     else
         local res, err = red:get(_key)
         if not res then
-            ngx.say("failed to get ".._key..": ", err)
+            local _msg = "failed to get "..tostring(err)
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("failed to get ".._key..": ", err)
             return
         end
         if res == ngx.null then
-            ngx.say("key not found.")
+            local _msg = "key not found."
+            sayHtml_ext({code="error",msg=_msg})
+            --ngx.say("key not found.")
             return
         end
-        local _dict_value = config_dict:get(_key)
+        local _msg = {}
+        _msg.code = "ok"
+        _msg.key = _key
+        _msg.old_value = config_dict:get(_key)
+        _msg.new_value = res
         local re = config_dict:replace(_key,res)
+        if re ~= true then
+            _msg.code = "error"
+        end
+        _msg.replace = re
         -- 执行结果 在 code 中
-        optl.sayHtml_ext({code=re,key=_key,redis_value=res,dict_value=_dict_value})
+        sayHtml_ext(_msg)
     end
 
 end
@@ -440,6 +542,8 @@ end
 -- 连接池大小是100个，并且设置最大的空闲时间是 10 秒
 local ok, err = red:set_keepalive(10000, 100)
 if not ok then
-    ngx.say("failed to set keepalive: ", err)
+    local _msg = "failed to set keepalive: "..tostring(err)
+    sayHtml_ext({code="error",msg=_msg})
+    --ngx.say("failed to set keepalive: ", err)
     return
 end
