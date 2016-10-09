@@ -25,7 +25,6 @@ local ip_dict = ngx.shared.ip_dict
 local config_dict = ngx.shared.config_dict
 
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
-
 local redis_mod = config_base.redis_Mod or {}
 
 

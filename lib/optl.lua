@@ -93,7 +93,11 @@ local function set_token(_token)
     _token = _token or guid()    
     if token_dict:get(_token) == nil then 
         local re = token_dict:set(_token,true,3*60)  --- -- 缓存3分钟 非重复插入
-        return re,_token
+        if  re then
+            return _token
+        else
+            return re
+        end
     else
         return set_token()
     end 
@@ -194,7 +198,7 @@ local function sayHtml_ext(_html,_ty)
             _html = tableTostring(_html)
         end
     end
-    ngx.say(ngx_find(tostring(_html)))
+    ngx.say(_html)
     ngx.exit(200)
 end
 
