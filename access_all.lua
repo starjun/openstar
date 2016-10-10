@@ -1,4 +1,7 @@
 -----  access_all by zj  -----
+
+if ngx.req.is_internal() then return end
+
 local remoteIp = ngx.var.remote_addr
 local headers = ngx.req.get_headers()
 
