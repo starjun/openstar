@@ -1,4 +1,6 @@
 
+if ngx.req.is_internal() then return end
+
 local url = ngx.unescape_uri(ngx.var.uri)
 local remoteIP = ngx.var.remote_addr
 local headers = ngx.req.get_headers()
@@ -39,6 +41,9 @@ local remath = optl.remath
 
 --- 匹配 host 和 url
 local function host_url_remath(_host,_url)
+	if _host == nil or _url == nil then
+		return false
+	end
 	if remath(host,_host[1],_host[2]) and remath(url,_url[1],_url[2]) then
 		return true
 	end
