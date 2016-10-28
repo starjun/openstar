@@ -12,9 +12,12 @@ local function readfile(_filepath)
     return str
 end
 
+-- 默认写文件错误时，会将错误信息和_msg数据使用ngx.log写到错误日志中。
+-- ngx.log对写入的信息进行了大小控制，一些大数据情况理论上不用担心
+-- 自己调用时，_msg的内容大小需要自己进行控制
 local function writefile(_filepath,_msg,_ty)
     _ty = _ty or "a+"
-    -- w+ 覆盖
+    -- w+ 覆盖 写文件方式默认是追加方式
     -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
     local fd,err = io.open(_filepath,_ty)
     if fd == nil then 
@@ -65,11 +68,13 @@ end
 
 local cjson_safe = require "cjson.safe"
 
+-- table转成json字符串
 local function tableTojson(_obj)
     local json_text = cjson_safe.encode(_obj)  
     return json_text
 end
 
+-- 字符串转成序列化后的json同时也可当table类型
 local function stringTojson(_obj)
     local json = cjson_safe.decode(_obj)  
     return json
@@ -96,7 +101,7 @@ local function set_token(_token)
         if  re then
             return _token
         else
-            return re
+            return re -- 失败为 false
         end
     else
         return set_token()
@@ -120,7 +125,7 @@ local function remath(_str,_re_str,_options)
     elseif _options == "in" then --- 用于包含 查找 string.find       
         local from , to = string.find(_str, _re_str)
         --if from ~= nil or (from == 1 and to == 0 ) then
-        --当re_str=""时的情况 没有处理
+        --当_re_str=""时的情况 没有处理
         if from ~= nil then
             return true
         end
@@ -165,11 +170,15 @@ local count_dict = ngx.shared.count_dict
 --- 拦截计数
 local function set_count_dict(_key)
     if _key == nil then return end
-    local key_count = count_dict:get(_key)
-    if key_count == nil then 
-        count_dict:set(_key,1)
-    else
-        count_dict:incr(_key,1)
+    -- local key_count = count_dict:get(_key)
+    -- if key_count == nil then 
+    --     count_dict:set(_key,1)
+    -- else
+    --     count_dict:incr(_key,1)
+    -- end
+    local re, err = count_dict:incr(_key,1)
+    if re == nil then
+       count_dict:set(_key,1)
     end
 end
 
@@ -177,18 +186,19 @@ end
 local function ngx_find(_str)
     -- str = string.gsub(str,"@ngx_time@",ngx.time())
     -- ngx.re.gsub 效率要比string.gsub要好一点，参考openresty最佳实践
-    _str = ngx.re.gsub(_str,"@ngx_localtime@",ngx.localtime())
+    _str = tostring(_str)
+    _str = ngx.re.gsub(_str,"@ngx_localtime@",tostring(ngx.localtime()))
 
     -- string.find 字符串 会走jit,所以就没有用ngx模块
     -- 当前情况下，对token仅是全局替换一次，请注意
     if string.find(_str,"@token@") ~= nil then       
-        _str = ngx.re.gsub(_str,"@token@",set_token())
+        _str = ngx.re.gsub(_str,"@token@",tostring(set_token()))
     end 
     return _str
 end
 
 local function sayHtml_ext(_html,_ty) 
-    ngx.header.content_type = "text/html"
+    ngx.header.content_type = "text/html"    
     if _html == nil then 
         _html = "_html is nil"
     elseif type(_html) == "table" then
@@ -197,6 +207,8 @@ local function sayHtml_ext(_html,_ty)
         else
             _html = tableTostring(_html)
         end
+    else-- 仅对非nil 非table 进行ngx_find处理
+        _html = ngx_find(_html)
     end
     ngx.say(_html)
     ngx.exit(200)
@@ -206,7 +218,8 @@ local function sayFile(_filename)
     ngx.header.content_type = "text/html"
     --local str = readfile(Config.base.htmlPath..filename)
     local str = readfile(_filename) or "filename error"
-    ngx.say(str)
+    -- 对读取的文件内容进行 ngx_find
+    ngx.say(ngx_find(str))
     ngx.exit(200)
 end
 
@@ -218,12 +231,13 @@ end
 
 -- 记录debug日志
 -- 更新记录IP 2016年6月7日 22:22:15
+-- 目录配置异常，则log路径就是 /tmp/
 local function debug(_filename,_base_msg,_info)
     if _base_msg.config_base.debug_Mod == false then return end --- 判断debug开启状态
     if _filename == nil then
         _filename = "debug.log"
     end
-    local filepath = _base_msg.config_base.logPath or "./"
+    local filepath = _base_msg.config_base.logPath or "/tmp/"
     filepath = filepath.._filename
 
     local remoteIp = _base_msg.remoteIp
@@ -248,8 +262,7 @@ end
 
     --- 获取单个args值
     local function get_argsByName(_name)
-        --if _name == nil then return "" end
-        --调用时 先判断下nil的情况
+        if _name == nil then return "" end
         local x = 'arg_'.._name
         local _name = ngx.unescape_uri(ngx.var[x])
         return _name
@@ -265,7 +278,7 @@ end
 
     --- 获取单个post值
     local function get_postByName(_name)
-        --if _name == nil then return "" end
+        if _name == nil then return "" end
         ngx.req.read_body()
         local posts_name = ngx.req.get_post_args()[_name]
         if type(posts_name) == "table" then posts_name = posts_name[1] end

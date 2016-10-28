@@ -68,32 +68,33 @@ local Replace_Mod = getDict_Config("replace_Mod")
 
 --- STEP 12
 for key,value in ipairs(Replace_Mod) do  --- 从[1]开始 自上而下  仿防火墙acl机制
-	if value.state =="on" then
-		if host_url_remath(value.hostname,value.url) then
-			if token_tmp == nil then 
-				token_tmp = host..url..remoteIP..optl.tableTostring(headers)
-				---  检查（可以删除）
-				if token_tmp == nil then
-					token_tmp = host..url..remoteIP..optl.tableTostring(headers)
-				end
-				---
-			end
-			if ngx.arg[1] ~= '' then -- 请求正常
-				local chunk = token_dict:get(token_tmp)
-				if chunk == nil then
-					chunk = ngx.arg[1]
-					token_dict:set(token_tmp,chunk,10)
-				else
-					chunk = chunk..ngx.arg[1]
-					token_dict:set(token_tmp,chunk,10)										
-				end				
+	if value.state =="on" and host_url_remath(value.hostname,value.url) then
 
+		-- 全局的token_tmp后续会使用生成的request_guid来操作（ngx.ctx）
+		if token_tmp == nil then 
+			token_tmp = host..url..remoteIP..optl.tableTostring(headers)
+			---  检查（可以删除）
+			if token_tmp == nil then
+				token_tmp = host..url..remoteIP..optl.tableTostring(headers)
 			end
-			if ngx.arg[2] then
-				ngx_2(value.replace_list,token_dict:get(token_tmp))
-			else
-				ngx.arg[1] = nil
-			end		
+			---
 		end
+		if ngx.arg[1] ~= '' then -- 请求正常
+			local chunk = token_dict:get(token_tmp)
+			if chunk == nil then
+				chunk = ngx.arg[1]
+				token_dict:set(token_tmp,chunk,10)
+			else
+				chunk = chunk..ngx.arg[1]
+				token_dict:set(token_tmp,chunk,10)
+			end				
+
+		end
+		if ngx.arg[2] then
+			ngx_2(value.replace_list,token_dict:get(token_tmp))
+		else
+			ngx.arg[1] = nil
+		end		
+
 	end
 end

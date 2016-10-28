@@ -12,6 +12,13 @@
         "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
         "hostname": ["101.200.122.200",""],
         "referer": ["*",""],
+        "action":"next"
+    },
+    {
+        "state": "on",
+        "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+        "hostname": ["101.200.122.200:5460",""],
+        "referer": ["101.200.122.200","in"],
         "action":"allow"
     }
 ]
