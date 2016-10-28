@@ -32,17 +32,17 @@ if _action == "get" then
 elseif _action == "set" then
 
 	if _token == "" then
-		local re,_tk = optl.set_token()
-		if re ~= true then
+		local re = optl.set_token()
+		if not re then
 			_code = "error"
 		end
-		optl.sayHtml_ext({code=_code,token=_tk})
+		optl.sayHtml_ext({code=_code,token=re})
 	else
-		local re,_tk = optl.set_token(_token)
-		if re ~= true then
+		local re = optl.set_token(_token)
+		if not re then
 			_code = "error"
 		end
-		optl.sayHtml_ext({code = _code,token=tmpdict:get(_token)})
+		optl.sayHtml_ext({code = _code,token=re})
 	end
 
 else
