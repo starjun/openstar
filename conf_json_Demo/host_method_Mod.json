@@ -1,21 +1,20 @@
 [
-
     {
-        "state": "on",
-        "method": [["GET","POST"],"table"],
-        "hostname": [["101.200.122.200","xi.xi.comt"],"table"]
-
-    },
-    {
-        "state": "on",
-        "method": ["^(get|post)$","jio"],
-        "hostname": ["pass.game.com",""]
-
-    },
-    {
-        "state": "off",
-        "method": ["GET",""],
-        "hostname": ["*",""]
+        "state":"on",
+        "method":[
+            {
+                "POST":true,
+                "GET":true
+            },
+            "list"
+        ],
+        "hostname":[
+            {
+                "101.200.122.200:5460":true,
+                "101.200.122.200":true,
+                "www.g.com":true
+            },
+            "list"
+        ]
     }
-    
 ]

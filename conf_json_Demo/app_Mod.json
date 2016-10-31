@@ -14,8 +14,8 @@
     },
     {
         "state": "on",
-        "action": ["reflie"],
-        "reflie": "2.txt",
+        "action": ["refile"],
+        "refile": "2.txt",
         "hostname": ["101.200.122.200",""],
         "url": ["/refile",""]
     },
@@ -37,6 +37,13 @@
         "state": "on",
         "action": ["relua"],
         "relua":"1.lua",
+        "hostname": ["127.0.0.1:5460",""],
+        "url": ["/relua",""]
+    },
+    {
+        "state": "on",
+        "action": ["relua_str"],
+        "relua_str":"local a = 1 if a<1 then ngx.say(1) end return 2",
         "hostname": ["127.0.0.1:5460",""],
         "url": ["/relua",""]
     },

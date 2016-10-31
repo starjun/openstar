@@ -64,6 +64,7 @@ elif [ "$1" = "openstar" ]; then
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
 	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
+
 elif [ "$1" = "openresty" ]; then
 	cd ${build_path}
 	wget ${down_uri}
@@ -77,6 +78,7 @@ elif [ "$1" = "openresty" ]; then
 	chown root:nobody nginx/sbin/nginx
 	chmod 750 nginx/sbin/nginx
     chmod u+s nginx/sbin/nginx
+
 else
 	#### 查看服务器信息 版本、内存、CPU 等等 ####
 	echo "uname －a"
@@ -93,5 +95,6 @@ else
 	echo "##########################"
 	echo "getconf LONG_BIT  （Linux查看版本说明当前CPU运行在32bit模式下， 但不代表CPU不支持64bit）"
 	getconf LONG_BIT	
+	
 fi
 	

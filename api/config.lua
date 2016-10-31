@@ -140,6 +140,7 @@ elseif _action =="reload" then
 	loadConfig()
 	--ngx.say("it is ok")
 	sayHtml_ext({code="ok",msg="reload ok"})
+
 else
     sayHtml_ext({code="error",msg="action is Non-existent"})
 end

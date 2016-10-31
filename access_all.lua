@@ -115,8 +115,8 @@ local function action_deny()
 		local tp_denymsg = type(host_deny_msg.deny_msg)
 		if tp_denymsg == "number" then
 			ngx.exit(host_deny_msg.deny_msg)
-		else
-			ngx.say(tostring(host_deny_msg.deny_msg))
+		elseif tp_denymsg == "string" then
+			ngx.say(host_deny_msg.deny_msg)
 			ngx.exit(200)
 		end
 	end
