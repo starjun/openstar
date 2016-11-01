@@ -240,12 +240,12 @@ if  host_Mod_state == "on" then
 				_action = v.action[1]				
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					optl.debug(host..".log",base_msg,"deny No: "..no)
+					optl.debug(host..".log",base_msg,"deny No: "..i)
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					optl.debug(host..".log",base_msg,"log No: "..no)
+					optl.debug(host..".log",base_msg,"log No: "..i)
 				elseif _action == "allow" then
 					return
 				end
@@ -255,12 +255,12 @@ if  host_Mod_state == "on" then
 				_action = v.action[1]
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					optl.debug(host..".log",base_msg,"deny No: "..no)
+					optl.debug(host..".log",base_msg,"deny No: "..i)
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					optl.debug(host..".log",base_msg,"log No: "..no)
+					optl.debug(host..".log",base_msg,"log No: "..i)
 				elseif _action == "allow" then
 					return
 				end
@@ -270,12 +270,12 @@ if  host_Mod_state == "on" then
 				_action = v.action[1]
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					optl.debug(host..".log",base_msg,"deny No: "..no)
+					optl.debug(host..".log",base_msg,"deny No: "..i)
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					optl.debug(host..".log",base_msg,"log No: "..no)
+					optl.debug(host..".log",base_msg,"log No: "..i)
 				elseif _action == "allow" then
 					return
 				end
@@ -397,11 +397,9 @@ end
 -- -- referer过滤模块
 --  动作支持（allow deny log next）
 if config_is_on("referer_Mod") then
-	local check,no
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
 		if v.state == "on" and host_url_remath(v.hostname,v.url) then
-			no = i			
 
 			if v.action == "allow" then
 				if remath(referer,v.referer[1],v.referer[2]) then
@@ -412,19 +410,19 @@ if config_is_on("referer_Mod") then
 					-- pass 继续执行
 				else
 					Set_count_dict("referer deny count")
-					optl.debug("referer.log",base_msg,"deny  No : "..no)
+					optl.debug("referer.log",base_msg,"deny  No : "..i)
 					action_deny()
 					break
 				end				
 			elseif v.action == "log" then
 				if remath(referer,v.referer[1],v.referer[2]) then
 					Set_count_dict("referer log count")
-					optl.debug("referer.log",base_msg,"log  No : "..no)
+					optl.debug("referer.log",base_msg,"log  No : "..i)
 				end
 			else
 				if remath(referer,v.referer[1],v.referer[2]) then
 					Set_count_dict("referer deny count")
-					optl.debug("referer.log",base_msg,"deny  No : "..no)
+					optl.debug("referer.log",base_msg,"deny  No : "..i)
 					action_deny()
 					break
 				end
