@@ -31,7 +31,7 @@ if _action == "get" then
 		end
 		optl.sayHtml_ext(tb_all)
 	elseif _id == "" then
-		local _tb = tmpdict:get_keys(1024)
+		local _tb = tmpdict:get_keys(0)
 		optl.sayHtml_ext(_tb)
 	else
 		optl.sayHtml_ext({id=_id,value=tmpdict:get(_id)})

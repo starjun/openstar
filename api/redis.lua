@@ -9,6 +9,7 @@
 --    config_dict 的key = base realIpFrom_Mod deny_Msg url_Mod header_Mod
 --         useragent_Mod cookie_Mod args_Mod post_Mod network_Mod 
 --         replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
+--    count_dict 的key = count_dict
 --    host_dict 的 key = host_Mod %host%_HostMod
 --    redis DB 1 存放 ip_dict
 --    ip_dict 的 key = %ip% %host%-ip

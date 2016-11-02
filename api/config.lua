@@ -66,22 +66,15 @@ local function  hostMod()
 end
 
 if _action == "save" then
-
-	local re
-	local _code = "ok"
+	
 	if _mod == "all_mod" then
+		local re
 		for k,v in pairs(config) do
 			if k == "base" then
 				if _debug == "no" then
 					re = optl.writefile(config_base.baseDir..k..".json",v,"w+")
 				else
 					re = optl.writefile(config_base.baseDir..k.."_bak.json",v,"w+")
-				end
-			elseif k == "denyMsg" then
-				if _debug == "no" then
-					re = optl.writefile(config_base.jsonPath..k..".json",v,"w+")
-				else
-					re = optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
 				end
 			else
 				if _debug == "no" then
@@ -97,7 +90,7 @@ if _action == "save" then
 		if re ~= true then  
 			_code = "error" 
 			_msg = "config_dic save error"
-			sayHtml_ext({code=_code,msg=_msg})
+			sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 		end
 		
 		re = hostMod()
@@ -105,33 +98,39 @@ if _action == "save" then
 			_code = "error"
 			_msg = "host_dict save error"
 		end
-		sayHtml_ext({code=_code,msg=_msg})
+		sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 
 	else
-		local msg = config[_mod]
+		local _msg = config[_mod]
 		local re
-		if not msg and _mod ~= "host_Mod" then 
-			sayHtml_ext({code="error",msg="mod is Non-existent"}) 
+		local _code = "ok"
+		if not _msg and _mod ~= "host_Mod" then 
+			sayHtml_ext({code="error",msg="mod is Non-existent",debug=_debug}) 
 		end
 		if _mod == "base" then
 			if _debug == "no" then
-				re = optl.writefile(config_base.baseDir.._mod..".json",msg,"w+")
+				re = optl.writefile(config_base.baseDir.._mod..".json",_msg,"w+")
 			else
-				re = optl.writefile(config_base.baseDir.._mod.."_bak.json",msg,"w+")
+				re = optl.writefile(config_base.baseDir.._mod.."_bak.json",_msg,"w+")
 			end
 		elseif _mod == "host_Mod" then
 			re = hostMod()
+			if re then
+				_msg = "host_dict save ok"
+			else
+				_msg = "host_dict save error"
+			end			
 		else
 			if _debug == "no" then
-				re = optl.writefile(config_base.jsonPath.._mod..".json",msg,"w+")
+				re = optl.writefile(config_base.jsonPath.._mod..".json",_msg,"w+")
 			else
-				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",msg,"w+")
+				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",_msg,"w+")
 			end
 		end
 		if re ~= true then
 			_code = "error"
 		end
-		optl.sayHtml_ext({code=_code,msg=msg})
+		optl.sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 
 	end
 
