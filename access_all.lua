@@ -331,7 +331,7 @@ if config_is_on("app_Mod") then
 				if v.action[2] == "args" then
 					local get_args = get_argsByName(v.args[3])
 					if remath(get_args,v.args[1],v.args[2]) then
-						check = "next"
+						check = "next_break"
 					end
 			
 				elseif v.action[2] == "ip" then -- 增加IP判断（eg:对某url[目录进行IP控制]）
@@ -344,6 +344,8 @@ if config_is_on("app_Mod") then
 
 				if check == "next" then
 					--return
+				elseif check == "next_break" then
+					break
 				else
 					Set_count_dict("app deny count")
 					optl.debug("app.log",base_msg,"deny No : "..i)

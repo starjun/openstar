@@ -435,6 +435,7 @@ API相关介绍：
    失败返回：{"code":"error","msg":"error info","action":"reload"}
    ```
  - 检查 默认动作 [nginx -t]
+ 
    ```
    /api/nginx
    成功返回：{"code":"ok","msg":0,"action":"nginx -t"}
