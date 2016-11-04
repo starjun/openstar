@@ -332,6 +332,8 @@ if config_is_on("app_Mod") then
 					local get_args = get_argsByName(v.args[3])
 					if remath(get_args,v.args[1],v.args[2]) then
 						check = "next_break"
+					else
+						check = "next"
 					end
 			
 				elseif v.action[2] == "ip" then -- 增加IP判断（eg:对某url[目录进行IP控制]）
