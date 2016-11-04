@@ -35,9 +35,11 @@ if _action == "add" then
 		local re = ip_dict:safe_add(_ip,_value,_time)
 		-- 非重复插入(lru不启用)
 		if re ~= true then
-			_code = "error"
+			optl.sayHtml_ext({code="error",msg="ip safe_add error")
+		else
+			optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
 		end
-		optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
+		
 	end
 --- del
 elseif _action == "del" then
@@ -52,9 +54,11 @@ elseif _action == "del" then
 		local re = ip_dict:delete(_ip)
 		ip_dict:flush_expired(0)
 		if re ~= true then
-			_code = "error"
+			optl.sayHtml_ext({code="error",msg="ip delete error"})
+		else
+			optl.sayHtml_ext({code=_code,ip=_ip})
 		end
-		optl.sayHtml_ext({code=_code,ip=_ip})
+		
 	end
 --- set 
 elseif _action == "set" then
@@ -63,9 +67,11 @@ elseif _action == "set" then
 	else		
 		local re = ip_dict:replace(_ip,_value,_time)
 		if re ~= true then
-			_code = "error"
+			optl.sayHtml_ext({code="error",msg="ip replace error"})
+		else
+			optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
 		end
-		optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
+		
 	end
 --- get 
 elseif _action == "get" then
