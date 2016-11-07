@@ -35,7 +35,7 @@ if _action == "add" then
 		local re = ip_dict:safe_add(_ip,_value,_time)
 		-- 非重复插入(lru不启用)
 		if re ~= true then
-			optl.sayHtml_ext({code="error",msg="ip safe_add error")
+			optl.sayHtml_ext({code="error",msg="ip safe_add error"})
 		else
 			optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
 		end
