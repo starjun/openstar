@@ -329,6 +329,7 @@ if config_is_on("app_Mod") then
 
 				local check
 				if v.action[2] == "args" then
+					-- args 验证 js 跳转使用，暂时action 用 next 操作
 					local get_args = get_argsByName(v.args[3])
 					if remath(get_args,v.args[1],v.args[2]) then
 						check = "next_break"
