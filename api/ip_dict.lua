@@ -12,7 +12,7 @@ local get_argsByName = optl.get_argsByName
 local _action = get_argsByName("action")
 local _ip = get_argsByName("ip")
 local _value = get_argsByName("value")
-if _value ~= "allow" then _value = "deny" end
+if _value ~= "allow" or _value ~= "log" then _value = "deny" end
 local _time = tonumber( get_argsByName("time")) or 0
 
 local ip_dict = ngx.shared["ip_dict"]
@@ -35,7 +35,7 @@ if _action == "add" then
 		local re = ip_dict:safe_add(_ip,_value,_time)
 		-- 非重复插入(lru不启用)
 		if re ~= true then
-			optl.sayHtml_ext({code="error",msg="ip safe_add error")
+			optl.sayHtml_ext({code="error",msg="ip safe_add error"})
 		else
 			optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
 		end
