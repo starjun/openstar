@@ -12,7 +12,7 @@ local get_argsByName = optl.get_argsByName
 local _action = get_argsByName("action")
 local _ip = get_argsByName("ip")
 local _value = get_argsByName("value")
-if _value ~= "allow" or _value ~= "log" then _value = "deny" end
+if _value ~= "allow" and _value ~= "log" then _value = "deny" end
 local _time = tonumber( get_argsByName("time")) or 0
 
 local ip_dict = ngx.shared["ip_dict"]
