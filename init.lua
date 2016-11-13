@@ -33,7 +33,7 @@ end
 function loadConfig()
 
 	config.base = loadjson(base_json)
-	local _basedir = config.base.jsonPath or "./"
+	local _basedir = config.base.jsonPath or "/opt/openresty/openstar/conf_json/"
 	
 	-- STEP 0
 	config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")

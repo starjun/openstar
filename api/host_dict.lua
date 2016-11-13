@@ -27,11 +27,11 @@ if _action == "add" then
 		if host_state ~= nil then -- 已存在
 			optl.sayHtml_ext({code="error",msg="host is existent"})
 		end
-		if _value ~= "on" then _value = "off" end
+		if _value ~= "on" and _value ~= "log" then _value = "off" end
 		host_state = _value
 		local re = tmpdict:safe_add(_host,host_state,0)
 		if re ~= true then
-			_code = "error"
+			optl.sayHtml_ext({code="error",msg="safe_add error"})
 		end
 		-- 非重复插入(lru不启用)
 		optl.sayHtml_ext({code=_code,id=_id,value=host_state})		
@@ -56,12 +56,12 @@ if _action == "add" then
 	local re = tmpdict:safe_set(_host.."_HostMod",host_mod,0)
 
 	if re ~= true then
-		_code = "error"
+		optl.sayHtml_ext({code="error",msg="safe_set error"})
 	end
 	optl.sayHtml_ext({code=_code,value=_value})
 	
 elseif _action == "del" then
-
+-- 需要增加删除 所有 host所有
 	local host_state = tmpdict:get(_host)
 	if host_state == nil then
 		optl.sayHtml_ext({code="error",msg="host is Non-existent"})
@@ -80,7 +80,7 @@ elseif _action == "del" then
 	else
 		local re = tmpdict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
 		if re ~= true then
-			_code = "error"
+			optl.sayHtml_ext({code="error",msg="replace error"})
 		end
 		optl.sayHtml_ext({code=_code,id=_id,value=rr})
 	end
@@ -93,10 +93,10 @@ elseif _action == "set" then
 	end
 
 	if _id == "state" then
-		if _value ~= "on" then _value = "off" end
+		if _value ~= "on" and _value ~= "log" then _value = "off" end
 		local re = tmpdict:replace(_host,_value)
 		if re ~= true then
-			_code = "error"
+			optl.sayHtml_ext({code="error",msg="replace error"})
 		end
 		optl.sayHtml_ext({code=_code,host=_host,state=_value})
 	end
@@ -109,7 +109,7 @@ elseif _action == "set" then
 	if _value_type == "json" then
 		_value = optl.stringTojson(_value)
 		if type(_value) ~= "table" then
-		optl.sayHtml_ext({code="error",msg="value to json error"})
+			optl.sayHtml_ext({code="error",msg="value to json error"})
 		end
 	end
 
@@ -123,7 +123,7 @@ elseif _action == "set" then
 	host_mod[_id] = _value
 	local re = tmpdict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
 	if re ~= true then
-		_code = "error"
+		optl.sayHtml_ext({code="error",msg="replace error"})
 	end
 	optl.sayHtml_ext({code=_code,old_value=old_host_id_mod,new_value=_value})
 
@@ -134,6 +134,7 @@ elseif _action == "get" then
 		for i,v in ipairs(_tb) do
 			tb_all[v] = tmpdict:get(v)
 		end
+		tb_all.code = "ok"
 		optl.sayHtml_ext(tb_all)
 	elseif _host == "all_host" then
 		local _tb,tb_all = tmpdict:get_keys(0),{}
@@ -143,6 +144,7 @@ elseif _action == "get" then
 	        	table.insert(tb_all,v)
 	        end
 		end
+		tb_all.code = "ok"
 		optl.sayHtml_ext(tb_all)
 	else
 		local host_state = tmpdict:get(_host)
@@ -154,12 +156,13 @@ elseif _action == "get" then
 			local host_mod = tmpdict:get(_host.."_HostMod")
 			host_mod = optl.stringTojson(host_mod)
 			host_mod.state = host_state
+			host_mod.code = "ok"
 			optl.sayHtml_ext(host_mod)
 		elseif _id == "count_id" then
 			local host_mod = tmpdict:get(_host.."_HostMod")
 			host_mod = optl.stringTojson(host_mod)
 			local cnt = table.maxn(host_mod)
-			optl.sayHtml_ext({state=host_state,count=cnt})
+			optl.sayHtml_ext({code="ok",state=host_state,count=cnt})
 		else
 			local host_mod = tmpdict:get(_host.."_HostMod")
 			host_mod = optl.stringTojson(host_mod)
@@ -167,7 +170,7 @@ elseif _action == "get" then
 			if _id == nil then
 				optl.sayHtml_ext({code="error",msg="id is not number"})
 			end
-			optl.sayHtml_ext({state=host_state,id = _id,value = host_mod[_id]})
+			optl.sayHtml_ext({code="ok",state=host_state,id = _id,value = host_mod[_id]})
 		end
 	end
 	

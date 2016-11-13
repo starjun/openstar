@@ -1,10 +1,14 @@
 
 if ngx.req.is_internal() then return end
 
-local url = ngx.unescape_uri(ngx.var.uri)
-local remoteIP = ngx.var.remote_addr
+local ngx_unescape_uri = ngx.unescape_uri
+local ngx_var = ngx.var
+
+
+local remoteIP = ngx_var.remote_addr
+local url = ngx_unescape_uri(ngx_var.uri)
+local host = ngx_unescape_uri(ngx_var.http_host)
 local headers = ngx.req.get_headers()
-local host = ngx.unescape_uri(ngx.var.http_host)
 
 local token_dict = ngx.shared.token_dict
 local config_dict = ngx.shared.config_dict
@@ -49,6 +53,8 @@ local function host_url_remath(_host,_url)
 	end
 end
 
+-- 返回内容的替换使用 ngx.re.sub
+-- 参考使用资料 http://blog.csdn.net/weiyuefei/article/details/38439017
 local function ngx_2(reps,str_all)
 	for k,v in ipairs(reps) do
 		local tmp3 = optl.ngx_find(v[3])
@@ -56,27 +62,27 @@ local function ngx_2(reps,str_all)
 			str_all = ngx.re.sub(str_all,v[1],tmp3)
 		else
 			str_all = ngx.re.sub(str_all,v[1],tmp3,v[2])
-		end
-		
+		end		
 	end
 	ngx.arg[1] = str_all
-	token_dict:delete(token_tmp)	
+	token_dict:delete(token_tmp)
 end
 
 local Replace_Mod = getDict_Config("replace_Mod")
 
 
 --- STEP 12
-for key,value in ipairs(Replace_Mod) do  --- 从[1]开始 自上而下  仿防火墙acl机制
+for key,value in ipairs(Replace_Mod) do
+	--- 从[1]开始 自上而下  仿防火墙acl机制
 	if value.state =="on" and host_url_remath(value.hostname,value.url) then
 
-		-- 全局的token_tmp后续会使用生成的request_guid来操作（ngx.ctx）
-		if token_tmp == nil then 
+		-- 全局的token_tmp后续会使用生成的request_guid来操作(ngx.ctx)
+		if token_tmp == nil then
 			token_tmp = host..url..remoteIP..optl.tableTostring(headers)
 			---  检查（可以删除）
-			if token_tmp == nil then
-				token_tmp = host..url..remoteIP..optl.tableTostring(headers)
-			end
+			-- if token_tmp == nil then
+			-- 	token_tmp = host..url..remoteIP..optl.tableTostring(headers)
+			-- end
 			---
 		end
 		if ngx.arg[1] ~= '' then -- 请求正常

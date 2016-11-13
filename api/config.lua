@@ -1,6 +1,8 @@
 
 ----  配置json相关操作
 --    包括 base.json conf_json/* 所有json
+--    所以就有权限相关问题，请检测 openstar 目录写 因为要写base.json
+--    请检测 conf_json/host_json 目录是否存在 并有写权限 和 conf_json 目录是否有写权限
 --    配置json的重新载入
 --    内存配置保存到对应json文件
 
@@ -24,7 +26,28 @@ end
 
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
-local function  hostMod()
+local function config_save()
+	local re
+	for k,v in pairs(config) do
+		if k == "base" then
+			if _debug == "no" then
+				re = optl.writefile(config_base.baseDir..k..".json",v,"w+")
+			else
+				re = optl.writefile(config_base.baseDir..k.."_bak.json",v,"w+")
+			end
+		else
+			if _debug == "no" then
+				re = optl.writefile(config_base.jsonPath..k..".json",v,"w+")
+			else
+				re = optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
+			end
+		end
+		if re ~= true then break end
+	end
+	return re
+end
+
+local function  hostMod_save()
 	local _tb_host,tb_host_mod,tb_host_name = host_dict:get_keys(0),{},{}
 	for i,v in ipairs(_tb_host) do
 		local from , to = string.find(v, "_HostMod")
@@ -68,32 +91,18 @@ end
 if _action == "save" then
 	
 	if _mod == "all_mod" then
-		local re
-		for k,v in pairs(config) do
-			if k == "base" then
-				if _debug == "no" then
-					re = optl.writefile(config_base.baseDir..k..".json",v,"w+")
-				else
-					re = optl.writefile(config_base.baseDir..k.."_bak.json",v,"w+")
-				end
-			else
-				if _debug == "no" then
-					re = optl.writefile(config_base.jsonPath..k..".json",v,"w+")
-				else
-					re = optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
-				end
-			end
-			if re ~= true then break end
-		end
+		
 		local _code = "ok"
 		local _msg = "save ok"
+
+		local re = config_save()
 		if re ~= true then  
 			_code = "error" 
 			_msg = "config_dic save error"
 			sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 		end
 		
-		re = hostMod()
+		re = hostMod_save()
 		if re ~= true then  
 			_code = "error"
 			_msg = "host_dict save error"
@@ -114,7 +123,8 @@ if _action == "save" then
 				re = optl.writefile(config_base.baseDir.._mod.."_bak.json",_msg,"w+")
 			end
 		elseif _mod == "host_Mod" then
-			re = hostMod()
+		-- 目前基于host的模块规则是 全部保存 并不能基于某一个host进行保存
+			re = hostMod_save()
 			if re then
 				_msg = "host_dict save ok"
 			else

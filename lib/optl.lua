@@ -4,7 +4,7 @@ local function readfile(_filepath)
     -- local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
     local fd,err = io.open(_filepath,"r")
     if fd == nil then 
-        ngx.log(ngx.ERR,"readfile error : "..tostring(err))
+        ngx.log(ngx.ERR,"readfile error",err)
         return
     end
     local str = fd:read("*a") --- 全部内容读取
@@ -21,7 +21,7 @@ local function writefile(_filepath,_msg,_ty)
     -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
     local fd,err = io.open(_filepath,_ty)
     if fd == nil then 
-        ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg).." error : "..tostring(err))
+        ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg),err)
         return 
     end -- 文件读取错误返回
     fd:write("\n"..tostring(_msg))
@@ -81,8 +81,8 @@ local function stringTojson(_obj)
 end
 
 -- 用于生成唯一随机字符串
+local random = require "resty-random"
 local function guid()
-    local random = require "resty-random"
     return string.format('%s-%s',
         random.token(10),
         random.token(10)
@@ -112,17 +112,20 @@ end
 local function remath(_str,_re_str,_options)
     if _str == nil or _re_str == nil or _options == nil then return false end
     if _options == "" then
+    -- 纯字符串匹配 * 表示任意
         if _str == _re_str or _re_str == "*" then
             return true
         end
     elseif _options == "table" then
+    -- table 匹配，在table中 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
         for i,v in ipairs(_re_str) do
             if v == _str then
                 return true
             end
         end
-    elseif _options == "in" then --- 用于包含 查找 string.find       
+    elseif _options == "in" then 
+    --- 用于包含 查找 string.find       
         local from , to = string.find(_str, _re_str)
         --if from ~= nil or (from == 1 and to == 0 ) then
         --当_re_str=""时的情况 没有处理
@@ -130,18 +133,21 @@ local function remath(_str,_re_str,_options)
             return true
         end
     elseif _options == "list" then
+    --- list 匹配，o(1) 比table要好些， 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
         local re = _re_str[_str]
         if re == true then
             return true
         end
     elseif _options == "@token@" then
+    --- 服务端对token的合法性进行匹配
         local a = tostring(token_dict:get(_str))
         if a == _re_str then 
             token_dict:delete(_str) -- 使用一次就删除token
             return true
         end
     elseif _options == "cidr" then
+    --- 基于cidr，用于匹配ip 是否在 ip段中
         if type(_re_str) ~= "table" then return false end
         for i,v in ipairs(_re_str) do
 
@@ -158,6 +164,7 @@ local function remath(_str,_re_str,_options)
             end
         end
     else
+    --- 正则匹配
         local from, to = ngx.re.find(_str, _re_str, _options)
         if from ~= nil then
             return true,string.sub(_str, from, to)
@@ -182,7 +189,7 @@ local function set_count_dict(_key)
     end
 end
 
-
+--- 替换方式比较简单（全局替换），先这么用吧
 local function ngx_find(_str)
     -- str = string.gsub(str,"@ngx_time@",ngx.time())
     -- ngx.re.gsub 效率要比string.gsub要好一点，参考openresty最佳实践
@@ -197,6 +204,7 @@ local function ngx_find(_str)
     return _str
 end
 
+--- 对not table 类型的数据 进行 ngx_find
 local function sayHtml_ext(_html,_ty) 
     ngx.header.content_type = "text/html"    
     if _html == nil then 
@@ -214,6 +222,7 @@ local function sayHtml_ext(_html,_ty)
     ngx.exit(200)
 end
 
+--- ngx_find 无条件使用
 local function sayFile(_filename)
     ngx.header.content_type = "text/html"
     --local str = readfile(Config.base.htmlPath..filename)
@@ -232,7 +241,8 @@ end
 -- 记录debug日志
 -- 更新记录IP 2016年6月7日 22:22:15
 -- 目录配置异常，则log路径就是 /tmp/
-local function debug(_filename,_base_msg,_info)
+-- 参数循序 base_msg info filename
+local function debug(_base_msg,_info,_filename)
     if _base_msg.config_base.debug_Mod == false then return end --- 判断debug开启状态
     if _filename == nil then
         _filename = "debug.log"
@@ -323,6 +333,7 @@ optl.tableTojson = tableTojson
 optl.stringTojson = stringTojson
 
 --- ==
+optl.random = random
 optl.guid = guid
 optl.set_token = set_token
 optl.remath = remath

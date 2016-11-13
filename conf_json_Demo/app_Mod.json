@@ -28,7 +28,7 @@
     },
     {
         "state": "on",
-        "action": ["next","args"],
+        "action": ["cc","args"],
         "args":["true","@token@","keytoken"],
         "hostname": ["127.0.0.1:5460",""],
         "url": ["/api/debug",""]

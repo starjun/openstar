@@ -25,37 +25,46 @@ local _code = "ok"
 if _action == "get" then
 
 	if _mod == "all_mod" then
+
 		local _tb,tb_all = tmpdict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
 			tb_all[v] = tmpdict:get(v)
 		end
+		tb_all.code = _code
 		optl.sayHtml_ext(tb_all)
-	elseif _mod == "count_mod" then
-		local _tb = tmpdict:get_keys(0)
-		optl.sayHtml_ext({count=table.getn(_tb)})
+
 	elseif _mod == "" then
+
 		local _tb = tmpdict:get_keys(0)
+		_tb.code = _code
 		optl.sayHtml_ext(_tb)
-	else	
+
+	else
+
 		local _tb = tmpdict:get(_mod)
 		if _tb == nil then optl.sayHtml_ext({code="error",msg="mod is Non-existent"}) end
 		_tb = cjson_safe.decode(_tb) or {}
+
 		if _id == "" then
+
 			_tb.state = config_base[_mod]
+			_tb.code = _code
 			optl.sayHtml_ext(_tb)
+
 		elseif _id == "count_id" then
 			local cnt = 0
 			for k,v in pairs(_tb) do
 				cnt = cnt+1
 			end
-			optl.sayHtml_ext({count=cnt})
+			optl.sayHtml_ext({code=_code,count_id=cnt})
 		else
 			--- realIpFrom_Mod 和 base 和 denyHost_Mod 特殊处理
 			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyMsg" then
 				_id = tonumber(_id)
 			end			
-			optl.sayHtml_ext({id=_id,value=_tb[_id]})
+			optl.sayHtml_ext({code=_code,_id=_tb[_id]})
 		end
+
 	end	
 
 elseif _action == "set" then
@@ -85,7 +94,7 @@ elseif _action == "set" then
 		end		
 		
 		_tb = cjson_safe.decode(_tb) or {}
-		--- realIpFrom_Mod base 特殊处理
+		--- realIpFrom_Mod base denyMsg 特殊处理
 		if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyMsg" then
 			_id = tonumber(_id)
 		end
