@@ -341,7 +341,7 @@ if config_is_on("app_Mod") then
 
 					if type(args_tb) == "table" then
 						local checkcc
-						for i,vv in ipairs(args_tb) do
+						for _,vv in ipairs(args_tb) do
 							if remath(vv,v.args[1],v.args[2]) then
 								checkcc = true
 								-- 也可使用 goto 代码
@@ -352,11 +352,12 @@ if config_is_on("app_Mod") then
 							break
 						end
 					else
-					-- 预留给其他cc验证点，header、post_args等等
-
+						if remath(args_tb,v.args[1],v.args[2]) then
+							break
+						end
 					end
 				else
-										
+					-- 预留给其他cc验证点，header、post_args等等					
 				end
 
 			elseif v.action[1] == "next" then
