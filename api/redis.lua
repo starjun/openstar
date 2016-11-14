@@ -5,14 +5,15 @@
 --    配置包括 config_dic / host_dict / count_dict / 部分ip_dict 数据
 --    ip_dict 中暂时仅包含永久数据 time=0 动态生成在 暂时没有同步到redis
 
---    redis DB 0 存放 config_dict 和 host_dict
+--    redis DB 0 存放 config_dict 、 host_dict 、 count_dict
 --    config_dict 的key = base realIpFrom_Mod deny_Msg url_Mod header_Mod
 --         useragent_Mod cookie_Mod args_Mod post_Mod network_Mod 
 --         replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
 --    count_dict 的key = count_dict
 --    host_dict 的 key = host_Mod %host%_HostMod
---    redis DB 1,3 存放 ip_dict
---    ip_dict 的 key = %ip% 存放在DB 1,  %host%-ip 存放在DB 2
+
+--    redis DB 1 存放 ip_dict 
+--    ip_dict 的 key = %ip% ,%host%-%ip%
 
 
 -- local redis_iresty = require "redis_iresty"
@@ -44,7 +45,7 @@ local _key = get_argsByName("key")
 local _value = get_argsByName("value")
 
 local red = redis:new()
-red:set_timeout(2000) -- 1 sec
+red:set_timeout(2000) -- 2 sec
 
 local ok, err = red:connect(redis_mod.ip, redis_mod.Port)
 if not ok then
@@ -80,7 +81,7 @@ local function push_host_Mod(_isexit)
     -- tb_host_name 所有host name
     -- tb_host_all  所有host 对应 host_HostMod 和 host == > host_Mod
 
-    -- 切换ip_dict 数据库 DB 0
+    -- 切换数据库 DB 0
     local ok, err = red:select(0)
     if not ok then
         local _msg = "failed to select : "..tostring(err)
@@ -138,7 +139,7 @@ end
 
 local function pull_host_Mod(_isexit)
 
-    -- 切换ip_dict 数据库 DB 0
+    -- 切换数据库 DB 0
     local ok, err = red:select(0)
     if not ok then
         local _msg = "failed to select : "..tostring(err)
@@ -217,21 +218,13 @@ end
 local function push_ip_Mod(_isexit)
 
     -- 获取所有永久状态的 ip 列表
-    -- tb_ip_all （永久ip列表）
-    local _tb_ip_name,tb_ip_all,tb_hostIP_all = ip_dict:get_keys(0),{},{}
+    local _tb_ip_name,tb_ip_all = ip_dict:get_keys(0),{}
     for i,v in ipairs(_tb_ip_name) do
-        -- 判断是否是全局IP 2016年11月7日增加
-        local from , to = string.find(v, "-")
-        if from == nil then
-            local ip_value = ip_dict:get(v)
-            --- init 中，永久ip只有这3个value
-            if ip_value == "allow" or ip_value == "deny" or ip_value == "log" then            
-                tb_ip_all[v] = ip_value
-            end
-        else
-            tb_hostIP_all[v] = ip_dict:get(v)
-        end
-        
+        local ip_value = ip_dict:get(v)
+        --- init 中，永久ip只有这3个value
+        if ip_value == "allow" or ip_value == "deny" or ip_value == "log" then            
+            tb_ip_all[v] = ip_value
+        end        
     end
     
     -- 切换ip_dict 数据库 1 
@@ -239,7 +232,6 @@ local function push_ip_Mod(_isexit)
     if not ok then
         local _msg = "failed to select : "..tostring(err)
         sayHtml_ext({code="error",msg=_msg})
-        --ngx.say("failed to select : ", err)
         return
     end
 
@@ -266,43 +258,6 @@ local function push_ip_Mod(_isexit)
         end
         res_tb[_tb[i]] = res
     end
-    -- [全局IP操作完成] 执行结果 都是 res_tb 中
-
-    -- DB 1 操作完成 错误暂不退出 ，继续操作DB 3
-
-    -- 切换ip_dict 数据库 3
-    -- host-ip 操作 
-    local ok, err = red:select(3)
-    if not ok then
-        local _msg = "failed to select : "..tostring(err)
-        sayHtml_ext({code="error",msg=_msg})
-        --ngx.say("failed to select : ", err)
-        return
-    end
-
-    -- 批量执行 redis set 命令
-    local _tb = {}
-    red:init_pipeline()
-    for i,v in pairs(tb_hostIP_all) do
-        table.insert(_tb,i)
-        red:set(i,v)
-    end
-    local results, err = red:commit_pipeline()
-    if not results then
-        local _msg = "failed to commit the pipelined requests: "..tostring(err)
-        sayHtml_ext({code="error",msg=_msg})
-        --ngx.say("failed to commit the pipelined requests: ", err)
-        return
-    end
-
-    local _code = "ok"
-    for i, res in ipairs(results) do
-        if res ~= "OK" then
-           _code = "error"
-        end
-        res_tb[_tb[i]] = res
-    end
-    -- [host-IP操作完成] 执行结果 都是 res_tb 中
     
     if _isexit == nil then
         sayHtml_ext({code = _code ,msg = res_tb})
@@ -364,11 +319,10 @@ local function pull_ip_Mod(_isexit)
         return
     end
 
-    
     for i, res in ipairs(results) do
         res_tb[ok[i]].time = res
     end
-
+    
     -- 清理ip_dict中 value 为allow deny log 的永久数据
     -- local _tb_ip_name = ip_dict:get_keys(0)
     -- for i,v in ipairs(_tb_ip_name) do
@@ -379,63 +333,6 @@ local function pull_ip_Mod(_isexit)
     --     end
     -- end
     -- ip_dict:flush_expired(0)
-
-    -- DB 3 操作
-
-    -- 切换ip_dict 数据库 DB 3
-    local ok, err = red:select(3)
-    if not ok then
-        local _msg = "failed to select : "..tostring(err)
-        sayHtml_ext({code="error",msg=_msg})
-        --ngx.say("failed to select : ", err)
-        return
-    end
-
-    -- 获取所有keys
-    ok, err = red:keys("*")
-    if not ok then
-        local _msg = "failed to keys : "..tostring(err)
-        sayHtml_ext({code="error",msg=_msg})
-        --ngx.say("failed to keys : ", err)
-        return
-    end
-
-    red:init_pipeline()
-
-    --- 先取值
-    for i,v in ipairs(ok) do
-        red:get(v)
-    end
-    local results, err = red:commit_pipeline()
-    if not results then
-        local _msg = "failed to commit the pipelined (get key) requests: "..tostring(err)
-        sayHtml_ext({code="error",msg=_msg})
-        --ngx.say("failed to commit the pipelined (get key) requests: ", err)
-        return
-    end
-
-    for i, res in ipairs(results) do
-        res_tb[ok[i]] = {value=res,time=0}
-    end
-
-    red:init_pipeline()
-
-    --- 再取 ttl
-    for i,v in ipairs(ok) do
-        red:ttl(v)
-    end
-    local results, err = red:commit_pipeline()
-    if not results then
-        local _msg = "failed to commit the pipelined requests: "..tostring(err)
-        sayHtml_ext({code="error",msg=_msg})
-        --ngx.say("failed to commit the pipelined requests: ", err)
-        return
-    end
-
-    
-    for i, res in ipairs(results) do
-        res_tb[ok[i]].time = res
-    end
 
     -- 将redis中的数据添加
     local _msg = {}
@@ -652,7 +549,7 @@ elseif _action == "push" then
         push_host_Mod(1)        
         push_count_dict(1)
 
-        -- 切换ip_dict 数据库 DB 0
+        -- 切换 数据库 DB 0
         local ok, err = red:select(0)
         if not ok then
             local _msg = "failed to select : "..tostring(err)
