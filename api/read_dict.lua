@@ -23,18 +23,20 @@ if _action == "get" then
 	
 	if _id == "count_id" then
 		local _tb = tmpdict:get_keys(0)
-		optl.sayHtml_ext({count_id=table.getn(_tb)})
+		optl.sayHtml_ext({code="ok",count_id=table.getn(_tb)})
 	elseif _id == "all_id" then
 		local _tb,tb_all = tmpdict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
 			tb_all[v] = tmpdict:get(v)
 		end
+		tb_all.code = "ok"
 		optl.sayHtml_ext(tb_all)
 	elseif _id == "" then
 		local _tb = tmpdict:get_keys(0)
+		_tb.code = "ok"
 		optl.sayHtml_ext(_tb)
 	else
-		optl.sayHtml_ext({id=_id,value=tmpdict:get(_id)})
+		optl.sayHtml_ext({code="ok",id=_id,value=tmpdict:get(_id)})
 		--ngx.say(tmpdict:get(_id))
 	end
 

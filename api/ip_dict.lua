@@ -78,19 +78,21 @@ elseif _action == "get" then
 
 	if _ip == "count_ip" then
 		local _tb = ip_dict:get_keys(0)
-		optl.sayHtml_ext({count=table.getn(_tb)})
+		optl.sayHtml_ext({code="ok",count=table.getn(_tb)})
 	elseif _ip == "all_ip" then
 		local _tb,tb_all = ip_dict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
 			tb_all[v] = ip_dict:get(v)
 		end
 		tb_all.state = config_base["realIpFrom_Mod"]
+		tb_all.code = "ok"
 		optl.sayHtml_ext(tb_all)
 	elseif _ip == "" then
 		local _tb = ip_dict:get_keys(1024)
+		_tb.code = "ok"
 		optl.sayHtml_ext(_tb)
 	else
-		optl.sayHtml_ext({ip=_ip,value=ip_dict:get(_ip)})
+		optl.sayHtml_ext({code="ok",ip=_ip,value=ip_dict:get(_ip)})
 	end
 
 else

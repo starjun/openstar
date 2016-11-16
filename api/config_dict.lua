@@ -62,7 +62,7 @@ if _action == "get" then
 			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyMsg" then
 				_id = tonumber(_id)
 			end			
-			optl.sayHtml_ext({code=_code,_id=_tb[_id]})
+			optl.sayHtml_ext({code=_code,msg=_tb[_id]})
 		end
 
 	end	
@@ -80,6 +80,7 @@ elseif _action == "set" then
 			local re = tmpdict:replace(_mod,_value)--将对应mod整体进行替换
 			if re ~= true then
 				_code = "error"
+				optl.sayHtml_ext({code=_code,msg="replace error"})
 			end
 			optl.sayHtml_ext({code=_code,old_value=_old_value,new_value=tmp_value})
 		else
@@ -106,6 +107,7 @@ elseif _action == "set" then
 		local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
 		if re ~= true then
 			_code = "error"
+			optl.sayHtml_ext({code=_code,msg="replace error"})
 		end
 		optl.sayHtml_ext({code=_code,old_value=_old_value,new_value=_value})
 
@@ -134,8 +136,9 @@ elseif _action == "add" then
 			local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
 			if re ~= true then
 				_code = "error"
+				optl.sayHtml_ext({code=_code,msg="replace error"})
 			end
-			optl.sayHtml_ext({code=_code,mod=_mod,value=_value})
+			optl.sayHtml_ext({code=_code,msg=_mod,value=_value})
 		else
 		 	optl.sayHtml_ext({code="error",msg="id is existent"})
 		end 
@@ -147,8 +150,9 @@ elseif _action == "add" then
 		local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
 		if re ~= true then
 			_code = "error"
+			optl.sayHtml_ext({code=_code,msg="replace error"})
 		end
-		optl.sayHtml_ext({code=_code,mod=_mod,value=_value})
+		optl.sayHtml_ext({code=_code,msg=_mod,value=_value})
 	end
 	
 elseif _action == "del" then
@@ -169,6 +173,7 @@ elseif _action == "del" then
 			local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
 			if re ~= true then
 				_code = "error"
+				optl.sayHtml_ext({code=_code,msg="replace error"})
 			end
 			optl.sayHtml_ext({code=_code,mod=_mod,id=_id})
 		end
@@ -186,6 +191,7 @@ elseif _action == "del" then
 				local re = tmpdict:replace(_mod,cjson_safe.encode(_tb))
 				if re ~= true then
 					_code = "error"
+					optl.sayHtml_ext({code=_code,msg="replace error"})
 				end
 				optl.sayHtml_ext({code=_code,mod=_mod,id=_id})
 			end		

@@ -15,18 +15,20 @@ if _action == "get" then
 	
 	if _token == "count_token" then
 		local _tb = tmpdict:get_keys(0)
-		optl.sayHtml_ext({count_id=table.getn(_tb)})
+		optl.sayHtml_ext({code="ok",count_id=table.getn(_tb)})
 	elseif _token == "all_token" then
 		local _tb,tb_all = tmpdict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
 			tb_all[v] = tmpdict:get(v)
 		end
+		tb_all.code = "ok"
 		optl.sayHtml_ext(tb_all)
 	elseif _token == "" then
 		local _tb = tmpdict:get_keys(1024)
+		_tb.code = "ok"
 		optl.sayHtml_ext(_tb)
 	else
-		optl.sayHtml_ext({token=_token,value=tmpdict:get(_token)})
+		optl.sayHtml_ext({code="ok",token=_token,value=tmpdict:get(_token)})
 	end
 
 elseif _action == "set" then
@@ -36,13 +38,13 @@ elseif _action == "set" then
 		if not re then
 			_code = "error"
 		end
-		optl.sayHtml_ext({code=_code,token=re})
+		optl.sayHtml_ext({code=_code,msg=re})
 	else
 		local re = optl.set_token(_token)
 		if not re then
 			_code = "error"
 		end
-		optl.sayHtml_ext({code = _code,token=re})
+		optl.sayHtml_ext({code = _code,msg=re})
 	end
 
 else
