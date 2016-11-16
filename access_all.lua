@@ -1,4 +1,7 @@
 -----  access_all by zj  -----
+local optl = require("optl")
+local request_guid = optl.random.token(50)
+ngx.ctx.request_guid = request_guid
 
 if ngx.req.is_internal() then return end
 
@@ -37,7 +40,6 @@ local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 base_msg.config_base = config_base
 
-local optl = require("optl")
 
 local host_Mod_state = host_dict:get(host)
 
@@ -650,4 +652,3 @@ if config_is_on("network_Mod") then
 		end
 	end
 end
-
