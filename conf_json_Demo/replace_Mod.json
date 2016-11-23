@@ -1,7 +1,7 @@
 [
     {
         "state": "on",
-        "url": ["^/api/ip_dict$","jio"],
+        "uri": ["^/api/ip_dict$","jio"],
         "hostname": ["101.200.122.200",""],
         "replace_list":
             [

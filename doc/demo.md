@@ -5,7 +5,7 @@
 
 ## host和method规则配置
 在一些场景中我们需要限制准入的host和允许的method（CDN&&前端服务器）
-如我们仅允许域名为\*.test.com，method仅允许get和post；那么我们就配置host_method_Mod.json文件
+如我们仅允许域名为\*.test.com，method仅允许get和post；那么我们就配置host\_method_Mod.json文件
 ```
  {
         "state": "on",
@@ -73,10 +73,10 @@
         "state": "on",
         "action": ["deny"],
         "hostname": ["127.0.0.1",""],
-        "url": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
+        "uri": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
 }
 ```
-基础匹配hostname，url，host为`127.0.0.1`，url进行正则匹配，如果匹配成功，就执行`action`操作，这里就是拒绝访问。
+基础匹配hostname，uri，host为`127.0.0.1`，uri进行正则匹配，如果匹配成功，就执行`action`操作，这里就是拒绝访问。
 
 `rehtml`：这个动作就是返回字符串
 ```
@@ -85,7 +85,7 @@
         "action": ["rehtml"],
         "rehtml": "hi~!",
         "hostname": ["127.0.0.1",""],
-        "url": ["/rehtml",""]
+        "uri": ["/rehtml",""]
     }
 ```
 这个也比较好理解，host是`127.0.0.1`，url通过字符串匹配，匹配成功就把`rehtml`中的内容直接返回了，应用场景也是比较多的。
@@ -97,22 +97,22 @@
         "action": ["reflie"],
         "reflie": "2.txt",
         "hostname": ["127.0.0.1",""],
-        "url": ["^/refile$","jio"]
+        "uri": ["^/refile$","jio"]
     }
 ```
 
-`relua`：这个动作就是执行lua脚本文件（dofile实现）
+`relua/relua_str`：这个动作就是执行lua脚本文件
 ```
 {
         "state": "on",
         "action": ["relua"],
         "relua":"1.lua",
         "hostname": ["*",""],
-        "url": ["*",""]
+        "uri": ["*",""]
     }
 ```
-这个匹配规则，host是所有的，url也是所有，匹配成功后执行`./index`目录下的1.lua文件
-如果有一些复杂的可以直接使用lua脚本去实现，这个脚本的意思是匹配任意host，url是`/api/time`
+这个匹配规则，host是所有的，uri也是所有，匹配成功后执行`./index`目录下的1.lua文件
+如果有一些复杂的可以直接使用lua脚本去实现，这个脚本的意思是匹配任意host，uri是`/api/time`
 
 `log`：这个就表示仅仅记录一些log（log保存的路径就是在config.json里面，文件名是app_log.log）
 ```
@@ -120,42 +120,46 @@
         "state": "on",
         "action": ["log"],
         "hostname": ["127.0.0.1",""],
-        "url": ["^/log$","jio"]
+        "uri": ["^/log$","jio"]
     }
 ```
-比较好理解，注意hostname和url的匹配方式（二阶匹配）
+比较好理解，注意hostname和uri的匹配方式（二阶匹配）
 
 `next`：动作继续，如果基本的hostname和url匹配成功后，后面的规则匹配失败就拒绝访问了
-```
-    {
-        "state": "on",
-        "action": ["next","args"],
-        "args":["^[\\w]{6}$","jio","keyby"],
-        "hostname": [["127.0.0.1:5460","127.0.0.1"],"table"],
-        "url": ["/api/time",""]
-    }
-```
-基础匹配host和url，匹配成功后，`action`值中，第一个是`next`，表示匹配继续动作，匹配成功后继续后续的规则匹配，匹配失败拒绝，第二个`args`，表示被匹配的是args,对应args规则`^[\\w]{6}$`，这个正则也是比较好理解：6个任意字符串即可，这里是我在设计防护CC时用到的客户端防护，对`args`的参数进行静态正则的检查，在看下面这个是使用动态token的检查，`token`是由服务器生成的，判断token是否合法即可。
-```
-    {
-        "state": "on",
-        "action": ["next","args"],
-        "args":["true","@token@","keytoken"],
-        "hostname": ["127.0.0.1:5460",""],
-        "url": ["/api/debug",""]
-    }
-```
-下一个是`ip`的检查，**这个场景也是比较多，就是对某个文件夹（url路径/程序后台路径/phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）**。
+支持参数：remoteIp host method request\_uri uri useragent referer cookie query_string
+基础匹配host和uri，匹配成功后，`action`值中，第一个是`next`，表示匹配继续动作，匹配成功后继续后续的规则匹配，匹配失败拒绝，第二个`ip`的检查，**这个场景也是比较多，就是对某个文件夹（url路径/程序后台路径/phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）**。
 ```
     {
         "state": "on",
         "action": ["next","ip"],
         "ip":[["106.37.236.170","1.1.1.1"],"table"],
         "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "url": ["/api/.*","jio"]
+        "uri": ["/api/.*","jio"]
+    }
     
 ```
 这个配置就表示，访问`/api/.*`这些目录的只有`ip`为`1.1.1.1`和`106.37.236.170`，是不是很简单，对目录进行明细的IP访问控制。
+
+在看一个规则列表的可以使用or连接的
+```
+    {
+        "state": "on",
+        "action": ["deny"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "uri": ["/api/.*","jio"],
+        "app_ext":[
+        [false,"uri",["admin","in"],"or"],
+        [false,"cookie",["c_test","jio"],"and"],
+        [ture,"ip",[["1.1.1.1","127.0.0.1"],"table"],"and"]
+        ]
+    }
+```
+理解一下就是 hostname and uri and (app\_ext),app\_ext = (uri 包含 admin or cookie 正则匹配 c\_test) and ip not 不在table中。hostname 和 uri 是基础的条件，满足后再匹配app_ext 中的规则列表。
+说明：[是否取反,匹配规则名称,规则明细,and/or连接符]
+规则名称支持：remoteIp host method uri request\_uri useragent referer cookie query\_string ip 以及 args headers
+
+
+
 
 ## 配置referer过滤
 在该模块下，一些防盗链，站外CSRF等都是在这里设置，如我需要设置图片仅允许本站进行引用。
@@ -209,14 +213,14 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
             "*",
             ""
         ],
-        "url": [
+        "uri": [
             "\\.(svn|git|htaccess|bash_history)",
             "jio"
         ],
         "action": "deny"
 }
 ```
-首先看`hostname`,这里匹配的是所有，`url`就是一些敏感文件、目录了，动作`action`就是拒绝了。
+首先看`hostname`,这里匹配的是所有，`uri`就是一些敏感文件、目录了，动作`action`就是拒绝了。
 在说一个动作是`allow`的，这个场景就是一些静态资源，这些匹配后，不进行后续的规则匹配，总体是减少匹配的次数，提高效率的，因为不需要在不同的`location`中单独去引用LUA文件了，也是非常实用的功能
 ```
 {
@@ -225,7 +229,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
             "*",
             ""
         ],
-        "url": [
+        "uri": [
             "\\.(css|js|flv|swf|zip|txt)$",
             "jio"
         ],
@@ -240,7 +244,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 ```
 {
     "state": "on",
-    "url": ["*",""],
+    "uri": ["*",""],
     "hostname": ["*",""],
     "header": ["Acunetix_Aspect","*",""]        
 }
@@ -295,7 +299,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
             "*",
             ""
         ],
-        "args": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
+        "query_string": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
         "action": "deny"
 }
 // -- XSS
@@ -305,7 +309,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
             "*",
             ""
         ],
-        "args": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
+        "query_string": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
         "action": "deny"
 }
 ```
@@ -314,27 +318,27 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 ## 配置网络访问频率限制
 关于访问频率的限制，支持对明细`url`的单独限速，当然也可以是整站的频率限制。
 ```
--- 单个URL的频率限制
+-- 单个URI的频率限制
 -- 因为一个网站一般情况下容易被CC的点就那么几个
 {
     "state": "on",
     "network":{"maxReqs":10,"pTime":10,"blackTime":600},
     "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-    "url": ["/api/time",""]
+    "uri": ["/api/time",""]
 }
 -- 限制整个网站的（范围大的一定要放下面）
 {
     "state": "on",
     "network":{"maxReqs":30,"pTime":10,"blackTime":600},
     "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-    "url": ["*",""]
+    "uri": ["*",""]
 }
 -- 限制ip的不区分host和url
 {
     "state": "on",
     "network":{"maxReqs":100,"pTime":10,"blackTime":600},
     "hostname": ["*",""],
-    "url": ["*",""]
+    "uri": ["*",""]
 }
 ```
 一定要根据自己的情况进行配置！！！
@@ -365,13 +369,13 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 
     {
         "state": "on",
-        "action": ["allow","url"],
-        "url": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
+        "action": ["allow","uri"],
+        "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
     },
     {
         "state": "on",
         "action":["log","referer"],
-        "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+        "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
         "referer": ["hao123","in"]
         
     },
@@ -384,7 +388,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
         "state": "on",
         "action":["deny","network"],
         "network":{"maxReqs":30,"pTime":10,"blackTime":600},
-        "url": ["/index.html",""]
+        "uri": ["/index.html",""]
     }
 ]
 ```

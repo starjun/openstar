@@ -6,7 +6,7 @@
 --    ip_dict 中暂时仅包含永久数据 time=0 动态生成在 暂时没有同步到redis
 
 --    redis DB 0 存放 config_dict 、 host_dict 、 count_dict
---    config_dict 的key = base realIpFrom_Mod deny_Msg url_Mod header_Mod
+--    config_dict 的key = base realIpFrom_Mod deny_Msg uri_Mod header_Mod
 --         useragent_Mod cookie_Mod args_Mod post_Mod network_Mod 
 --         replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
 --    count_dict 的key = count_dict

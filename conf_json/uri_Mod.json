@@ -2,20 +2,20 @@
     {
         "state": "on",
         "hostname": ["*",""],
-        "url": ["\\.(css|js|flv|swf|woff|txt)$","jio"],
+        "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"],
         "action": "allow"
     },
     {
         "state": "on",
         "hostname": [
             ["127.0.0.1","passport.game.com"],"table"],
-        "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+        "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
         "action": "allow"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "url": ["\\.(svn|git|htaccess|bash_history)","jio"],
+        "uri": ["\\.(svn|git|htaccess|bash_history)","jio"],
         "action": "deny"
     }
 ]

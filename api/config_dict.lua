@@ -2,7 +2,7 @@
 ---- config_dict 操作 增删该查
 --   包含模块
 --   base realIpFrom_Mod deny_Msg [序号非数字]
---   url_Mod header_Mod useragent_Mod cookie_Mod args_Mod post_Mod
+--   uri_Mod header_Mod useragent_Mod cookie_Mod args_Mod post_Mod
 --   network_Mod replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
 
 local cjson_safe = require "cjson.safe"

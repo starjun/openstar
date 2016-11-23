@@ -15,14 +15,14 @@ API相关介绍：
  - ip_Mod
  ip过滤模块
 
- - host_method_Mod
+ - host\_method_Mod
  host && method 过滤模块
 
  - rewrite_Mod
  跳转规则模块 set-cookie
 
  - host_Mod
- 对应host执行的规则过滤（url,referer,useragent,network）
+ 对应host执行的规则过滤（uri,referer,useragent,network）
 
  - app_Mod
  自定义应用规则模块
@@ -30,8 +30,8 @@ API相关介绍：
  - referer_Mod
  referer过滤模块
 
- - url_Mod
- url过滤模块
+ - uri_Mod
+ uri过滤模块
 
  - header_Mod
  header过滤模块
@@ -76,7 +76,7 @@ API相关介绍：
     ```
     /api/config?action=save&mod=[参数1]&debug=[参数2]
     mod=all_mod --- 表示保存所有配置模块,以及针对host的过滤规则
-    mod=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/host_Mod/app_Mod/referer_Mod/url_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
+    mod=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/host_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
 
     debug=no --- 表示关闭调试，即会覆盖模块对应的配置文件，默认是在对应目录中新建一个对应bak文件
 
@@ -104,7 +104,7 @@ API相关介绍：
  - 增 action=add
    ```
    /api/config_dict?action=add&mod=[参数1]&id=[参数2]&value=[参数3]&value_type=[参数4]
-   mod=[realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/url_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
+   mod=[realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
    id=[仅当mod=realIpFrom_Mod/denyMsg时使用]，realIpFrom_Mod的序列不是数字，而是host。
    value=[增加的内容]
    value_type=[json] 表示传递的value是一个json,其余当做字符串
@@ -133,7 +133,7 @@ API相关介绍：
  - 删 action=del
    ```
     /api/config_dict?action=del&mod=[参数1]&id=[参数2]
-    mod=[realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/url_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
+    mod=[realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
     id=[需要删除的id]
     
     EG: 删除realIpFrom_Mod模块id=101.200.122.200这个数据
@@ -162,7 +162,7 @@ API相关介绍：
  - 改 action=set
    ```
    /api/config_dict?action=set&mod=[参数1]&id=[参数2]&value=[参数3]&value_type=[参数4]
-    mod=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/url_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
+    mod=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
     id=[需要修改的id] ，id没有表示修改整个mod
     value=[修改后的内容]，如果是json，需要标记value_type
     value_type=[json]，默认是为字符串
@@ -199,7 +199,7 @@ API相关介绍：
    mod=all_mod -- 表示显示所有模块
    mod=count_mod -- 显示模块个数
    mod=空  -- 显示所有模块名称
-   mod=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/url_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
+   mod=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
     id=空 -- 显示模块所有内容和状态
     id=count_id -- 显示对应模块的id个数
     id=[其他] -- 显示对应模块指定id的内容
@@ -320,7 +320,7 @@ API相关介绍：
     成功返回：{"code":"ok","key":"aaa1ddd","value":"dddddddddddd"}
     失败返回：{"code":"error","msg":"error info"}
 
-    注：仅查询DB=0,就是说只可以查的key为config_dict的 base realIpFrom_Mod deny_Msg url_Mod header_Mod useragent_Mod cookie_Mod args_Mod post_Mod network_Mod replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
+    注：仅查询DB=0,就是说只可以查的key为config_dict的 base realIpFrom_Mod deny_Msg uri_Mod header_Mod useragent_Mod cookie_Mod args_Mod post_Mod network_Mod replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
     count_dict 的 count_dict
     host_dict 的 host_Mod %host%_HostMod
 
@@ -330,7 +330,7 @@ API相关介绍：
     /api/redis?action=push&key=[参数1]
     key=config_dict  -- 表示将本地 config_dict字典 配置推送到redis
 
-    成功返回：{"code":"ok","msg":{"useragent_Mod":"OK","app_Mod":"OK","replace_Mod":"OK","denyMsg":"OK","rewrite_Mod":"OK","args_Mod":"OK","network_Mod":"OK","referer_Mod":"OK","host_method_Mod":"OK","header_Mod":"OK","realIpFrom_Mod":"OK","base":"OK","cookie_Mod":"OK","url_Mod":"OK","post_Mod":"OK"}}
+    成功返回：{"code":"ok","msg":{"useragent_Mod":"OK","app_Mod":"OK","replace_Mod":"OK","denyMsg":"OK","rewrite_Mod":"OK","args_Mod":"OK","network_Mod":"OK","referer_Mod":"OK","host_method_Mod":"OK","header_Mod":"OK","realIpFrom_Mod":"OK","base":"OK","cookie_Mod":"OK","uri_Mod":"OK","post_Mod":"OK"}}
     失败返回：{"code":"error","msg":"error info"}
 
 
@@ -347,7 +347,7 @@ API相关介绍：
     成功返回：{"code":"ok","msg":{"www.game.com_HostMod":"OK","101.200.122.200_HostMod":"OK","127.0.0.1_HostMod":"OK","host_Mod":"OK","pass.game.com_HostMod":"OK"}}
     失败返回：{"code":"error","msg":"error info"}
 
-    key=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/url_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg] -- 表示推送本地 config_dict字典 指定key到redis
+    key=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg] -- 表示推送本地 config_dict字典 指定key到redis
     成功返回：{"code":"ok","msg":"OK"}
     失败返回：{"code":"error","msg":"error info"}
 
@@ -364,7 +364,7 @@ API相关介绍：
     ```
     /api/redis?action=pull&key=[参数1]
     key = config_dict  -- 表示拉取所有配置到本地
-    成功返回：{"code":"ok","msg":{"useragent_Mod":true,"app_Mod":true,"replace_Mod":true,"denyMsg":true,"rewrite_Mod":true,"args_Mod":true,"network_Mod":true,"referer_Mod":true,"host_method_Mod":true,"header_Mod":true,"realIpFrom_Mod":true,"base":true,"cookie_Mod":true,"url_Mod":true,"post_Mod":true}}
+    成功返回：{"code":"ok","msg":{"useragent_Mod":true,"app_Mod":true,"replace_Mod":true,"denyMsg":true,"rewrite_Mod":true,"args_Mod":true,"network_Mod":true,"referer_Mod":true,"host_method_Mod":true,"header_Mod":true,"realIpFrom_Mod":true,"base":true,"cookie_Mod":true,"uri_Mod":true,"post_Mod":true}}
     失败返回：{"code":"error","msg":"error info"}
 
     key = host_dict    -- 表示拉取host_Mod数据到host_dict中
@@ -375,7 +375,7 @@ API相关介绍：
     成功返回：{"code":"ok","msg":{"114.111.166.9":true,"www.g.com-1.1.1.1":true,"127.0.0.1":true,"www.g.com-123.125.26.23":true}}
     失败返回：{"code":"error","msg":"error info"}
 
-    key = [base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/url_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg] -- 表示拉取指定模块到本地
+    key = [base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg] -- 表示拉取指定模块到本地
     成功返回：{"code":"ok","msg":{"new_value":"[{\"state\":\"on\",\"cookie\":[\"\\\\.\\\\.\\\/\",\"jio\"],\"hostname\":[\"*\",\"\"],\"action\":\"deny\"}]","replace":true,"key":"cookie_Mod","old_value":"[{\"state\":\"on\",\"cookie\":[\"\\\\.\\\\.\\\/\",\"jio\"],\"hostname\":[\"*\",\"\"],\"action\":\"deny\"}]"}}
     失败返回：{"code":"error","msg":"error info"}
 
@@ -457,23 +457,23 @@ API相关介绍：
     失败返回：{"code":"error","msg":"error info"}
 
     2：添加一条规则
-    api/host_dict?action=add&host=www.abc.com&value_type=json&value={"state":"on","action":["log","url"],"url":["\\.(css|txt)$","jio"]}
+    api/host_dict?action=add&host=www.abc.com&value_type=json&value={"state":"on","action":["log","uri"],"uri":["\\.(css|txt)$","jio"]}
     value_type=默认 json
-    成功返回：{"code":"ok","value":{"state":"on","action":["log","url"],"url":["\\.(css|txt)$","jio"]}}
+    成功返回：{"code":"ok","value":{"state":"on","action":["log","uri"],"uri":["\\.(css|txt)$","jio"]}}
     失败返回：{"code":"error","msg":"error info"}
 
     规则 EG: 
-    正则 匹配url 动作：允许 
-    value={"state":"on","action":["allow","url"],"url":["\\.(css|js|flv|swf|woff|txt)$","jio"]}
+    正则 匹配uri 动作：允许 
+    value={"state":"on","action":["allow","uri"],"uri":["\\.(css|js|flv|swf|woff|txt)$","jio"]}
     
     包含 匹配referer 动作：记录
-    {"state":"on","action":["log","referer"],"url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"referer":["hao123","in"]}
+    {"state":"on","action":["log","referer"],"uri":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"referer":["hao123","in"]}
 
     包含 匹配useragent 动作：拒绝
     {"state":"on","action":["deny","useragent"],"useragent":["baidu","in"]}
 
-    等于 匹配url and network阈值 动作：拒绝 （暂不能为其他动作）
-    {"state":"on","action":["deny","network"],"url":["\/index.html",""],"network":{"blackTime":600,"maxReqs":30,"pTime":10}}
+    等于 匹配uri and network阈值 动作：拒绝 （暂不能为其他动作）
+    {"state":"on","action":["deny","network"],"uri":["\/index.html",""],"network":{"blackTime":600,"maxReqs":30,"pTime":10}}
 
    ```
   - 删 action=del
@@ -482,7 +482,7 @@ API相关介绍：
      id就表示需要删除的哪一条规则记录，关于id，可以从get操作获取
 
      EG: api/host_dict?action=del&host=www.abc.com&id=1
-     成功返回：{"code":"ok","value":{"state":"on","action":["log","url"],"url":["\\.(css|txt)$","jio"]},"id":1}
+     成功返回：{"code":"ok","value":{"state":"on","action":["log","uri"],"uri":["\\.(css|txt)$","jio"]},"id":1}
      失败返回：{"code":"error","msg":"error info"}
 
     ```
@@ -502,8 +502,8 @@ API相关介绍：
    value_type=json  -- 表示 传递的value是一个json,默认是当做字符串
    value=[规则]
 
-   EG：api/host_dict?action=www.abc.com&id=1&value_type=json&value={"state":"on","action":["log","url"],"url":["\\.(css|txt)$","jio"]}
-   成功返回：{"new_value":{"state":"on","action":["deny","url"],"url":["\\.(css|txt)$","jio"]},"code":"ok","old_value":{"state":"on","action":["log","url"],"url":["\\.(css|txt)$","jio"]}}
+   EG：api/host_dict?action=www.abc.com&id=1&value_type=json&value={"state":"on","action":["log","uri"],"uri":["\\.(css|txt)$","jio"]}
+   成功返回：{"new_value":{"state":"on","action":["deny","uri"],"uri":["\\.(css|txt)$","jio"]},"code":"ok","old_value":{"state":"on","action":["log","uri"],"uri":["\\.(css|txt)$","jio"]}}
    失败返回：{"code":"error","msg":"error info"}
 
 

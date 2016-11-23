@@ -1,6 +1,7 @@
 -----  access_all by zj  -----
 local optl = require("optl")
 local request_guid = optl.random.token(50)
+-- 后续会放到内存，进行唯一性判断（早期暂不判断）
 ngx.ctx.request_guid = request_guid
 
 if ngx.req.is_internal() then return end
@@ -14,19 +15,35 @@ local headers = ngx.req.get_headers()
 local host = ngx_unescape_uri(ngx_var.http_host)
 local referer = ngx_unescape_uri(ngx_var.http_referer)
 local agent = ngx_unescape_uri(ngx_var.http_user_agent)
+local cookie = ngx_unescape_uri(ngx_var.http_cookie)
 
 local method = ngx_unescape_uri(ngx_var.request_method)
-local url = ngx_unescape_uri(ngx_var.uri)
-local request_url = ngx_unescape_uri(ngx_var.request_uri)
+local uri = ngx_unescape_uri(ngx_var.uri)
+local request_uri = ngx_unescape_uri(ngx_var.request_uri)
+
+-- 获取所有参数的内容
+local get_postargs = optl.get_posts
+
+local query_string = optl.get_args()
+
+local post_date
 
 local base_msg = {}
+	-- string 类型http参数
 	base_msg.remoteIp = remoteIp
 	base_msg.host = host
 	base_msg.method = method
-	base_msg.request_url = request_url
-	base_msg.url = url
-	base_msg.agent = agent
+	base_msg.request_uri = request_uri
+	base_msg.uri = uri
+	base_msg.useragent = agent
 	base_msg.referer = referer
+	base_msg.cookie = cookie
+	base_msg.query_string = query_string
+	-- number 类型参数
+
+	-- table 类型参数
+	base_msg.headers = headers
+	base_msg.args = ngx.req.get_uri_args()
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
@@ -38,8 +55,6 @@ local host_dict = ngx.shared.host_dict
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
-base_msg.config_base = config_base
-
 
 local host_Mod_state = host_dict:get(host)
 
@@ -50,17 +65,10 @@ if config_base["Mod_state"] == "off" or host_Mod_state == "off" then
 end
 
 --- 判断config_dict中模块开关是否开启
-local function config_is_on(config_arg)
-	if config_base[config_arg] == "on" then
-		return true
-	end
-end
+local config_is_on = optl.config_is_on
 
 --- 取config_dict中的json数据
-local function getDict_Config(Config_jsonName)
-	local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
-	return re
-end
+local getDict_Config = optl.getDict_Config
 
 --- remath(str,re_str,options)
 --- 常用二阶匹配规则
@@ -68,41 +76,40 @@ local remath = optl.remath
 
 -- 传入 (host)
 -- ipfromset.ips 异常处理
+-- 传入 (host)
+-- ipfromset.ips 异常处理
 local function loc_getRealIp(_host)
-	if config_is_on("realIpFrom_Mod") then
-		local realipfrom = getDict_Config("realIpFrom_Mod")
-		local ipfromset = realipfrom[_host]
-		if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then 
-			return remoteIp 
-		end
-		if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
-			--- header 中key名称 - 需要转换成 _
-			local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
-        	local ip = ngx_unescape_uri(ngx_var[x])
-        	if ip == "" then
-        		ip = remoteIp
-        	end
-			return ip
-		else
-			return remoteIp
-		end
-	else
-		return remoteIp
-	end
+    if config_is_on("realIpFrom_Mod") then
+        local realipfrom = getDict_Config("realIpFrom_Mod")
+        local ipfromset = realipfrom[_host]
+        if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then 
+            return remoteIp 
+        end
+        if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+            --- header 中key名称 - 需要转换成 _
+            local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
+            local ip = ngx_unescape_uri(ngx_var[x])
+            if ip == "" then
+                ip = remoteIp
+            end
+            return ip
+        else
+            return remoteIp
+        end
+    else
+        return remoteIp
+    end
 end
 
---- 匹配 host 和 url
-local function host_url_remath(_host,_url)
-	if _host == nil or _url == nil then
+--- 匹配 host 和 uri
+local function host_uri_remath(_host,_uri)
+	if _host == nil or _uri == nil then
 		return false
 	end
-	if remath(host,_host[1],_host[2]) and remath(url,_url[1],_url[2]) then
+	if remath(host,_host[1],_host[2]) and remath(uri,_uri[1],_uri[2]) then
 		return true
 	end
 end
-
---- 获取单个args值
-local get_argsByName = optl.get_argsByName
 
 --- 拦截计数 2016年6月7日 21:52:52 up 从全局变成local
 local Set_count_dict = optl.set_count_dict
@@ -133,12 +140,6 @@ local function action_deny()
 		ngx.exit(200)
 	end
 end
-
--- 获取所有post的内容
-local get_postargs = optl.get_posts
-
-local post_date
-local get_date
 
 --- STEP 0
 local ip = loc_getRealIp(host)
@@ -171,15 +172,16 @@ if config_is_on("ip_Mod") then
 		end
 	end
 	-- 基于host的ip黑白名单 eg:www.abc.com-101.111.112.113
-	local host_ip = ip_dict:get(host.."-"..ip)
+	local tmp_host_ip = host.."-"..ip
+	local host_ip = ip_dict:get(tmp_host_ip)
 	if host_ip ~= nil then
 		if host_ip == "allow" then -- 跳出后续规则
 			return
 		elseif host_ip == "log" then 
-			Set_count_dict(host.."-ip log count")
+			Set_count_dict(tmp_host_ip.." log count")
 	 		optl.debug(base_msg,"log",host..".log")
 		else
-			Set_count_dict(host.."-"..ip)
+			Set_count_dict(tmp_host_ip)
 			action_deny()
 		end
 	end
@@ -211,16 +213,18 @@ end
 if config_is_on("rewrite_Mod") then
 	local tb_mod = getDict_Config("rewrite_Mod")
 	for i,v in ipairs(tb_mod) do
-		if v.state == "on" and host_url_remath(v.hostname,v.url) then
+		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 
 			if v.action[1] == "set-cookie" then
 				local token = ngx.md5(v.action[2] .. ip)
-	            if (ngx_var.cookie_token ~= token) then
-	                ngx.header["Set-Cookie"] = {"token=" .. token}
+				local token_name = v.action[3] or "token"
+				-- 没有设置 tokenname 默认就是 token
+	            if (ngx_var["cookie_"..token_name] ~= token) then
+	                ngx.header["Set-Cookie"] = {token_name.."=" .. token}
 	                if method == "POST" then
-	                	return ngx.redirect(request_url,307)
+	                	return ngx.redirect(request_uri,307)
 	                else
-	                	return ngx.redirect(request_url)
+	                	return ngx.redirect(request_uri)
 	                end
 	            end
 			elseif v.action[1] == "set-url" then
@@ -241,7 +245,7 @@ if  host_Mod_state == "on" then
 	local _action
 	for i,v in ipairs(tb) do
 		if v.state == "on" then
-			if v.action[2] == "url" and remath(url,v.url[1],v.url[2]) then
+			if v.action[2] == "uri" and remath(uri,v.uri[1],v.uri[2]) then
 
 				_action = v.action[1]				
 				if _action == "deny" then
@@ -256,7 +260,7 @@ if  host_Mod_state == "on" then
 					return
 				end
 				
-			elseif v.action[2] == "referer" and remath(referer,v.referer[1],v.referer[2]) and remath(url,v.url[1],v.url[2]) then
+			elseif v.action[2] == "referer" and remath(referer,v.referer[1],v.referer[2]) and remath(uri,v.uri[1],v.uri[2]) then
 
 				_action = v.action[1]
 				if _action == "deny" then
@@ -286,7 +290,7 @@ if  host_Mod_state == "on" then
 					return
 				end
 
-			elseif v.action[2] == "network" and remath(url,v.url[1],v.url[2]) then
+			elseif v.action[2] == "network" and remath(uri,v.uri[1],v.uri[2]) then
 
 				local mod_host_ip = ip.." host_network_Mod No "..i
 				local ip_count = limit_ip_dict:get(mod_host_ip)
@@ -321,98 +325,78 @@ end
 if config_is_on("app_Mod") then
 	local app_mod = getDict_Config("app_Mod")
 	for i,v in ipairs(app_mod) do
-		if v.state == "on" and host_url_remath(v.hostname,v.url) then
-				
-			if v.action[1] == "deny" then
-				Set_count_dict("app deny count")
-				optl.debug(base_msg,"deny No : "..i,"app.log")
-				action_deny()
-				break
+		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
+			
+			if v.app_ext == nil or optl.re_app_ext(v.app_ext,base_msg) then
 
-			elseif v.action[1] == "allow" then
-
-				return
-
-			elseif v.action[1] == "cc" then
-			-- action = cc 用于cc验证，匹配成功跳出后续的rehtml的js跳转
-			-- 后续增加多维度匹配就不用这么麻烦了
-
-				if v.action[2] == "args" then
-					-- 取args参数任意一个，修改仅取第一个
-					local args_tb = ngx.req.get_uri_args()[v.args[3]]
-
-					if type(args_tb) == "table" then
-						local checkcc
-						for _,vv in ipairs(args_tb) do
-							if remath(vv,v.args[1],v.args[2]) then
-								checkcc = true
-								-- 也可使用 goto 代码
-								break
-							end
-						end
-						if checkcc then
-							break
-						end
-					else
-						if remath(args_tb,v.args[1],v.args[2]) then
-							break
-						end
-					end
-				else
-					-- 预留给其他cc验证点，header、post_args等等					
-				end
-
-			elseif v.action[1] == "next" then
-				--- base_msg 中的 remoteIp host referer agent method url request_url ip
-				--- 以上是 next 动作可以匹配的http参数
-				local check_next = v.action[2]				
-				if remath(base_msg[check_next],v[check_next][1],v[check_next][2]) then
-					-- pass 匹配成功 无操作
-				else					
+				if v.action[1] == "deny" then
+						
 					Set_count_dict("app deny count")
 					optl.debug(base_msg,"deny No : "..i,"app.log")
 					action_deny()
 					break
-				end				
 
-			elseif v.action[1] == "log" then
-				local http_tmp = {}
-				http_tmp["headers"] = headers
-				get_date = ngx_unescape_uri(ngx_var.query_string)
-				http_tmp["get_date"] = get_date
-				if method == "POST" then
-					post_date = get_postargs()
-					http_tmp["post"] = post_date						
-				end
-				optl.debug(base_msg,"log Msg : "..optl.tableTojson(http_tmp),"app.log")
 
-			elseif v.action[1] == "rehtml" then
-				optl.sayHtml_ext(v.rehtml)
-				break
+				elseif v.action[1] == "allow" then
 
-			elseif v.action[1] == "refile" then
-				optl.sayFile(config_base.htmlPath..v.refile)
-				break
+					return
 
-			-- 2016年10月27日 新增 动态执行lua字符串
-			elseif v.action[1] == "relua_str" then
-				local re_lua_do = loadstring(v.relua_str)
-				if re_lua_do() == "break" then
-					ngx.exit(200)					
-				end
+				elseif v.action[1] == "next" then
+					--- base_msg 中的 remoteIp host referer agent method uri request_uri ip
+					--- 以上是 next 动作可以匹配的http参数
+					local check_next = v.action[2]				
+					if type(base_msg[check_next]) ~= "table" and remath(base_msg[check_next],v[check_next][1],v[check_next][2]) then
+						-- pass 匹配成功 无操作
+					else					
+						Set_count_dict("app deny count")
+						optl.debug(base_msg,"deny No : "..i,"app.log")
+						action_deny()
+						break
+					end				
 
-			elseif v.action[1] == "relua" then
-				local re_saylua = optl.sayLua(config_base.htmlPath..v.relua)
-				if re_saylua == "break" then
-					ngx.exit(200)
-				end
+				elseif v.action[1] == "log" then
+					local http_tmp = {}
+					http_tmp["headers"] = headers
+					http_tmp["query_string"] = query_string
+					if method == "POST" then
+						post_date = get_postargs()
+						http_tmp["post"] = post_date						
+					end
+					optl.debug(base_msg,"log Msg : "..optl.tableTojson(http_tmp),"app.log")
 
-			elseif v.action[1] == "set" then -- 预留
-				break
-			else
-				break
-			end 
+				elseif v.action[1] == "rehtml" then
+					optl.sayHtml_ext(v.rehtml)
+					break
+
+				elseif v.action[1] == "refile" then
+					optl.sayFile(config_base.htmlPath..v.refile)
+					break
+
+				-- 2016年10月27日 新增 动态执行lua字符串
+				elseif v.action[1] == "relua_str" then
+					local re_lua_do = loadstring(v.relua_str)
+					if re_lua_do() == "break" then
+						ngx.exit(200)					
+					end
+
+				elseif v.action[1] == "relua" then
+					local re_saylua = optl.sayLua(config_base.htmlPath..v.relua)
+					if re_saylua == "break" then
+						ngx.exit(200)
+					end
+
+				-- it is a test
+				elseif v.action[1] == "app_ext" then
+					
+					if optl.re_app_ext(v.app_ext,base_msg) then
+						ngx.say("yes app_ext is remath")
+					end
+
+				elseif v.action[1] == "set" then -- 预留
+					
+				end 
 			
+			end
 		end
 	end
 end
@@ -423,7 +407,7 @@ end
 if config_is_on("referer_Mod") then
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
-		if v.state == "on" and host_url_remath(v.hostname,v.url) then
+		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 
 			if v.action == "allow" then
 				if remath(referer,v.referer[1],v.referer[2]) then
@@ -456,22 +440,22 @@ if config_is_on("referer_Mod") then
 end
 
 --- STEP 7
--- url 过滤(黑/白名单/log)
-if config_is_on("url_Mod") then
-	local url_mod = getDict_Config("url_Mod")
-	for i, v in ipairs( url_mod ) do
-		if v.state == "on" and host_url_remath(v.hostname,v.url) then
+-- uri 过滤(黑/白名单/log)
+if config_is_on("uri_Mod") then
+	local uri_mod = getDict_Config("uri_Mod")
+	for i, v in ipairs( uri_mod ) do
+		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 
 			if v.action == "allow" then --- 跳出后续规则
 				return
 			elseif v.action ==	"deny" then
-				Set_count_dict("url deny count")
-				optl.debug(base_msg,"deny No : "..i,"url.log")
+				Set_count_dict("uri deny count")
+				optl.debug(base_msg,"deny No : "..i,"uri.log")
 				action_deny()
 				break
 			elseif v.action == "log" then
-				Set_count_dict("url log count")
-				optl.debug(base_msg,"log No : "..i,"url.log")
+				Set_count_dict("uri log count")
+				optl.debug(base_msg,"log No : "..i,"uri.log")
 			end
 			
 		end
@@ -483,9 +467,8 @@ end
 if config_is_on("header_Mod") then
 	local tb_mod = getDict_Config("header_Mod")
 	for i,v in ipairs(tb_mod) do
-		if v.state == "on" and host_url_remath(v.hostname,v.url) then
-
-			if remath(headers[v.header[1]],v.header[2],v.header[3]) then
+		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
+			if optl.action_remath("headers",v.header,base_msg) then
 				Set_count_dict("header deny count")
 			 	optl.debug(base_msg,"deny No : "..i,"header.log")
 			 	action_deny()
@@ -523,10 +506,9 @@ end
 
 --- STEP 10
 -- cookie (黑/白名单/log记录)
-local cookie = ngx_var.http_cookie
 
-if config_is_on("cookie_Mod") and cookie ~= nil then
-	cookie = ngx_unescape_uri(cookie)
+
+if config_is_on("cookie_Mod") and cookie ~= "" then
 	local cookie_mod = getDict_Config("cookie_Mod")
 	for i, v in ipairs( cookie_mod ) do
 		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
@@ -551,31 +533,30 @@ end
 
 --- STEP 11
 -- args [query_string] (黑/白名单/log记录)
-if config_is_on("args_Mod") then
+if config_is_on("args_Mod") and query_string ~= "" then
 	--debug("args_Mod is on")
 	local args_mod = getDict_Config("args_Mod")
-	local args = get_date or ngx_unescape_uri(ngx_var.query_string)
-	if args ~= "" then
-		for i,v in ipairs(args_mod) do
-			if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
-			
-				if remath(args,v.args[1],v.args[2]) then
-					if v.action == "deny" then
-						Set_count_dict("args deny count")
-						optl.debug(base_msg,"deny _args = "..args.." No : "..i,"args.log")
-						action_deny()
-						break
-					elseif v.action == "log" then
-						Set_count_dict("args log count")
-						optl.debug(base_msg,"log _args = "..args.." No : "..i,"args.log")							
-					elseif v.action == "allow" then
-						return							
-					end
+
+	for i,v in ipairs(args_mod) do
+		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
+		
+			if remath(query_string,v.query_string[1],v.query_string[2]) then
+				if v.action == "deny" then
+					Set_count_dict("args deny count")
+					optl.debug(base_msg,"deny _args = "..query_string.." No : "..i,"args.log")
+					action_deny()
+					break
+				elseif v.action == "log" then
+					Set_count_dict("args log count")
+					optl.debug(base_msg,"log _args = "..query_string.." No : "..i,"args.log")							
+				elseif v.action == "allow" then
+					return							
 				end
-				
 			end
+			
 		end
 	end
+	
 end
 
 --- STEP 12
@@ -583,12 +564,12 @@ end
 
 if config_is_on("post_Mod") and method == "POST" then
 	local post_mod = getDict_Config("post_Mod")
-	local postargs = post_date or get_postargs()
-	if postargs ~= "" then
+	local post_str = post_date or get_postargs()
+	if post_str ~= "" then
 		for i,v in ipairs(post_mod) do
 			if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
 
-				if remath(postargs,v.post[1],v.post[2]) then
+				if remath(post_str,v.post_str[1],v.post_str[2]) then
 					if v.action == "deny" then
 						Set_count_dict("post deny count")
 						optl.debug(base_msg,"deny _post : "..postargs.."No : "..i,"post.log")
@@ -612,7 +593,7 @@ end
 if config_is_on("network_Mod") then
 	local tb_networkMod = getDict_Config("network_Mod")
 	for i, v in ipairs( tb_networkMod ) do
-		if v.state =="on" and host_url_remath(v.hostname,v.url) then
+		if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
 
 			local mod_ip = ip.." network_Mod No "..i
 			local ip_count = limit_ip_dict:get(mod_ip)

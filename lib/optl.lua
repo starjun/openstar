@@ -1,4 +1,14 @@
 
+-- 用于生成唯一随机字符串
+local random = require "resty-random"
+
+local cjson_safe = require "cjson.safe"
+
+local token_dict = ngx.shared.token_dict
+local count_dict = ngx.shared.count_dict
+local config_dict = ngx.shared.config_dict
+local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+
 --- 文件读写
 local function readfile(_filepath)
     -- local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
@@ -30,7 +40,7 @@ local function writefile(_filepath,_msg,_ty)
     return true
 end
 
---- table转换
+--- table/string转换
 local function tableTostring(_obj)
         local lua = ""  
         local t = type(_obj)  
@@ -66,8 +76,6 @@ local function stringTotable(_str)
     return ret
 end
 
-local cjson_safe = require "cjson.safe"
-
 -- table转成json字符串
 local function tableTojson(_obj)
     local json_text = cjson_safe.encode(_obj)  
@@ -80,35 +88,27 @@ local function stringTojson(_obj)
     return json
 end
 
--- 用于生成唯一随机字符串
-local random = require "resty-random"
-local function guid()
+local function guid(_num)
+    _num = _num or 10
     return string.format('%s-%s',
-        random.token(10),
-        random.token(10)
+        random.token(_num),
+        random.token(_num)
     )
 end
 
-
-local token_dict = ngx.shared.token_dict
-
 -- 设置token 并缓存3分钟
--- 未做错误处理
+-- 可能会无限循环
 local function set_token(_token)
-    _token = _token or guid()    
-    if token_dict:get(_token) == nil then 
-        local re = token_dict:set(_token,true,3*60)  --- -- 缓存3分钟 非重复插入
-        if  re then
-            return _token
-        else
-            return re -- 失败为 false
-        end
+    _token = _token or guid() 
+    local re = token_dict:add(_token,true,2*60)  --- -- 缓存2分钟 非重复插入
+    if  re then
+        return _token
     else
-        return set_token()
-    end 
+        return set_token(guid(20))
+    end
 end
 
---- 常用二阶匹配规则
+--- 基础 常用二阶匹配规则
 local function remath(_str,_re_str,_options)
     if _str == nil or _re_str == nil or _options == nil then return false end
     if _options == "" then
@@ -125,7 +125,7 @@ local function remath(_str,_re_str,_options)
             end
         end
     elseif _options == "in" then 
-    --- 用于包含 查找 string.find       
+    --- 用于包含 查找 string.find
         local from , to = string.find(_str, _re_str)
         --if from ~= nil or (from == 1 and to == 0 ) then
         --当_re_str=""时的情况 没有处理
@@ -136,7 +136,7 @@ local function remath(_str,_re_str,_options)
     --- list 匹配，o(1) 比table要好些， 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
         local re = _re_str[_str]
-        if re == true then
+        if re == true then -- 需要判断一下 有可能是值类型的值
             return true
         end
     elseif _options == "@token@" then
@@ -172,17 +172,200 @@ local function remath(_str,_re_str,_options)
     end
 end
 
-local count_dict = ngx.shared.count_dict
+--- 判断config_dict中模块开关是否开启
+local function config_is_on(config_arg)
+    if config_base[config_arg] == "on" then
+        return true
+    end
+end
+
+--- 取config_dict中的json数据
+local function getDict_Config(Config_jsonName)
+    local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
+    return re
+end
+
+-- 增加 三阶匹配规则
+local function remath3(_tbMod,_modrule)
+    if type(_tbMod) ~= "table" or type(_modrule) ~= "table" then 
+        return false 
+    end
+    
+    local _re_str = _modrule[1]
+    local _options = _modrule[2]
+    local _str = _tbMod[_modrule[3]]
+    -- 取 args/headers 中某一个key (_str可能是一个table)
+    local _ty = _modrule[4] or 1
+
+    if type(_str) == "table" then
+        if _ty == "end" then
+            _ty = table.maxn(_str)
+            if remath(_str[_ty],_re_str,_options) then
+                return true
+            end
+        elseif _ty == "all" then
+            for i,v in ipairs(_str) do
+                if remath(v,_re_str,_options) then
+                    return true
+                end
+            end
+        else -- table 中的某一个
+            -- 超出范围判断
+            if _ty > table.maxn(_str) then  
+                _ty = 1
+            end
+            if remath(_str[_ty],_re_str,_options) then
+                return true
+            end
+        end
+    else
+        if remath(_str,_re_str,_options) then
+            return true
+        end
+    end
+end
+
+-- 基于modName 进行规则判断
+local function action_remath(_modName,_modRule,_base_Msg)
+
+    if _modName == nil or _modRule == nil or _base_Msg == nil or type(_modRule) ~= "table" then 
+        return false 
+    end
+    if type(_base_Msg[_modName]) == "table" then
+        if remath3(_base_Msg[_modName],_modRule) then
+            return true
+        end
+    else
+        if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+            return true
+        end
+    end
+
+    -- 明细写法
+        -- if _modName == "remoteIp" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "host" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "method" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "uri" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "request_uri" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "useragent" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "referer" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "cookie" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- elseif _modName == "query_string" then
+        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        --         return true
+        --     end
+        -- -- table 类型
+        -- elseif _modName == "headers" then
+        --     if remath3(_base_Msg[_modName],_modRule) then
+        --         return true
+        --     end
+        -- elseif _modName == "args" then
+        --     if remath3(_base_Msg[_modName],_modRule) then
+        --         return true
+        --     end
+        -- end
+end
+
+-- 对 or 规则list 进行判断
+local function or_remath(_or_list,_basemsg)
+    -- or 匹配 任意一个为真 则为真
+    if type(_or_list) ~= "table" then return false end
+    for i,v in ipairs(_or_list) do
+        if v[1] then --  取反
+            if not action_remath(v[2],v[3],_basemsg) then -- 真
+                return true
+            else
+            
+            end
+        else
+            if action_remath(v[2],v[3],_basemsg) then -- 真
+                return true
+            else
+            
+            end
+        end
+    end
+    return false
+end
+
+-- 对自定义规则列表进行判断
+-- 传入一个规则列表 和 base_msg
+-- [false,"uri",["admin","in"],"and"]
+-- [true,"cookie",["\\w{5}","jio"],"or"]
+-- [true,"referer",["baidu","in"]]
+local function re_app_ext(_app_list,_basemsg)
+    if type(_app_list) ~= "table" or type(_basemsg) ~= "table" then return false end
+    local list_cnt = table.maxn(_app_list)
+    local tmp_or = {}
+    for i,v in ipairs(_app_list) do
+        if v[4] == "or" then
+            table.insert(tmp_or,v)
+            if i == list_cnt then
+                if or_remath(tmp_or,_basemsg) then -- 真
+
+                else
+                    tmp_or = {} -- 情况 or 列表
+                    return false
+                end
+                break            
+            end            
+        else
+            if table.maxn(tmp_or) == 0 then -- 前面没 or
+                if v[1] then --取反
+                    if not action_remath(v[2],v[3],_basemsg) then -- 真
+
+                    else -- 假 跳出
+                        return false
+                    end
+                else
+                    if action_remath(v[2],v[3],_basemsg) then -- 真
+
+                    else -- 假 跳出
+                        return false
+                    end
+                end
+            else -- 一组 or 计算
+                table.insert(tmp_or, v)
+                if or_remath(tmp_or,_basemsg) then -- 真
+
+                else                    
+                    return false
+                end
+                tmp_or = {} -- 清空 or 列表
+            end
+        end
+    end
+    return true
+end
 
 --- 拦截计数
+-- 错误未记录
 local function set_count_dict(_key)
     if _key == nil then return end
-    -- local key_count = count_dict:get(_key)
-    -- if key_count == nil then 
-    --     count_dict:set(_key,1)
-    -- else
-    --     count_dict:incr(_key,1)
-    -- end
     local re, err = count_dict:incr(_key,1)
     if re == nil then
        count_dict:set(_key,1)
@@ -209,15 +392,14 @@ local function sayHtml_ext(_html,_ty)
     ngx.header.content_type = "text/html"    
     if _html == nil then 
         _html = "_html is nil"
-    elseif type(_html) == "table" then
-        if _ty == nil then               
-            _html = tableTojson(_html)
-        else
-            _html = tableTostring(_html)
-        end
-    else-- 仅对非nil 非table 进行ngx_find处理
+    elseif type(_html) == "table" then             
+        _html = tableTojson(_html)       
+    end
+
+    if _ty ~= nil then
         _html = ngx_find(_html)
     end
+
     ngx.say(_html)
     ngx.exit(200)
 end
@@ -243,11 +425,11 @@ end
 -- 目录配置异常，则log路径就是 /tmp/
 -- 参数循序 base_msg info filename
 local function debug(_base_msg,_info,_filename)
-    if _base_msg.config_base.debug_Mod == false then return end --- 判断debug开启状态
+    if config_base.debug_Mod == false then return end --- 判断debug开启状态
     if _filename == nil then
         _filename = "debug.log"
     end
-    local filepath = _base_msg.config_base.logPath or "/tmp/"
+    local filepath = config_base.logPath or "/tmp/"
     filepath = filepath.._filename
 
     local remoteIp = _base_msg.remoteIp
@@ -259,16 +441,16 @@ local function debug(_base_msg,_info,_filename)
     local time = ngx.localtime()
     local method = _base_msg.method
     local status = ngx.var.status
-    local request_url = _base_msg.request_url
-    local url = _base_msg.url
-    local agent = _base_msg.agent
+    local request_uri = _base_msg.request_uri
+    local uri = _base_msg.uri
+    local agent = _base_msg.useragent
     local referer = _base_msg.referer
-    local str = string.format([[%s "%s" "%s" [%s] "%s" "%s" "%s" "%s" "%s" "%s"]],remoteIp,host,ip,time,method,status,url,agent,referer,_info)
+    local str = string.format([[%s "%s" "%s" [%s] "%s" "%s" "%s" "%s" "%s" "%s"]],remoteIp,host,ip,time,method,status,uri,agent,referer,_info)
     
     writefile(filepath,str)
 end
 
---- 请求相关
+--- 请求相关 正常使用阶段在access/rewrite set没测试过
 
     --- 获取单个args值
     local function get_argsByName(_name)
@@ -286,7 +468,7 @@ end
         return ngx.unescape_uri(ngx.var.query_string)
     end
 
-    --- 获取单个post值
+    --- 获取单个post值 非POST方法使用会异常
     local function get_postByName(_name)
         if _name == nil then return "" end
         ngx.req.read_body()
@@ -336,10 +518,16 @@ optl.stringTojson = stringTojson
 optl.random = random
 optl.guid = guid
 optl.set_token = set_token
+
 optl.remath = remath
+optl.config_is_on = config_is_on
+optl.getDict_Config = getDict_Config
+
 optl.set_count_dict = set_count_dict
 optl.ngx_find = ngx_find
 
+optl.re_app_ext = re_app_ext
+optl.action_remath = action_remath
 --- say相关
 optl.sayHtml_ext = sayHtml_ext
 optl.sayFile = sayFile

@@ -6,7 +6,7 @@ local ngx_var = ngx.var
 
 
 local remoteIP = ngx_var.remote_addr
-local url = ngx_unescape_uri(ngx_var.uri)
+local uri = ngx_unescape_uri(ngx_var.uri)
 local host = ngx_unescape_uri(ngx_var.http_host)
 local headers = ngx.req.get_headers()
 
@@ -43,12 +43,12 @@ end
 --- 常用二阶匹配规则
 local remath = optl.remath
 
---- 匹配 host 和 url
-local function host_url_remath(_host,_url)
-	if _host == nil or _url == nil then
+--- 匹配 host 和 uri
+local function host_uri_remath(_host,_uri)
+	if _host == nil or _uri == nil then
 		return false
 	end
-	if remath(host,_host[1],_host[2]) and remath(url,_url[1],_url[2]) then
+	if remath(host,_host[1],_host[2]) and remath(uri,_uri[1],_uri[2]) then
 		return true
 	end
 end
@@ -70,12 +70,12 @@ end
 
 local Replace_Mod = getDict_Config("replace_Mod")
 
-local token_tmp = ngx.ctx.request_guid or host..url..remoteIP..optl.tableTostring(headers)
+local token_tmp = ngx.ctx.request_guid or host..uri..remoteIP..optl.tableTostring(headers)
 
 --- STEP 12
 for key,value in ipairs(Replace_Mod) do
 	--- 从[1]开始 自上而下  仿防火墙acl机制
-	if value.state =="on" and host_url_remath(value.hostname,value.url) then
+	if value.state =="on" and host_uri_remath(value.hostname,value.uri) then
 
 		if ngx.arg[1] ~= '' then -- 请求正常
 			local chunk = token_dict:get(token_tmp)

@@ -1,7 +1,7 @@
 [
     {
         "state": "on",
-        "post": ["\\.\\./","jio"],
+        "post_str": ["\\.\\./","jio"],
         "hostname": ["*",""],
         "action": "deny"
     }

@@ -34,7 +34,7 @@ function loadConfig()
 
 	config.base = loadjson(base_json)
 	local _basedir = config.base.jsonPath or "/opt/openresty/openstar/conf_json/"
-	
+
 	-- STEP 0
 	config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
 
@@ -74,7 +74,7 @@ function loadConfig()
 	-- STEP 5 - 14
 	config.app_Mod = loadjson(_basedir.."app_Mod.json")
 	config.referer_Mod = loadjson(_basedir.."referer_Mod.json")
-	config.url_Mod = loadjson(_basedir.."url_Mod.json")
+	config.uri_Mod = loadjson(_basedir.."uri_Mod.json")
 	config.header_Mod = loadjson(_basedir.."header_Mod.json")
 	config.useragent_Mod = loadjson(_basedir.."useragent_Mod.json")	
 	config.cookie_Mod = loadjson(_basedir.."cookie_Mod.json")

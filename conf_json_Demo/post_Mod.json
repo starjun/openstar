@@ -1,122 +1,122 @@
 [
     {
         "state": "on",
-        "post": ["\\.\\./","jio"],
+        "post_str": ["\\.\\./","jio"],
         "hostname": ["*",""],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["'*.*([ |/**/]and|or[ |/**/]).+=.+","jio"],
+        "post_str": ["'*.*([ |/**/]and|or[ |/**/]).+=.+","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["select.+(from|limit)","jio"],
+        "post_str": ["select.+(from|limit)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["(?:(union(.*?)select))","jio"],
+        "post_str": ["(?:(union(.*?)select))","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["having|rongjitest","jio"],
+        "post_str": ["having|rongjitest","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
+        "post_str": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["benchmark\\((.*)\\,(.*)\\)","jio"],
+        "post_str": ["benchmark\\((.*)\\,(.*)\\)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["base64_decode\\(","jio"],
+        "post_str": ["base64_decode\\(","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["(?:from\\W+information_schema\\W)","jio"],
+        "post_str": ["(?:from\\W+information_schema\\W)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["(?:(?:current_)user|database|schema|connection_id)\\s*\\(","jio"],
+        "post_str": ["(?:(?:current_)user|database|schema|connection_id)\\s*\\(","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["(?:etc\\/\\W*passwd)","jio"],
+        "post_str": ["(?:etc\\/\\W*passwd)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["into(\\s+)+(?:dump|out)file\\s*","jio"],
+        "post_str": ["into(\\s+)+(?:dump|out)file\\s*","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["group\\s+by.+\\(","jio"],
+        "post_str": ["group\\s+by.+\\(","jio"],
         "action": "deny"
     },    
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(","jio"],
+        "post_str": ["(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["xwork\\.MethodAccessor","jio"],
+        "post_str": ["xwork\\.MethodAccessor","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/","jio"],
+        "post_str": ["(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["java\\.lang","jio"],
+        "post_str": ["java\\.lang","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[","jio"],
+        "post_str": ["\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
+        "post_str": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
         "hostname": ["*",""],
-        "post": ["(onmouseover|onerror|onload)\\=\t","jio"],
+        "post_str": ["(onmouseover|onerror|onload)\\=\t","jio"],
         "action": "deny"
     }
 ]

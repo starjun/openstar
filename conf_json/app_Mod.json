@@ -3,6 +3,6 @@
         "state": "on",
         "action": ["deny"],
         "hostname": ["101.200.122.200",""],
-        "url": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
+        "uri": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
     }
 ]

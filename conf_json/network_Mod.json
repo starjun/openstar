@@ -3,6 +3,6 @@
         "state": "on",
         "network":{"maxReqs":30,"pTime":10,"blackTime":600},
         "hostname": [["127.0.0.1:5460","127.0.0.1"],"table"],
-        "url": ["/api/time",""]
+        "uri": ["/api/time",""]
     }
 ]

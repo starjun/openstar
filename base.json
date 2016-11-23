@@ -10,7 +10,7 @@
 
 	"ip_Mod" : "on",
 
-	"host_method_Mod" : "on",
+	"host_method_Mod" : "off",
 
 	"rewrite_Mod" : "on",
 
@@ -18,7 +18,7 @@
 
 	"referer_Mod" : "on",
 
-	"url_Mod" : "on",
+	"uri_Mod" : "on",
 
 	"header_Mod" : "on",
 

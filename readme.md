@@ -24,11 +24,11 @@ http://101.200.122.200/fgjs2.html 看看自己的浏览器指纹吧
 
 使用控件防护，CC防护启用时，渲染html页面产生一个标记，控件根据标记的定义对下一次的请求进行操作
 
-1：set 一个cookie,其合法性是由控件和web服务器双向约定或加密产生，从而判断下一次请求是否合法
+i：set 一个cookie,其合法性是由控件和web服务器双向约定或加密产生，从而判断下一次请求是否合法
 
-2：增加args参数尾巴，其value值合法性由控件和web服务器双向约定或加密产生，从而判断下一次请求是否合法
+ii：增加args参数尾巴，其value值合法性由控件和web服务器双向约定或加密产生，从而判断下一次请求是否合法
 
-3：修改访问url,如短域名方式；修改访问method（支持自定义method）等等对http请求进行修改
+iii：修改访问url,如短域名方式；修改访问method（支持自定义method）等等对http请求进行修改
 
 
 和浏览器厂商合作，CC防护启用时，渲染html页面产生一个该浏览器识别的标记，浏览器根据标记的定义对下一次请求进行操作（同控件），从而判断下一次请求的合法性
@@ -87,7 +87,7 @@ WAF	防护从header,args,post,访问频率等，分层进行按顺序防护，�
 
     4：基于特定web服务、语言等的特定攻击（慢速攻击、PHP-dos等） 
  
-> `面对CC攻击我们需要根据实际情况采用不同的防护算法`
+> `面对CC攻击我们需要根据实际情况采用不同的防护算法，比如攻击的点是一个ajax点，你使用js跳转/验证码肯定就有问题`
 
 ## 防护方法
  - 网络层
@@ -103,7 +103,7 @@ TAG验证、SET COOKIE、URL跳转、JS跳转、验证码、页面嵌套、强�
 浏览器是可以执行JS和flash的，这里我分享一些基于JS的防护算法，flash需要自己去写（比js复杂一些），可以实现flash应用层的安全防护和防页面抓取（开动你的大脑吧）
 
 1：客户端防护
-使用JS进行前端的防护（浏览器识别、鼠标轨迹判断、url有规则添加尾巴（args参数）、随机延迟、鼠标键盘事件获取等）其实这里非常复杂，如浏览器的识别 ie 支持 `!-[1,]` 这个特殊JS，一些浏览器有自定义标签等等；
+使用JS进行前端的防护（浏览器识别、鼠标轨迹判断、url有规则添加尾巴（args参数）、随机延迟、鼠标键盘事件获取等）其实这里非常复杂，如浏览器的识别 ie 支持 `!-[1,]` 这个特殊JS，一些JS方言，一些浏览器有自定义标签等等；
 
 2：服务端防护
 url添加的尾巴（args参数）是服务器动态生成的token，而不是使用静态的正则去匹配其合法性。
@@ -138,7 +138,9 @@ url添加的尾巴（args参数）是服务器动态生成的token，而不是�
 
 第三阶段：
 
- - 应用层：js增加浏览器识别（不同agent匹配不同js识别代码）、鼠标轨迹验证、键盘鼠标事件验证等js增加验证后，在进行校验串生成。
+ - 应用层：js增加浏览器识别（不同agent匹配不同js识别代码）、JS随机延迟、鼠标轨迹验证、键盘鼠标事件验证等js增加验证后，在进行校验串生成。
+
+说明：多次实战CC处理经验，很少到第三阶段，攻击都已经没拦截了，当然储备好这些JS脚本非常重要，纯JS肯定也是有限的，所有我就提出了使用控件，甚至是和浏览器厂商合作等更精准的防护方法。
 
 > 应用层的防护是在网络层+扩展的网络层防护效果不佳时使用，一般情况基本用的不多，因为在OpenStar的防护下，极少数情况下，需要第三阶段防护。在防页面抓取时，发挥你的想象（js是个好帮手，善用）使用OpenStar就可以帮你快速实现；当然使用flash防抓取效果更好（不够灵活）。
 
@@ -192,9 +194,23 @@ hostname：`[{"127.0.0.1":true,"127.0.0.1:5460":true},"list"]`
 
 ==>表示匹配list中host为true的host
 
-hostname：`["127.0.0.1","in"]` 
+uri：`["/admin","in"]` 
 
-==>表示匹配host中包含127.0.0.1的host
+==>表示匹配uri中包含/admin的所有uri都会被匹配（string.find($uri,参数1)）
+
+ip：`[["127.0.0.1/32",""113.45.199.0/24""],"cidr"]` 
+
+==>表示匹配的ip在这2组ip段/ip中
+
+args：`["*","","args_name","all"]` 
+args：`["*","","args_name","end"]` 
+args：`["*","","args_name",1]` 
+
+说明：第3个参数表示取args参数table的key名称，第4个参数表示取args[args_name]为table时，匹配所有(all)，匹配最后一个(end),匹配第几个(数字)，默认取第一个
+
+==>表示匹配的GET的args参数名为args_name,使用第4个参数模式进行匹配，匹配规则就是第一个和二个参数。其中第1/2参数支持前面描述的规则方式。
+
+**table类型的匹配规则比较麻烦，暂时想着是这样处理，有好的想法可以告诉我**
 
 ## 执行流程
 
@@ -220,7 +236,7 @@ hostname：`["127.0.0.1","in"]`
  
  6：referer_Mod ==> referer过滤（黑/白名单、log记录）
  
- 7：url_Mod ==> url过滤（黑/白名单、log记录）
+ 7：uri_Mod ==> uri过滤（黑/白名单、log记录）
  
  8：header_Mod ==> header过滤（黑名单）
  
@@ -228,9 +244,9 @@ hostname：`["127.0.0.1","in"]`
  
  10：cookie_Mod ==> cookie过滤（黑/白名单、log记录）
  
- 11：args_Mod ==> args参数过滤（黑/白名单、log记录）
+ 11：args\_Mod ==> args参数过滤[实际是query_string]（黑/白名单、log记录）
  
- 12：post_Mod ==> post参数过滤（黑/白名单、log记录）
+ 12：post_Mod ==> post参数过滤[实际是整个post内容]（黑/白名单、log记录）
  
  13：network_Mod ==> 应用层网络频率限制（频率黑名单）
 
@@ -245,7 +261,7 @@ hostname：`["127.0.0.1","in"]`
   ```
 
 {
-  "openstar_version":"v 1.3",  
+  "openstar_version":"v 1.4",  
   #该参数就是OpenStar标记版本更新的
 
   "Mod_state":"on",
@@ -275,7 +291,7 @@ hostname：`["127.0.0.1","in"]`
   "referer_Mod" : "on",
   #该参数是否启用referer过滤
 
-  "url_Mod" : "on",
+  "uri_Mod" : "on",
   #该参数是否启用url过滤
 
   "header_Mod" : "on",
@@ -362,7 +378,7 @@ hostname：`["127.0.0.1","in"]`
         "state": "on",
         "action": ["set-cookie","asjldisdafpopliu8909jk34jk"],
         "hostname": ["101.200.122.200",""],
-        "url": ["^/rewrite$","jio"]
+        "uri": ["^/rewrite$","jio"]
     }
 ```
 上面的例子表示规则启用，host为101.200.122.200,且url匹配成功的进行302/307跳转，同时设置一个无状态cookie，名称是token。action中第二个参数是用户ip+和改参数进行md5计算的。请自行使用一个无意义字符串。防止攻击者猜测出生成算法。
@@ -379,7 +395,7 @@ hostname：`["127.0.0.1","in"]`
     "state":"on",
     "action":["deny"],
     "hostname":["127.0.0.1",""],
-    "url":["^/([\w]{4}\.html|deny1\.do|你好\.html)$","jio"]
+    "uri":["^/([\w]{4}\.html|deny1\.do|你好\.html)$","jio"]
 }
  ```
    
@@ -400,11 +416,13 @@ hostname：`["127.0.0.1","in"]`
   
   6：relua ==> 表示返回lua执行脚本（使用dofile操作）
   
+  7：relua_str ==> 表示返回lua代码执行
+  
   hostname：匹配的host
   
-  url：匹配的url
+  uri：匹配的uri
 
-  > **hostname 和 url 使用上面描述过的匹配规则，参数2标记、参数1内容**
+  > **hostname 和 uri 使用上面描述过的匹配规则，参数2标记、参数1内容**
 
   > **详细参见项目中的demo规则，多实验、多测试就知道效果了**
 
@@ -413,12 +431,12 @@ hostname：`["127.0.0.1","in"]`
 ## STEP 6：referer_Mod（白名单）
 
  - 说明：
- `{"state":"on","url":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["*",""],"action":"allow"}`
+ `{"state":"on","uri":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["*",""],"action":"allow"}`
  
-  上面的例子表示，host为127.0.0.1，url配置的正则成功，referer正则匹配成功就放行**【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的不同的location动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】**，action表示执行的动作，`allow`表示规则匹配成功后，跳出后续所有规则（一般对静态资源图片），referer匹配失败就拒绝访问（白名单），防盗链为主，`next`表示匹配成功后，继续后续规则的匹配（这里主要可以设置防护站外的CSRF），referer匹配失败就拒绝访问（白名单）
+  上面的例子表示，host为127.0.0.1，uri配置的正则成功，referer正则匹配成功就放行**【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的不同的location动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】**，action表示执行的动作，`allow`表示规则匹配成功后，跳出后续所有规则（一般对静态资源图片），referer匹配失败就拒绝访问（白名单），防盗链为主，`next`表示匹配成功后，继续后续规则的匹配（这里主要可以设置防护站外的CSRF），referer匹配失败就拒绝访问（白名单）
   
   state：表示规则是否开启
-  url：表示匹配的url
+  uri：表示匹配的uri
   hostname：匹配host
   referer：匹配referer
   action：匹配动作
@@ -426,27 +444,27 @@ hostname：`["127.0.0.1","in"]`
   > referer的匹配是白名单，注意一下即可
   > 这些匹配都是基于上面说过的二阶匹配法
 
-## STEP 7：url_Mod（黑、白名单）
+## STEP 7：uri_Mod（黑、白名单）
 
  - 说明：
- `{"state":"on","hostname":["\*",""],"url":["\\.(css|js|flv|swf|zip|txt)$","jio"],"action":"allow"}`
+ `{"state":"on","hostname":["\*",""],"uri":["\\.(css|js|flv|swf|zip|txt)$","jio"],"action":"allow"}`
    
-  上面的例子表示，规则启用，任意host，url正则匹配成功后放行，不进行后续规则匹配（该场景同图片等静态资源一样进行放行，减少后续的匹配）
+  上面的例子表示，规则启用，任意host，uri正则匹配成功后放行，不进行后续规则匹配（该场景同图片等静态资源一样进行放行，减少后续的匹配）
   state：表示规则是否开启
   hostname：表示匹配的host
-  url：表示匹配url
+  uri：表示匹配uri
   action：可取值[allow、deny、log]，表示匹配成功后的执行动作
 
-  > 一般情况下，过滤完静态资源后，剩下的都是拒绝一下url的访问如.svn等一些敏感目录或文件
+  > 一般情况下，过滤完静态资源后，剩下的都是拒绝一下uri的访问如.svn等一些敏感目录或文件
 
 ## STEP 8：header_Mod（黑名单）
 
  - 说明：
- `{"state":"on","url":["\*",""],"hostname":["\*",""],"header":["Acunetix_Aspect","\*",""]}`
+ `{"state":"on","uri":["\*",""],"hostname":["\*",""],"header":["Acunetix_Aspect","\*",""]}`
  
- 上面的例子表示，规则启用，匹配任意host，任意url，header中Acunetix_Aspect内容的匹配（本次匹配任意内容）这个匹配是一些扫描器过滤，该规则是wvs扫描器的特征
+ 上面的例子表示，规则启用，匹配任意host，任意uri，header中Acunetix_Aspect内容的匹配（本次匹配任意内容）这个匹配是一些扫描器过滤，该规则是wvs扫描器的特征
  state：规则是否启用
- url：匹配url
+ uri：匹配uri
  hostname：匹配host
  header：匹配header头
   
@@ -474,42 +492,42 @@ hostname：`["127.0.0.1","in"]`
 ## STEP 11：args_Mod（黑名单）
 
  - 说明：
- `{"state":"on","hostname":["*",""],"args":["\\:\\$","jio"],"action":"deny"}`
+ `{"state":"on","hostname":["*",""],"query_string":["\\:\\$","jio"],"action":"deny"}`
  
- 上面例子表示，规则启用，匹配任意host，args参数组匹配正则，成功则执行拒绝访问动作
+ 上面例子表示，规则启用，匹配任意host，query_string参数组匹配正则，成功则执行拒绝访问动作
  state：表示规则是否启用
  hostname：表示匹配host
- args：表示匹配args参数组
+ query_string：表示匹配args参数组
  action：可选参数[deny] 表示匹配成功拒绝访问
  > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 12：post_Mod（黑名单）
  - 说明：
- `{"state":"on","hostname":["*",""],"post":["\\$\\{","jio"],"action":"deny"}`
+ `{"state":"on","hostname":["*",""],"post_str":["\\$\\{","jio"],"action":"deny"}`
 
-  上面的例子表示，规则启用，匹配任意host,post参数组匹配正则，成功则拒绝访问
+  上面的例子表示，规则启用，匹配任意host,post_str参数组匹配正则，成功则拒绝访问
   state：表示是否启用规则
   hostname：匹配host
-  post：匹配post参数组
+  post_str：匹配post参数组
   action：可选参数[deny] 表示匹配成功后拒绝访问
 
   > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 13：network_Mod（频率黑名单）
  - 说明：
- `{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"url":["^/2.html$","jio"]}`
+ `{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"uri":["^/2.html$","jio"]}`
 
   上面的例子表示，规则启用，host为id.game.com,url匹配正则，匹配成功则进行访问频率限制，在10秒内访问次数超过20次，请求的IP到IP黑名单中10分钟（60秒\*10）
   state：表示是否启用规则
   hostname：表示匹配host
-  url：表示匹配url
+  uri：表示匹配uri
   network：maxReqs ==> 请求次数；pTime ==> 单位时间；blacktime ==> ip黑名单时长
 
   > 一般情况下，cc攻击的点一个网站只有为数不多的地方是容易被攻击的点，所以设计时，考虑增加通过url细化匹配。
 
 ## STEP 14：replace_Mod（内容替换）
  - 说明：
- `{"state":"on","url":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}`
+ `{"state":"on","uri":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}`
 
   上面的例子表示，规则启用，host为passport.game.com,url是正则匹配，匹配成功则进行返回内容替换
   1：将"联合"替换为"联合FUCK"；
@@ -517,7 +535,7 @@ hostname：`["127.0.0.1","in"]`
   3：通过正则进行匹配（`ngx.re.gsub`）其中@token@表示动态替换为服务器生成的一个唯一随机字符串
   state：表示是否启用规则
   hostname：表示匹配的host
-  url：表示匹配的url
+  uri：表示匹配的uri
   replace_list：表示替换列表，参数1 ==> 被替换内容；参数2 ==> 匹配模式（正则、字符串）如例子中前2个替换列表就是字符串匹配，使用""即可，不能没有；参数3 ==> 被替换的内容
 
 # API相关
@@ -567,7 +585,11 @@ OpenStar测试服务器：
  
 # 变更历史
 
-## **next 1.x 增加app_Mod，丰富allow动作，支持的参数 and 增加token和IP绑定功能 **
+## **next 1.x 增加app_Mod，丰富动作, 增加token和IP绑定功能 **
+一些地方的规则定义不好理解，还没想到好办法这么改比较好。
+
+## 1.4 更新命名相关，原来url改成uri，args改成query_string，
+修改的比较多，还有增加app_Mod实现多规则匹配，连接符支持OR
 
 ## 1.3 更新跳转功能，可配置进行set-cookie操作
 可以配置某一个或者多个url使用跳转set-cookie操作。cookie是无状态的。

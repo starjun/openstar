@@ -3,13 +3,13 @@
 
     {
         "state": "on",
-        "action": ["allow","url"],
-        "url": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
+        "action": ["allow","uri"],
+        "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
     },
     {
         "state": "on",
         "action":["log","referer"],
-        "url": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+        "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
         "referer": ["hao123","in"]
         
     },
@@ -22,6 +22,6 @@
         "state": "on",
         "action":["deny","network"],
         "network":{"maxReqs":30,"pTime":10,"blackTime":600},
-        "url": ["/index.html",""]
+        "uri": ["/index.html",""]
     }
 ]

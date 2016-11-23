@@ -6,8 +6,8 @@ local headers = ngx.req.get_headers()
 local host = ngx.unescape_uri(headers["Host"])
 local method = ngx.var.request_method
 local args = ngx.req.get_uri_args() or {}
-local url = ngx.unescape_uri(ngx.var.uri)
-local request_url = ngx.unescape_uri(ngx.var.request_uri)
+local uri = ngx.unescape_uri(ngx.var.uri)
+local request_uri = ngx.unescape_uri(ngx.var.request_uri)
 local remoteIp = ngx.var.remote_addr
 local lua_version
 
@@ -73,9 +73,9 @@ local debug_tb = {
     _ngx_prefix=ngx.config.prefix(),
     _lua_version = lua_version,
     _ngx_lua_version = ngx.config.ngx_lua_version,
-    _url = url,
+    _uri = uri,
     _method = method,
-    _request_url = request_url,
+    _request_uri = request_uri,
     _args = args,
     _headers = headers,
     _schema = ngx.var.schema,

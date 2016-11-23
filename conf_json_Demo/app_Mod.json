@@ -3,61 +3,47 @@
         "state": "on",
         "action": ["deny"],
         "hostname": ["101.200.122.200",""],
-        "url": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
+        "uri": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
     },
     {
         "state": "on",
         "action": ["rehtml"],
         "rehtml": "<html>hi~!</html>",
         "hostname": ["101.200.122.200",""],
-        "url": ["/rehtml",""]
+        "uri": ["/rehtml",""]
     },
     {
         "state": "on",
         "action": ["refile"],
         "refile": "2.txt",
         "hostname": ["101.200.122.200",""],
-        "url": ["/refile",""]
+        "uri": ["/refile",""]
     },
     {
         "state": "on",
         "action": ["next","ip"],
         "ip":[["106.37.236.170","1.1.1.1"],"table"],
         "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "url": ["/api/.*","jio"]
-    },
-    {
-        "state": "on",
-        "action": ["cc","args"],
-        "args":["true","@token@","keytoken"],
-        "hostname": ["127.0.0.1:5460",""],
-        "url": ["/api/debug",""]
-    },   
+        "uri": ["/api/.*","jio"]
+    },    
     {
         "state": "on",
         "action": ["relua"],
         "relua":"1.lua",
         "hostname": ["127.0.0.1:5460",""],
-        "url": ["/relua",""]
+        "uri": ["/relua",""]
     },
     {
         "state": "on",
         "action": ["relua_str"],
         "relua_str":"local a = 1 if a<1 then ngx.say(1) end return 2",
         "hostname": ["127.0.0.1:5460",""],
-        "url": ["/relua",""]
-    },
-    {
-        "state": "on",
-        "action": ["next","args"],
-        "args":["^[\\w]{6}$","jio","keyby"],
-        "hostname": [["127.0.0.1:5460","127.0.0.1"],"table"],
-        "url": ["/api/time",""]
-    },
+        "uri": ["/relua",""]
+    },    
     {
         "state": "on",
         "action": ["log"],
         "hostname": ["127.0.0.1:5460",""],
-        "url": ["/log",""]
+        "uri": ["/log",""]
     }
 ]

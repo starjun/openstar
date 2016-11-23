@@ -2,8 +2,14 @@
 [
     {
         "state": "on",
-        "url": ["*",""],
+        "uri": ["*",""],
         "hostname": ["*",""],
-        "header": ["Acunetix_Aspect","*",""]        
+        "header": ["*","","Acunetix_Aspect"]        
+    },
+    {
+        "state": "on",
+        "uri": ["*",""],
+        "hostname": ["*",""],
+        "header": ["*","","X_Scan_Memo","end"]        
     }
 ]

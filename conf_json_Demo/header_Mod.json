@@ -2,15 +2,15 @@
 [
     {
         "state": "on",
-        "url": ["*",""],
+        "uri": ["*",""],
         "hostname": ["*",""],
-        "header": ["Acunetix_Aspect","*",""]        
+        "header": ["*","","Acunetix_Aspect","end"]        
     },
     {
         "state": "on",
-        "url": ["*",""],
+        "uri": ["*",""],
         "hostname": ["*",""],
-        "header": ["X_Scan_Memo","*",""]        
+        "header": ["*","","X_Scan_Memo","all"]        
     }
 
 ]
