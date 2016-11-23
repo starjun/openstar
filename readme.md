@@ -48,6 +48,7 @@ iii：修改访问url,如短域名方式；修改访问method（支持自定义m
 
 
 **OpenStar**是一个基于[OpenResty][2]的，高性能WAF，还相应增加了其他灵活、友好、实用的功能，是增强的WAF。
+**app_Mod 支持规则组 连接符支持 or , 参考doc/demo.md文档**
 # WAF防护
 
 
