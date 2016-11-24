@@ -108,7 +108,7 @@
         "action": ["relua"],
         "relua":"1.lua",
         "hostname": ["*",""],
-        "uri": ["*",""]
+        "uri": ["/api/time",""]
     }
 ```
 这个匹配规则，host是所有的，uri也是所有，匹配成功后执行`./index`目录下的1.lua文件
@@ -127,7 +127,7 @@
 
 `next`：动作继续，如果基本的hostname和url匹配成功后，后面的规则匹配失败就拒绝访问了
 支持参数：remoteIp host method request\_uri uri useragent referer cookie query_string
-基础匹配host和uri，匹配成功后，`action`值中，第一个是`next`，表示匹配继续动作，匹配成功后继续后续的规则匹配，匹配失败拒绝，第二个`ip`的检查，**这个场景也是比较多，就是对某个文件夹（url路径/程序后台路径/phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）**。
+基础匹配host和uri，匹配成功后，`action`值中，第一个是`next`，表示匹配继续动作，匹配成功后继续后续的规则匹配，匹配失败拒绝，第二个`ip`的检查，**这个场景也是比较多，就是对某个文件夹（uri路径、程序后台路径、phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）**。
 ```
     {
         "state": "on",
@@ -202,7 +202,7 @@
 
     }
 ```
-上面的这个配置就是url`abc.do`的请求referer来源进行了限制，否则就拒绝访问，且`action`是`next`就表示，后续的规则匹配继续，1.2版本之前会bypass的。现在不会了。
+上面的这个配置就是uri`abc.do`的请求referer来源进行了限制，否则就拒绝访问，且`action`是`next`就表示，后续的规则匹配继续，1.2版本之前会bypass的。现在不会了。
 
 ## 配置url过滤
 url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子吧
@@ -258,6 +258,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 ```
 {
     "state": "on",
+    "action": "deny",
     "useragent": [
         "HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench",
         "jio"

@@ -101,10 +101,10 @@ end
 local function set_token(_token)
     _token = _token or guid() 
     local re = token_dict:add(_token,true,2*60)  --- -- 缓存2分钟 非重复插入
-    if  re then
+    if re then
         return _token
     else
-        return set_token(guid(20))
+        return set_token(guid(50))
     end
 end
 
@@ -183,6 +183,31 @@ end
 local function getDict_Config(Config_jsonName)
     local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
     return re
+end
+
+-- 传入 (host,remoteIp)
+-- ipfromset.ips 异常处理
+local function loc_getRealIp(_host,_remoteIp)
+    if config_is_on("realIpFrom_Mod") then
+        local realipfrom = getDict_Config("realIpFrom_Mod")
+        local ipfromset = realipfrom[_host]
+        if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then 
+            return _remoteIp 
+        end
+        if remath(_remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+            --- header 中key名称 - 需要转换成 _
+            local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
+            local ip = ngx.unescape_uri(ngx.var[x])
+            if ip == "" then
+                ip = _remoteIp
+            end
+            return ip
+        else
+            return _remoteIp
+        end
+    else
+        return _remoteIp
+    end
 end
 
 -- 增加 三阶匹配规则

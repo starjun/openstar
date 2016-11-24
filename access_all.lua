@@ -74,9 +74,7 @@ local getDict_Config = optl.getDict_Config
 --- 常用二阶匹配规则
 local remath = optl.remath
 
--- 传入 (host)
--- ipfromset.ips 异常处理
--- 传入 (host)
+-- 传入 (host,remoteIp)
 -- ipfromset.ips 异常处理
 local function loc_getRealIp(_host)
     if config_is_on("realIpFrom_Mod") then

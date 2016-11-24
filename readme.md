@@ -55,7 +55,7 @@ iii：修改访问url,如短域名方式；修改访问method（支持自定义m
 ----------
 
 
-在**OpenStar**中的WAF防护模块，采用传统的黑白名单、包含、优化正则过滤的方式（*有人会问现在不是流行自主学习么；正则、黑白名单会有盲点、会被绕过......*）。这里我简单说明一下，自主分析学习引擎是我们的日志分析引擎做的，这里是高性能、高并发的点，就用简单粗暴的方法解决，根据业务实际调整好防护策略，可以解决绝大多数WEB安全1.0和WEB安全2.0类型的漏洞（90%+的问题）。
+在**OpenStar**中的WAF防护模块，采用传统的黑白名单、包含、优化正则过滤的方式（*有人会问现在不是流行自主学习么；正则、黑白名单会有盲点、会被绕过；WAF的误报和漏报问题等等......*）。**规则不是万能的，但是没有规则是万万不能的** 这里我简单说明一下，自主分析学习引擎是我们的日志分析引擎做的，这里是高性能、高并发的点，就用简单粗暴的方法解决，根据业务实际调整好防护策略，可以解决绝大多数WEB安全1.0和WEB安全2.0类型的漏洞（90%+的问题）。
 WAF	防护从header,args,post,访问频率等，分层进行按顺序防护，详细在后面的功能会详细说明
 
  - **WEB安全1.0**
@@ -141,7 +141,7 @@ url添加的尾巴（args参数）是服务器动态生成的token，而不是�
 
  - 应用层：js增加浏览器识别（不同agent匹配不同JS方言代码）、JS随机延迟、鼠标轨迹验证、键盘鼠标事件验证等js增加验证后，在进行校验串生成。
 
-说明：多次实战CC处理经验，很少到第三阶段，当然储备好这些JS脚本非常重要，纯JS肯定也是有限的，所有我就提出了使用控件，甚至是和浏览器厂商合作等更精准的防护方法。
+说明：多次实战CC处理经验，很少到第三阶段，当然储备好这些JS脚本非常重要，纯JS肯定也是有限的，所有我就提出了使用控件，甚至是和浏览器厂商合作等更精准的防护方法。这样对CC攻击、页面抓取、刷单等有非常好的防护效果。
 
 > 应用层的防护是在网络层+扩展的网络层防护效果不佳时使用，一般情况基本用的不多，因为在OpenStar的防护下，极少数情况下，需要第三阶段防护。在防页面抓取时，发挥你的想象（js是个好帮手，善用）使用OpenStar就可以帮你快速实现；当然使用flash防抓取效果更好（不够灵活）。
 
@@ -201,7 +201,7 @@ uri：`["/admin","in"]`
 
 ip：`[["127.0.0.1/32",""113.45.199.0/24""],"cidr"]` 
 
-==>表示匹配的ip在这2组ip段/ip中
+==>表示匹配的ip在这两组ip段/ip中
 
 args：`["*","","args_name","all"]` 
 args：`["*","","args_name","end"]` 
@@ -209,7 +209,7 @@ args：`["*","","args_name",1]`
 
 说明：第3个参数表示取args参数table的key名称，第4个参数表示取args[args_name]为table时，匹配所有(all)，匹配最后一个(end),匹配第几个(数字)，默认取第一个
 
-==>表示匹配的GET的args参数名为args_name,使用第4个参数模式进行匹配，匹配规则就是第一个和二个参数。其中第1/2参数支持前面描述的规则方式。
+==>表示匹配的GET的args参数名为args_name,使用第4个参数模式进行匹配，匹配规则就是第一个和二个参数。其中第1、2参数支持前面描述的规则方式。
 
 **table类型的匹配规则比较麻烦，暂时想着是这样处理，有好的想法可以告诉我**
 
@@ -305,10 +305,10 @@ args：`["*","","args_name",1]`
   #该参数是否启用cookie过滤
 
   "args_Mod" : "on",
-  #该参数是否启用args过滤
+  #该参数是否启用args过滤，准确的说是query_string过滤
 
   "post_Mod" : "on",
-  #该参数是否启用post过滤
+  #该参数是否启用post过滤，准确的说是post整体内容的过滤
 
   "network_Mod" : "on",
   #该参数是否启用network过滤频率规则
@@ -418,6 +418,8 @@ args：`["*","","args_name",1]`
   6：relua ==> 表示返回lua执行脚本（使用dofile操作）
   
   7：relua_str ==> 表示返回lua代码执行
+
+  8：next ==> 表示继续执行，否则拒绝 同referer_Mod模块中一致
   
   hostname：匹配的host
   
@@ -471,12 +473,13 @@ args：`["*","","args_name",1]`
   
 ## STEP 9：useragent_Mod （黑名单）
   - 说明：
-  `{"state":"off","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
+  `{"state":"off","action":"deny","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
 
   上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问，一般host设置为：`"hostname":["*",""]`表示所有（字符串匹配，非常快）
   state：规则是否启用
   hostname：匹配host
   useragent：匹配agent
+  action：匹配动作
  
 ## STEP 10：cookie_Mod（黑名单）
  - 说明：
@@ -499,9 +502,8 @@ args：`["*","","args_name",1]`
  state：表示规则是否启用
  hostname：表示匹配host
  query_string：表示匹配args参数组
- action：可选参数[deny] 表示匹配成功拒绝访问
- > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
-
+ action：表示匹配成功拒绝访问
+ 
 ## STEP 12：post_Mod（黑名单）
  - 说明：
  `{"state":"on","hostname":["*",""],"post_str":["\\$\\{","jio"],"action":"deny"}`
@@ -510,9 +512,8 @@ args：`["*","","args_name",1]`
   state：表示是否启用规则
   hostname：匹配host
   post_str：匹配post参数组
-  action：可选参数[deny] 表示匹配成功后拒绝访问
+  action：匹配成功后拒绝访问
 
-  > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
 ## STEP 13：network_Mod（频率黑名单）
  - 说明：
@@ -587,7 +588,7 @@ OpenStar测试服务器：
 # 变更历史
 
 ## **next 1.x 增加app_Mod，丰富动作, 增加token和IP绑定功能 **
-一些地方的规则定义不好理解，还没想到好办法这么改比较好。
+一些地方的规则定义不好理解，还没想到好办法这么改比较好。还有正则匹配时启用超时操作。
 
 ## 1.4 更新命名相关，原来url改成uri，args改成query_string，
 修改的比较多，还有增加app_Mod实现多规则匹配，连接符支持OR

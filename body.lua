@@ -12,32 +12,26 @@ local headers = ngx.req.get_headers()
 
 local token_dict = ngx.shared.token_dict
 local config_dict = ngx.shared.config_dict
+local host_dict = ngx.shared.host_dict
 
 local cjson_safe = require "cjson.safe"
 local config_base = cjson_safe.decode(config_dict:get("base")) or {}
-
+local host_Mod_state = host_dict:get(host)
 
 local optl = require("optl")
 
 --- 2016年8月10日 增加全局Mod开关
-if config_base["Mod_state"] == "off" then
+if config_base["Mod_state"] == "off" or host_Mod_state == "off" then
 	return
 end
 
 --- 判断config_dict中模块开关是否开启
-local function config_is_on(config_arg)
-	if config_base[config_arg] == "on" then
-		return true
-	end
-end
+local config_is_on = optl.config_is_on
 
 if not config_is_on("replace_Mod") then return end
 
 --- 取config_dict中的json数据
-local function getDict_Config(Config_jsonName)
-	local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
-	return re
-end
+local getDict_Config = optl.getDict_Config
 
 --- remath(str,re_str,options)
 --- 常用二阶匹配规则
@@ -53,7 +47,7 @@ local function host_uri_remath(_host,_uri)
 	end
 end
 
--- 返回内容的替换使用 ngx.re.sub
+-- 返回内容的替换使用 ngx.re.sub 后续会更新用户可指定替换函数(如 ngx.re.gsub)
 -- 参考使用资料 http://blog.csdn.net/weiyuefei/article/details/38439017
 local function ngx_2(reps,str_all)
 	for k,v in ipairs(reps) do
