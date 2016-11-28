@@ -60,6 +60,7 @@ local function ngx_2(reps,str_all)
 	end
 	ngx.arg[1] = str_all
 	token_dict:delete(token_tmp)
+	token_dict:flush_expired()
 end
 
 local Replace_Mod = getDict_Config("replace_Mod")

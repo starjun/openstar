@@ -238,6 +238,8 @@ local function remath3(_tbMod,_modrule)
             -- 超出范围判断
             if _ty > table.maxn(_str) then  
                 _ty = 1
+            else
+                _ty = table.maxn(_str)
             end
             if remath(_str[_ty],_re_str,_options) then
                 return true
