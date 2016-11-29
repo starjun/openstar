@@ -1,7 +1,8 @@
 -----  access_all by zj  -----
 local optl = require("optl")
-local request_guid = optl.random.token(50)
--- 后续会放到内存，进行唯一性判断（早期暂不判断）
+-- 缓存30秒
+local request_guid = optl.set_token(optl.guid(20),30)
+
 ngx.ctx.request_guid = request_guid
 
 if ngx.req.is_internal() then return end
@@ -125,6 +126,8 @@ local function action_deny()
 		local host_deny_msg = tb[host] or {}
 		local tp_denymsg = type(host_deny_msg.deny_msg)
 		if tp_denymsg == "number" then
+			-- guid del
+			optl.del_token(request_guid)
 			ngx.exit(host_deny_msg.deny_msg)
 		elseif tp_denymsg == "string" then
 			ngx.say(host_deny_msg.deny_msg)
@@ -132,6 +135,8 @@ local function action_deny()
 		end
 	end
 	if type(config_base.denyMsg.msg) == "number" then
+		-- guid del
+		optl.del_token(request_guid)
 		ngx.exit(config_base.denyMsg.msg)
 	else
 		ngx.say(tostring(config_base.denyMsg.msg))
@@ -147,7 +152,9 @@ base_msg.ip = ip
 
 --- STEP 0.1
 -- 2016年7月29日19:14:31  检查
-if host == "" then 
+if host == "" then
+	-- guid del
+	optl.del_token(request_guid)
 	Set_count_dict("host_method deny count")
 	optl.debug(base_msg,"deny","host_method.log")
 	ngx.exit(404)

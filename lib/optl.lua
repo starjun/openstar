@@ -98,14 +98,19 @@ end
 
 -- 设置token 并缓存3分钟
 -- 可能会无限循环
-local function set_token(_token)
-    _token = _token or guid() 
-    local re = token_dict:add(_token,true,2*60)  --- -- 缓存2分钟 非重复插入
+local function set_token(_token,_t)
+    _token = _token or guid()
+    _t = _t or 2*60
+    local re = token_dict:add(_token,true,_t)  --- -- 缓存2分钟 非重复插入
     if re then
         return _token
     else
         return set_token(guid(50))
     end
+end
+
+local function del_token(_token)
+    token_dict:delete(_token)
 end
 
 --- 基础 常用二阶匹配规则
@@ -545,6 +550,7 @@ optl.stringTojson = stringTojson
 optl.random = random
 optl.guid = guid
 optl.set_token = set_token
+optl.del_token = del_token
 
 optl.remath = remath
 optl.config_is_on = config_is_on
