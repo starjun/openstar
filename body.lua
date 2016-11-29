@@ -74,7 +74,7 @@ for key,value in ipairs(Replace_Mod) do
 
 		if ngx.arg[1] ~= '' then -- 请求正常
 			local chunk = token_dict:get(token_tmp)
-			if chunk == nil then
+			if chunk == nil or chunk == true then
 				chunk = ngx.arg[1]
 				token_dict:set(token_tmp,chunk,15)
 			else

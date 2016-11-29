@@ -105,7 +105,7 @@ local function set_token(_token,_t)
     if re then
         return _token
     else
-        return set_token(guid(50))
+        return set_token(guid(50),_t)
     end
 end
 
