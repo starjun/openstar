@@ -29,8 +29,7 @@ else
 	}
 	else
 	{
-	#window.location.href=url+"?&cc="+Num;
-	\d \d dddd
+	window.location.href=url+"?&cc="+Num;
 	}
 }
 

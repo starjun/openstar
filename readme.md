@@ -167,7 +167,7 @@ git clone
  - 设置目录权限
  OpenStar目录建议放到OR下，方便操作，该目录ngx运行用户有读写执行权限即可。因为要写日志，*暂时没有用ngx.log，后续可能会改动*。
  - lua文件修改
- 在init.lua中，修改conf_json参数，config.json文件绝对路径根据自己的情况写正确。
+ 在init.lua中，修改conf_json参数，base.json文件绝对路径根据自己的情况写正确。
  - api使用
 2016年6月7日 23:31:09 更新啦，引用waf.conf，后就可以直接使用api接口了，通过监听5460端口来给管理用啦，界面也在筹划中，期待有人可以加入，帮我一起整界面。
 
@@ -219,7 +219,7 @@ args：`["*","","args_name",1]`
 
  - init阶段
  
- a：首先加载本地的config.json配置文件，将相关配置读取到config_dict,host_dict,ip_dict中
+ a：首先加载本地的base.json配置文件，将相关配置读取到config_dict,host_dict,ip_dict中
  
  - access阶段（自上到下的执行流程，规则列表也是自上到下按循序执行的）
  
@@ -257,7 +257,7 @@ args：`["*","","args_name",1]`
  
 ## 主配置
 
-  config.json文件进行配置，主要是一些参数开关、目录设置
+  base.json文件进行配置，主要是一些参数开关、目录设置
   注：以下表示法，"on"表示开启，"off"表示关闭。
   ```
 
@@ -271,7 +271,7 @@ args：`["*","","args_name",1]`
 
   "redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
   #该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
-  #说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了config.json内容，
+  #说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了base.json内容，
   #和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
 
   "realIpFrom_Mod" : "on",
@@ -293,12 +293,12 @@ args：`["*","","args_name",1]`
   #该参数是否启用referer过滤
 
   "uri_Mod" : "on",
-  #该参数是否启用url过滤
+  #该参数是否启用uri过滤
 
   "header_Mod" : "on",
   #该参数是否启用headers头过滤
 
-  "agent_Mod" : "on",
+  "useragent_Mod" : "on",
   #该参数是否启用useragent过滤
 
   "cookie_Mod" : "on",

@@ -84,7 +84,7 @@ end
 
 -- 字符串转成序列化后的json同时也可当table类型
 local function stringTojson(_obj)
-    local json = cjson_safe.decode(_obj)  
+    local json = cjson_safe.decode(_obj) or {}
     return json
 end
 
@@ -114,6 +114,9 @@ local function del_token(_token)
 end
 
 --- 基础 常用二阶匹配规则
+-- 说明：[_restr,_options]  _str 就是被匹配的内容
+-- eg "ip":["*",""]
+-- eg "hostname":[["www.abc.com","127.0.0.1"],"table"]
 local function remath(_str,_re_str,_options)
     if _str == nil or _re_str == nil or _options == nil then return false end
     if _options == "" then
@@ -178,15 +181,15 @@ local function remath(_str,_re_str,_options)
 end
 
 --- 判断config_dict中模块开关是否开启
-local function config_is_on(config_arg)
-    if config_base[config_arg] == "on" then
+local function config_is_on(_config_arg)
+    if config_base[_config_arg] == "on" then
         return true
     end
 end
 
 --- 取config_dict中的json数据
-local function getDict_Config(Config_jsonName)
-    local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
+local function getDict_Config(_Config_jsonName)
+    local re = cjson_safe.decode(config_dict:get(_Config_jsonName)) or {}
     return re
 end
 
@@ -258,6 +261,9 @@ local function remath3(_tbMod,_modrule)
 end
 
 -- 基于modName 进行规则判断
+-- _modName = uri host args cookie 等
+-- _modRule = ["*",""] ["admin","in"] ["\w{6}","jio"] 
+-- ["asd","in","args_name1"] ["asd","in","args_name1","all"] ["asd","in","args_name1","end"]
 local function action_remath(_modName,_modRule,_base_Msg)
 
     if _modName == nil or _base_Msg == nil or type(_modRule) ~= "table" then 
@@ -395,7 +401,7 @@ local function re_app_ext(_app_list,_basemsg)
 end
 
 --- 拦截计数
--- 错误未记录
+-- set失败未处理
 local function set_count_dict(_key)
     if _key == nil then return end
     local re, err = count_dict:incr(_key,1)
@@ -475,9 +481,10 @@ local function debug(_base_msg,_info,_filename)
     local status = ngx.var.status
     local request_uri = _base_msg.request_uri
     local uri = _base_msg.uri
-    local agent = _base_msg.useragent
+    local useragent = _base_msg.useragent
     local referer = _base_msg.referer
-    local str = string.format([[%s "%s" "%s" [%s] "%s" "%s" "%s" "%s" "%s" "%s"]],remoteIp,host,ip,time,method,status,uri,agent,referer,_info)
+    local str = string.format([[%s "%s" "%s" [%s] "%s" "%s" "%s" "%s" "%s" "%s"]],
+        remoteIp,host,ip,time,method,status,uri,useragent,referer,_info)
     
     writefile(filepath,str)
 end
@@ -495,7 +502,7 @@ end
         -- return ngx.unescape_uri(args_name)
     end
 
-    --- 获取所有args参数
+    --- 获取所有args参数[query_string]
     local function get_args()
         return ngx.unescape_uri(ngx.var.query_string)
     end

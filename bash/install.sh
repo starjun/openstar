@@ -55,15 +55,15 @@ elif [ "$1" = "openstar" ]; then
 	chmod o+rw openstar/logs
 	chown root:nobody -R openstar/
 	chmod g+rw -R openstar/
-	# mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
-	# mv -f nginx/conf/waf.conf nginx/conf/waf.conf.bak
-	# mv -f nginx/conf/our.conf nginx/conf/our.conf.bak
-	#cp openstar/conf/nginx.conf nginx/conf/
-	#cp openstar/conf/our.conf nginx/conf/
-	#cp openstar/conf/waf.conf nginx/conf/
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
 	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
+	######### 保持原来所有规则
+	alias cp='cp'
+	cp -Rf  ${install_path}/openstar.${newstar}/base.json ${install_path}/openstar/
+	cp -Rf  ${install_path}/openstar.${newstar}/conf_json ${install_path}/openstar/
+	alias cp='cp -i'
+	#########
 
 elif [ "$1" = "openresty" ]; then
 	cd ${build_path}
