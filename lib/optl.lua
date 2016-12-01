@@ -260,7 +260,7 @@ end
 -- 基于modName 进行规则判断
 local function action_remath(_modName,_modRule,_base_Msg)
 
-    if _modName == nil or _modRule == nil or _base_Msg == nil or type(_modRule) ~= "table" then 
+    if _modName == nil or _base_Msg == nil or type(_modRule) ~= "table" then 
         return false 
     end
     if type(_base_Msg[_modName]) == "table" then

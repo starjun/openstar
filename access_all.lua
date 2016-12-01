@@ -2,7 +2,6 @@
 local optl = require("optl")
 -- 缓存30秒
 local request_guid = optl.set_token(optl.guid(20),30)
-
 ngx.ctx.request_guid = request_guid
 
 if ngx.req.is_internal() then return end
@@ -10,23 +9,21 @@ if ngx.req.is_internal() then return end
 local ngx_var = ngx.var
 local ngx_unescape_uri = ngx.unescape_uri
 
-local remoteIp = ngx_var.remote_addr
-local headers = ngx.req.get_headers()
-
-local host = ngx_unescape_uri(ngx_var.http_host)
-local referer = ngx_unescape_uri(ngx_var.http_referer)
-local agent = ngx_unescape_uri(ngx_var.http_user_agent)
-local cookie = ngx_unescape_uri(ngx_var.http_cookie)
-
-local method = ngx_unescape_uri(ngx_var.request_method)
-local uri = ngx_unescape_uri(ngx_var.uri)
-local request_uri = ngx_unescape_uri(ngx_var.request_uri)
-
 -- 获取所有参数的内容
+	local remoteIp = ngx_var.remote_addr
+	local host = ngx_unescape_uri(ngx_var.http_host)
+	local method = ngx_unescape_uri(ngx_var.request_method)
+	local request_uri = ngx_unescape_uri(ngx_var.request_uri)
+	local uri = ngx_unescape_uri(ngx_var.uri)
+	local useragent = ngx_unescape_uri(ngx_var.http_user_agent)
+	local referer = ngx_unescape_uri(ngx_var.http_referer)
+	local cookie = ngx_unescape_uri(ngx_var.http_cookie)
+	local query_string = optl.get_args()
+
+	local headers = ngx.req.get_headers()
+	local args = ngx.req.get_uri_args()
+
 local get_postargs = optl.get_posts
-
-local query_string = optl.get_args()
-
 local post_date
 
 local base_msg = {}
@@ -36,7 +33,7 @@ local base_msg = {}
 	base_msg.method = method
 	base_msg.request_uri = request_uri
 	base_msg.uri = uri
-	base_msg.useragent = agent
+	base_msg.useragent = useragent
 	base_msg.referer = referer
 	base_msg.cookie = cookie
 	base_msg.query_string = query_string
@@ -44,7 +41,7 @@ local base_msg = {}
 
 	-- table 类型参数
 	base_msg.headers = headers
-	base_msg.args = ngx.req.get_uri_args()
+	base_msg.args = args
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
@@ -75,7 +72,7 @@ local getDict_Config = optl.getDict_Config
 --- 常用二阶匹配规则
 local remath = optl.remath
 
--- 传入 (host,remoteIp)
+-- 传入 (host)
 -- ipfromset.ips 异常处理
 local function loc_getRealIp(_host)
     if config_is_on("realIpFrom_Mod") then
@@ -280,7 +277,7 @@ if  host_Mod_state == "on" then
 					return
 				end
 
-			elseif v.action[2] == "useragent" and remath(agent,v.useragent[1],v.useragent[2]) then
+			elseif v.action[2] == "useragent" and remath(useragent,v.useragent[1],v.useragent[2]) then
 				
 				_action = v.action[1]
 				if _action == "deny" then
@@ -347,7 +344,7 @@ if config_is_on("app_Mod") then
 					return
 
 				elseif v.action[1] == "next" then
-					--- base_msg 中的 remoteIp host referer agent method uri request_uri ip
+					--- base_msg 中的 remoteIp host referer useragent method uri request_uri ip
 					--- 以上是 next 动作可以匹配的http参数
 					local check_next = v.action[2]				
 					if type(base_msg[check_next]) ~= "table" and remath(base_msg[check_next],v[check_next][1],v[check_next][2]) then
@@ -370,7 +367,7 @@ if config_is_on("app_Mod") then
 					optl.debug(base_msg,"log Msg : "..optl.tableTojson(http_tmp),"app.log")
 
 				elseif v.action[1] == "rehtml" then
-					optl.sayHtml_ext(v.rehtml)
+					optl.sayHtml_ext(v.rehtml,1)
 					break
 
 				elseif v.action[1] == "refile" then
@@ -388,13 +385,6 @@ if config_is_on("app_Mod") then
 					local re_saylua = optl.sayLua(config_base.htmlPath..v.relua)
 					if re_saylua == "break" then
 						ngx.exit(200)
-					end
-
-				-- it is a test
-				elseif v.action[1] == "app_ext" then
-					
-					if optl.re_app_ext(v.app_ext,base_msg) then
-						ngx.say("yes app_ext is remath")
 					end
 
 				elseif v.action[1] == "set" then -- 预留
@@ -486,20 +476,20 @@ end
 
 --- STEP 9
 -- useragent(黑、白名单/log记录)
-if config_is_on("useragent_Mod") then	
+if config_is_on("useragent_Mod") then
 	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
 
-			if remath(agent,v.useragent[1],v.useragent[2]) then
+			if remath(useragent,v.useragent[1],v.useragent[2]) then
 				if v.action == "allow" then
 					return
 				elseif v.action == "log" then
-					Set_count_dict("agent log count")
-					optl.debug(base_msg,"log No : "..i,"agent.log")					
+					Set_count_dict("useragent log count")
+					optl.debug(base_msg,"log No : "..i,"useragent.log")					
 				else
-					Set_count_dict("agent deny count")
-					optl.debug(base_msg,"deny No : "..i,"agent.log")
+					Set_count_dict("useragent deny count")
+					optl.debug(base_msg,"deny No : "..i,"useragent.log")
 					action_deny()
 					break
 				end
@@ -511,8 +501,6 @@ end
 
 --- STEP 10
 -- cookie (黑/白名单/log记录)
-
-
 if config_is_on("cookie_Mod") and cookie ~= "" then
 	local cookie_mod = getDict_Config("cookie_Mod")
 	for i, v in ipairs( cookie_mod ) do
@@ -548,20 +536,19 @@ if config_is_on("args_Mod") and query_string ~= "" then
 			if remath(query_string,v.query_string[1],v.query_string[2]) then
 				if v.action == "deny" then
 					Set_count_dict("args deny count")
-					optl.debug(base_msg,"deny _args = "..query_string.." No : "..i,"args.log")
+					optl.debug(base_msg,"deny args = "..query_string.." No : "..i,"args.log")
 					action_deny()
 					break
 				elseif v.action == "log" then
 					Set_count_dict("args log count")
-					optl.debug(base_msg,"log _args = "..query_string.." No : "..i,"args.log")							
+					optl.debug(base_msg,"log args = "..query_string.." No : "..i,"args.log")							
 				elseif v.action == "allow" then
 					return							
 				end
 			end
 			
 		end
-	end
-	
+	end	
 end
 
 --- STEP 12
@@ -577,12 +564,12 @@ if config_is_on("post_Mod") and method == "POST" then
 				if remath(post_str,v.post_str[1],v.post_str[2]) then
 					if v.action == "deny" then
 						Set_count_dict("post deny count")
-						optl.debug(base_msg,"deny _post : "..post_str.."No : "..i,"post.log")
+						optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")
 						action_deny()
 						break
 					elseif v.action == "log" then
 						Set_count_dict("post log count")
-						optl.debug(base_msg,"deny _post : "..post_str.."No : "..i,"post.log")							
+						optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")							
 					elseif v.action == "allow" then
 						return
 					end

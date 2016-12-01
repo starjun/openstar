@@ -20,7 +20,7 @@ handler = function()
 	--  
 	local ok, err = ngx.timer.at(timeAt, handler)  
 	if not ok then  
-	  ngx.log(ngx.ERR, "failed to startup heartbeart worker...", err)  
+	  ngx.log(ngx.ERR, "failed to startup handler worker...", err)
 	end  
 end  
   
