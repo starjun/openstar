@@ -15,6 +15,7 @@ local sayHtml_ext = optl.sayHtml_ext
 local _action = get_argsByName("action")
 local _mod = get_argsByName("mod")
 local _debug = get_argsByName("debug")
+local _host = get_argsByName("host")
 
 local config_dict = ngx.shared.config_dict
 local host_dict = ngx.shared.host_dict
@@ -47,15 +48,29 @@ local function config_save()
 	return re
 end
 
-local function  hostMod_save()
-	local _tb_host,tb_host_mod,tb_host_name = host_dict:get_keys(0),{},{}
+local function  hostMod_save(_hostname)
+	-- 新增判断 _hostname
+	local tb_host_mod ={}
+
+	if _hostname ~= "" then
+		local tmp_host = host_dict:get(_hostname)
+		if tmp_host == nil then
+			return false
+		else
+			tb_host_mod[_hostname] = host_dict:get(_hostname.."_HostMod") or "{}"
+		end
+	end
+
+	local _tb_host,tb_host_name = host_dict:get_keys(0),{}
 	for i,v in ipairs(_tb_host) do
 		local from , to = string.find(v, "_HostMod")
 		if from == nil then
 			local tmp_tb = {}
 			tmp_tb[1],tmp_tb[2] = v,host_dict:get(v)
 			table.insert(tb_host_name, tmp_tb)
-			tb_host_mod[v] = host_dict:get(v.."_HostMod")
+			if _hostname == "" then
+				tb_host_mod[v] = host_dict:get(v.."_HostMod") or "{}"
+			end
 		end
 	end
 	--optl.sayHtml_ext({_tb_host=_tb_host,tb_host_mod=tb_host_mod,tb_host_name=tb_host_name})
@@ -102,7 +117,7 @@ if _action == "save" then
 			sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 		end
 		
-		re = hostMod_save()
+		re = hostMod_save(_host)
 		if re ~= true then  
 			_code = "error"
 			_msg = "host_dict save error"
@@ -124,7 +139,7 @@ if _action == "save" then
 			end
 		elseif _mod == "host_Mod" then
 		-- 目前基于host的模块规则是 全部保存 并不能基于某一个host进行保存
-			re = hostMod_save()
+			re = hostMod_save(_host)
 			if re then
 				_msg = "host_dict save ok"
 			else

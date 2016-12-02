@@ -19,30 +19,13 @@ local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 local optl = require("optl")
 
---- 判断config_dict中模块开关是否开启
-local function config_is_on(config_arg)
-    if config_base[config_arg] == "on" then
-        return true
-    end
-end
-
---- 取config_dict中的json数据
-local function getDict_Config(Config_jsonName)
-    local re = cjson_safe.decode(config_dict:get(Config_jsonName)) or {}
-    return re
-end
-
---- remath(str,re_str,options)
---- 常用二阶匹配规则
-local remath = optl.remath
-
 -- 传入 (host)
 local function loc_getRealIp(_host)
-    if config_is_on("realIpFrom_Mod") then
-        local realipfrom = getDict_Config("realIpFrom_Mod")
+    if optl.config_is_on("realIpFrom_Mod") then
+        local realipfrom = optl.getDict_Config("realIpFrom_Mod")
         local ipfromset = realipfrom[_host]
-        if type(ipfromset) ~= "table" then return remoteIp end
-        if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+        if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then return remoteIp end
+        if optl.remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
             local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
             local ip = ngx.unescape_uri(ngx.var[x])
             if ip == "" then

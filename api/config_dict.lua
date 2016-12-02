@@ -25,7 +25,6 @@ local _code = "ok"
 if _action == "get" then
 
 	if _mod == "all_mod" then
-
 		local _tb,tb_all = tmpdict:get_keys(0),{}
 		for i,v in ipairs(_tb) do
 			tb_all[v] = tmpdict:get(v)
@@ -34,7 +33,7 @@ if _action == "get" then
 		optl.sayHtml_ext(tb_all)
 
 	elseif _mod == "" then
-
+	-- 显示所有 keys 的 name
 		local _tb = tmpdict:get_keys(0)
 		_tb.code = _code
 		optl.sayHtml_ext(_tb)
