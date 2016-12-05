@@ -64,7 +64,8 @@ end
 
 local Replace_Mod = getDict_Config("replace_Mod")
 
-local token_tmp = ngx.ctx.request_guid or host..uri..remoteIP..optl.tableTostring(headers)
+-- ngx.ctx.request_guid 一定要保证存在
+local token_tmp = tostring(ngx.ctx.request_guid)..remoteIP
 
 --- STEP 12
 for key,value in ipairs(Replace_Mod) do
@@ -73,7 +74,7 @@ for key,value in ipairs(Replace_Mod) do
 
 		if ngx.arg[1] ~= '' then -- 请求正常
 			local chunk = token_dict:get(token_tmp)
-			if chunk == nil or chunk == true then
+			if chunk == nil then
 				chunk = ngx.arg[1]
 				token_dict:set(token_tmp,chunk,15)
 			else

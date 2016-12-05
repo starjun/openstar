@@ -1,7 +1,7 @@
 -----  access_all by zj  -----
 local optl = require("optl")
--- 缓存30秒
-local request_guid = optl.set_token(optl.guid(20),30)
+-- 缓存60秒
+local request_guid = optl.set_token(optl.guid(20),60)
 ngx.ctx.request_guid = request_guid
 
 if ngx.req.is_internal() then return end
@@ -147,16 +147,6 @@ base_msg.ip = ip
 -- debug 调试，线上请注释 没有传递filename 默认就是debug.log
 -- optl.debug(base_msg,"---- STEP 0 ----")
 
---- STEP 0.1
--- 2016年7月29日19:14:31  检查
-if host == "" then
-	-- guid del
-	optl.del_token(request_guid)
-	Set_count_dict("host_method deny count")
-	optl.debug(base_msg,"deny","host_method.log")
-	ngx.exit(404)
-end
-
 ---  STEP 1 
 -- black/white ip 访问控制(黑/白名单/log记录)
 -- 2016年7月29日19:12:53 检查
@@ -237,7 +227,6 @@ if config_is_on("rewrite_Mod") then
 		end
 	end
 end
-
 
 --- STEP 4
 -- host_Mod 规则过滤
@@ -321,9 +310,8 @@ end
 
 -- --- STEP 5
 -- -- app_Mod 访问控制 （自定义action）
--- -- 目前支持的 deny allow log next rehtml refile relua relua_str cc
--- 2016年11月13日13:13:59 将原用于CC验证的next动作修改为cc，next同referer效果一样
--- 且验证args参数，非取第一个值验证，而是所有都验证
+-- -- 目前支持的 deny allow log next rehtml refile relua relua_str
+-- 支持 规则组 取反 or/and 连接符
 if config_is_on("app_Mod") then
 	local app_mod = getDict_Config("app_Mod")
 	for i,v in ipairs(app_mod) do

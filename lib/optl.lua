@@ -98,14 +98,15 @@ end
 
 -- 设置token 并缓存3分钟
 -- 可能会无限循环
-local function set_token(_token,_t)
-    _token = _token or guid()
+local function set_token(_token,_t,_len)
+    _len = _len or 10
+    _token = _token or guid(_len)    
     _t = _t or 2*60
     local re = token_dict:add(_token,true,_t)  --- -- 缓存2分钟 非重复插入
     if re then
         return _token
     else
-        return set_token(guid(50),_t)
+        return set_token(nil,_t,_len +１)
     end
 end
 
