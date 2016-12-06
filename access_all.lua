@@ -46,8 +46,6 @@ local base_msg = {}
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
 local ip_dict = ngx.shared.ip_dict
-local count_dict = ngx.shared.count_dict
-local token_dict = ngx.shared.token_dict
 local host_dict = ngx.shared.host_dict
 
 local cjson_safe = require "cjson.safe"
@@ -72,30 +70,9 @@ local getDict_Config = optl.getDict_Config
 --- 常用二阶匹配规则
 local remath = optl.remath
 
--- 传入 (host)
+-- 传入 (host,remoteIp)
 -- ipfromset.ips 异常处理
-local function loc_getRealIp(_host)
-    if config_is_on("realIpFrom_Mod") then
-        local realipfrom = getDict_Config("realIpFrom_Mod")
-        local ipfromset = realipfrom[_host]
-        if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then 
-            return remoteIp 
-        end
-        if remath(remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
-            --- header 中key名称 - 需要转换成 _
-            local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
-            local ip = ngx_unescape_uri(ngx_var[x])
-            if ip == "" then
-                ip = remoteIp
-            end
-            return ip
-        else
-            return remoteIp
-        end
-    else
-        return remoteIp
-    end
-end
+local loc_getRealIp = optl.loc_getRealIp
 
 --- 匹配 host 和 uri
 local function host_uri_remath(_host,_uri)
@@ -123,8 +100,6 @@ local function action_deny()
 		local host_deny_msg = tb[host] or {}
 		local tp_denymsg = type(host_deny_msg.deny_msg)
 		if tp_denymsg == "number" then
-			-- guid del
-			optl.del_token(request_guid)
 			ngx.exit(host_deny_msg.deny_msg)
 		elseif tp_denymsg == "string" then
 			ngx.say(host_deny_msg.deny_msg)
@@ -132,8 +107,6 @@ local function action_deny()
 		end
 	end
 	if type(config_base.denyMsg.msg) == "number" then
-		-- guid del
-		optl.del_token(request_guid)
 		ngx.exit(config_base.denyMsg.msg)
 	else
 		ngx.say(tostring(config_base.denyMsg.msg))
@@ -142,7 +115,7 @@ local function action_deny()
 end
 
 --- STEP 0
-local ip = loc_getRealIp(host)
+local ip = loc_getRealIp(host,remoteIp)
 base_msg.ip = ip
 -- debug 调试，线上请注释 没有传递filename 默认就是debug.log
 -- optl.debug(base_msg,"---- STEP 0 ----")

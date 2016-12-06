@@ -100,13 +100,13 @@ end
 -- 可能会无限循环
 local function set_token(_token,_t,_len)
     _len = _len or 10
-    _token = _token or guid(_len)    
+    _token = _token or guid(_len)
     _t = _t or 2*60
     local re = token_dict:add(_token,true,_t)  --- -- 缓存2分钟 非重复插入
     if re then
         return _token
     else
-        return set_token(nil,_t,_len +１)
+        return set_token(guid(_len+1),_t)
     end
 end
 
@@ -518,7 +518,7 @@ end
     end
 
     --- 获取所有POST参数（包含表单）
-    local function get_posts()   
+    local function get_posts()
         ngx.req.read_body()
         local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
         if not data then 
@@ -563,6 +563,7 @@ optl.del_token = del_token
 optl.remath = remath
 optl.config_is_on = config_is_on
 optl.getDict_Config = getDict_Config
+optl.loc_getRealIp = loc_getRealIp
 
 optl.set_count_dict = set_count_dict
 optl.ngx_find = ngx_find

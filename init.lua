@@ -90,7 +90,6 @@ function loadConfig()
 		v = cjson_safe.encode(v)
 		config_dict:safe_set(k,v,0)
 	end
-
 end
 
 loadConfig()

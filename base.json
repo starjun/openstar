@@ -44,6 +44,6 @@
 
 	"htmlPath" : "/opt/openresty/openstar/index/",
 
-	"denyMsg" : {"state":"on","msg":404}
+	"denyMsg" : {"state":"on","msg":"openstar deny"}
 
 }
