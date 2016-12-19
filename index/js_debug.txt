@@ -1,0 +1,19 @@
+<html>
+<head>
+<script>
+var Num="@token@";
+var url = window.location.href;
+var re = new RegExp("\\?","i");
+var url = window.location.href;
+if(re.test(url)){
+ window.location.href=url+"&cctoken="+Num;
+ }
+ else
+ {
+ window.location.href=url+"?&cctoken="+Num;
+ }
+
+</script>
+</head>
+</html>
+

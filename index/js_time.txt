@@ -1,0 +1,23 @@
+<html>
+<head>
+<script>
+var Num="",re;
+for(var i=0;i<6;i++)
+{
+	Num+=Math.floor(Math.random()*10);
+}
+var url = window.location.href;
+var re = new RegExp("\\?","i");
+var url = window.location.href;
+if(re.test(url)){
+ window.location.href=url+"&cc="+Num;
+ }
+ else
+ {
+ window.location.href=url+"?&cc="+Num;
+ }
+
+</script>
+</head>
+</html>
+
