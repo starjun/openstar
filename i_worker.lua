@@ -13,15 +13,18 @@ local function flush_expired_dict()
 	end
 end
 
-handler = function()  
+handler = function()
 	-- do something
-	flush_expired_dict()
+	ngx.thread.spawn(flush_expired_dict)
 
-	--  
-	local ok, err = ngx.timer.at(timeAt, handler)  
-	if not ok then  
-	  ngx.log(ngx.ERR, "failed to startup handler worker...", err)
-	end  
-end  
-  
-handler()
+	--
+	local ok, err = ngx.timer.at(timeAt, handler)
+	if not ok then
+		ngx.log(ngx.ERR, "failed to startup handler worker...", err)
+	end
+end
+
+local ok, err = ngx.timer.at(0, handler)
+if not ok then
+	ngx.log(ngx.ERR, "failed to startup handler worker...", err)
+end
