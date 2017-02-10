@@ -1,15 +1,73 @@
 
 ---- 调试使用原样将数据包格式化后返回
-
+local ngx_var = ngx.var
+local ngx_unescape_uri = ngx.unescape_uri
 
 local headers = ngx.req.get_headers()
-local host = ngx.unescape_uri(headers["Host"])
-local method = ngx.var.request_method
 local args = ngx.req.get_uri_args()
-local uri = ngx.unescape_uri(ngx.var.uri)
-local request_uri = ngx.unescape_uri(ngx.var.request_uri)
-local remoteIp = ngx.var.remote_addr
 local lua_version
+
+--- ngx.var 虚表
+local ngxVar = {}
+
+ngxVar.status=ngx_var.status
+ngxVar.scheme = ngx_var.scheme
+ngxVar.request_method = ngx_var.request_method
+ngxVar.uri = ngx_unescape_uri(ngx_var.uri)
+ngxVar.request_uri = ngx_unescape_uri(ngx_var.request_uri)
+ngxVar.document_uri = ngx_var.document_uri
+ngxVar.request=ngx_var.request
+
+ngxVar.server_addr = ngx_var.server_addr
+ngxVar.server_port = ngx_var.server_port
+ngxVar.server_protocol = ngx_var.server_protocol
+
+ngxVar.remote_addr = ngx_var.remote_addr
+ngxVar.host = ngx_var.host
+ngxVar.http_host = ngx_var.http_host
+ngxVar.hostname = ngx_var.hostname
+ngxVar.server_name = ngx_var.server_name
+ngxVar.sent_http_host = ngx_var.sent_http_host
+
+ngxVar.document_root = ngx_var.document_root
+ngxVar.realpath_root = ngx_var.realpath_root
+ngxVar.request_filename = ngx_var.request_filename
+ngxVar.query_string = ngx_unescape_uri(ngx_var.query_string)
+
+
+ngxVar.remote_port = ngx_var.remote_port
+ngxVar.remote_user = ngx_var.remote_user
+ngxVar.remote_passwd = ngx_var.remote_passwd
+ngxVar.content_type = ngx_var.content_type
+ngxVar.content_length = ngx_var.content_length
+ngxVar.body_bytes_sent = ngx_var.body_bytes_sent
+ngxVar.bytes_sent = ngx_var.bytes_sent
+
+ngxVar.connection = ngx_var.connection
+ngxVar.connection_requests = ngx_var.connection_requests
+
+
+ngxVar.limit_rate = ngx_var.limit_rate
+ngxVar.msec = ngx_var.msec
+ngxVar.nginx_version = ngx_var.nginx_version
+
+ngxVar.pid = ngx_var.pid
+ngxVar.pipe = ngx_var.pipe
+ngxVar.proxy_protocol_addr = ngx_var.proxy_protocol_addr
+ngxVar.proxy_protocol_port = ngx_var.proxy_protocol_port
+
+ngxVar.request_completion = ngx_var.request_completion
+ngxVar.request_id = ngx_var.request_id
+ngxVar.request_length = ngx_var.request_length
+
+ngxVar.time_local=ngx_var.time_local
+ngxVar.request_time = ngx_var.request_time
+ngxVar.time_iso8601 = ngx_var.time_iso8601
+ngxVar.time_local = ngx_var.time_local
+
+
+
+
 
 
 local config_dict = ngx.shared.config_dict
@@ -35,35 +93,20 @@ local debug_tb = {
     _ngx_prefix=ngx.config.prefix(),
     _lua_version = lua_version,
     _ngx_lua_version = ngx.config.ngx_lua_version,
-    _uri = uri,
-    _method = method,
-    _request_uri = request_uri,
+    _ngx_version = ngx.config.nginx_version,
+
     _args = args,
     _headers = headers,
-    _schema = ngx.var.schema,
-    _var_host = ngx.var.host,
-    _hostname = ngx.var.hostname,
-    _servername = ngx.var.server_name or "unknownserver",
-    _remoteIp = remoteIp,
-    _ip = optl.loc_getRealIp(host,remoteIp),
-    _filename = ngx.var.request_filename,
-    _query_string = ngx.unescape_uri(ngx.var.query_string),
-    _nowtime=ngx.var.time_local or "time error",
-    _remote_addr = ngx.var.remote_addr,
-    _remote_port = ngx.var.remote_port,
-    _remote_user = ngx.var.remote_user,
-    _remote_passwd = ngx.var.remote_passwd,
-    _content_type = ngx.var.content_type,
-    _content_length = ngx.var.content_length,
-    _nowstatus=ngx.var.status or "-",
-    _request=ngx.var.request or "-",
-    _bodybyte = ngx.var.body_bytes_sent or "-"  
+    _ip = optl.loc_getRealIp(ngxVar.host,ngxVar.remote_addr),
+
+    _ngxVar = ngxVar
+
 }
 
 
-if method == "GET" then
+if ngxVar.request_method == "GET" then
     optl.sayHtml_ext(debug_tb)
-elseif method == "POST" then
+elseif ngxVar.request_method == "POST" then
     local post_str = get_postargs()
     local parser = require "bodyparser"
     local p, err = parser.new(post_str, ngx.var.http_content_type)

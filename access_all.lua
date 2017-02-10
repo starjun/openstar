@@ -1,13 +1,14 @@
 -----  access_all by zj  -----
 local optl = require("optl")
--- 缓存60秒
-local request_guid = optl.set_token(optl.guid(20),60)
-ngx.ctx.request_guid = request_guid
-
-if ngx.req.is_internal() then return end
-
 local ngx_var = ngx.var
 local ngx_unescape_uri = ngx.unescape_uri
+
+-- 缓存60秒
+local request_guid = optl.set_token(ngx_var.request_id,60)
+ngx.ctx.request_guid = request_guid
+
+--取消子请求判断
+--if ngx.req.is_internal() then return end
 
 -- 获取所有参数的内容
 	local remoteIp = ngx_var.remote_addr
