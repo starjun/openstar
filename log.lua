@@ -15,10 +15,11 @@ optl.set_count_dict(gl_request_method)
 
 -- host - uri 计数
 local host = ngx_var.http_host or "unknown host"
+local server_name = ngx_var.server_name
 
--- if ngx_var.server_name == "localhost" or ngx_var.server_name == "localhost:5460" then
--- 	host = ngx_var.server_name
--- end
+if server_name == "localhost" or server_name == "localhost:5460" then
+	host = server_name
+end
 
 local host_uri = ngx_var.scheme.."://"..host..ngx_unescape_uri(ngx_var.uri)
 optl.set_count_dict(host_uri)

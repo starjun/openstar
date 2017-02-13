@@ -45,5 +45,16 @@
         "action": ["log"],
         "hostname": ["127.0.0.1:5460",""],
         "uri": ["/log",""]
+    },
+    {
+        "state": "on",
+        "action": ["deny"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "uri": ["/api/.*","jio"],
+        "app_ext":[
+        [false,"uri",["admin","in"],"or"],
+        [false,"cookie",["c_test","jio"],"and"],
+        [true,"ip",[["1.1.1.1","127.0.0.1"],"table"],"and"]
+        ]
     }
 ]

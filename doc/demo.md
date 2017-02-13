@@ -150,7 +150,7 @@
         "app_ext":[
         [false,"uri",["admin","in"],"or"],
         [false,"cookie",["c_test","jio"],"and"],
-        [ture,"ip",[["1.1.1.1","127.0.0.1"],"table"],"and"]
+        [true,"ip",[["1.1.1.1","127.0.0.1"],"table"],"and"]
         ]
     }
 ```

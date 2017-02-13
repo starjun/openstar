@@ -1,0 +1,39 @@
+
+{
+    "realipFrom":{
+        "ips": ["*",""],
+        "realipset": "x-for-f"
+    },
+
+    "realopSet":"star-ip",
+
+    "denyMsg":403,
+
+    "还没想好":"realIpFrom/realIpSet/denyMsg合并",
+    
+    "acl_list":[
+        {
+            "state": "on",
+            "action": ["allow","uri"],
+            "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
+        },
+        {
+            "state": "on",
+            "action":["log","referer"],
+            "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+            "referer": ["hao123","in"]
+            
+        },
+        {
+            "state": "on",
+            "action":["deny","useragent"],
+            "useragent": ["baidu","in"]
+        },
+        {
+            "state": "on",
+            "action":["deny","network"],
+            "network":{"maxReqs":30,"pTime":10,"blackTime":600},
+            "uri": ["/index.html",""]
+        }
+    ]
+}
