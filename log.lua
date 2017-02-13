@@ -10,11 +10,11 @@ optl.del_token(request_guid)
 local gl_request_count = "global request count"
 optl.set_count_dict(gl_request_count)
 
-local gl_request_method = "global request "..ngx_var.request_method
+local gl_request_method = "global request "..(ngx_var.request_method or "unknown method")
 optl.set_count_dict(gl_request_method)
 
 -- host - uri 计数
-local host = ngx_var.http_host
+local host = ngx_var.http_host or "unknown host"
 
 -- if ngx_var.server_name == "localhost" or ngx_var.server_name == "localhost:5460" then
 -- 	host = ngx_var.server_name

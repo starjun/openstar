@@ -6,8 +6,18 @@ grammar_cjkRuby: true
 ---
 
 欢迎使用 **{OpenStar}(WAF+)**，该项目是从实际需求中产生，经过多次的版本迭代，实属不易。感谢**春哥**，以及[春哥][1]的神器（**[OpenResty][2]**）
-**代码写的比较好理解，肯定不优雅  哈~** 有朋友问我多站点的事，使用ngx自己的增加配置文件就不说了，使用动态upstream可以参考我另外的项目https://github.com/starjun/dynamic_upstream-by-balancer
+**代码写的比较好理解，肯定不优雅  哈~**
+
+一些同学问的比较多的问题：
+
+1：关于多站点的事
+
+使用ngx本身的增加配置文件就不说了，使用动态upstream可以参考我另外的项目https://github.com/starjun/dynamic_upstream-by-balancer
 一些接口没有加上去，看看代码自己非常容易搞定了。反向代理的host和后端的IP组都在DICT中（注意是IP组，而不仅仅是类似一些balancer写动态upstream的是一个IP），且支持多种负载均衡方式，相信可以满足大多数需求。https的后面有时间我在完善下。
+
+2：集群相关
+
+目前openstar是支持集群的，规则同步和下发等都是提供了api，都是被动方式，规则为什么没有放到redis中，请自己测试一下，每次规则过滤都从redis取后在序列化，和从dict取在序列化，自己看效果，自己动手，顺便说下，规则在集群下当然存在redis中，都是通过api进行操作更新到dict中，而不是每次都从redis中取。
 
 admin@17173.com邮箱已经没有在用了，请不要给这个发邮箱啦，18801180400@qq.com，也是手机。
 
