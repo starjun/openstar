@@ -198,14 +198,14 @@ end
 -- ipfromset.ips 异常处理
 local function loc_getRealIp(_host,_remoteIp)
     if config_is_on("realIpFrom_Mod") then
-        local realipfrom = getDict_Config("realIpFrom_Mod")
-        local ipfromset = realipfrom[_host]
+        local tb_mod = getDict_Config("realIpFrom_Mod")
+        local ipfromset = tb_mod[_host]
         if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then 
             return _remoteIp 
         end
         if remath(_remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
             --- header 中key名称 - 需要转换成 _
-            local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipset),'-','_')
+            local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipfrom),'-','_')
             local ip = ngx.unescape_uri(ngx.var[x])
             if ip == "" then
                 ip = _remoteIp
