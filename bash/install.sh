@@ -2,7 +2,7 @@
 build_path=/data/openresty
 install_path=/opt/openresty
 
-install_version=1.9.15.1
+install_version=1.11.2.2
 down_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
 
 ##############################
