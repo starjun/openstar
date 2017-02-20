@@ -9,31 +9,198 @@
 
     "denyMsg":403,
 
-    "还没想好":"realIpFrom/realIpSet/denyMsg合并",
-    
-    "acl_list":[
+    "method_Mod":[{
+                "POST":true,
+                "GET":true,
+                "HEAD":true},
+                "list"],
+
+
+    "rewrite_Mod":[
         {
             "state": "on",
-            "action": ["allow","uri"],
-            "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
+            "action": ["set-cookie","asjldisdafpopliu8909jk34jk","tokenYouname"],
+            "uri": ["^/rewrite$","jio"]
         },
         {
             "state": "on",
-            "action":["log","referer"],
+            "action": ["set-cookie","asjldisdafpopliu8909jk34jk","tokenYouname"],
+            "uri": ["^/rewritetest$","jio"]
+        }
+    ],
+
+    "app_Mod":[
+        {
+            "state": "on",
+            "action": ["deny"],
+            "uri": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
+        },
+        {
+            "state": "on",
+            "action": ["rehtml"],
+            "rehtml": "<html>hi~!</html>",
+            "uri": ["/rehtml",""]
+        },
+        {
+            "state": "on",
+            "action": ["refile"],
+            "refile": "2.txt",
+            "uri": ["/refile",""]
+        },
+        {
+            "state": "on",
+            "action": ["next","ip"],
+            "ip":[["106.37.236.170","1.1.1.1"],"table"],
+            "uri": ["/api/.*","jio"]
+        },    
+        {
+            "state": "on",
+            "action": ["relua"],
+            "relua":"1.lua",
+            "uri": ["/relua",""]
+        },
+        {
+            "state": "on",
+            "action": ["relua_str"],
+            "relua_str":"local a = 1 if a<1 then ngx.say(1) end return 2",
+            "uri": ["/relua",""]
+        },    
+        {
+            "state": "on",
+            "action": ["log"],
+            "uri": ["/log",""]
+        },
+        {
+            "state": "on",
+            "action": ["deny"],
+            "uri": ["/api/.*","jio"],
+            "app_ext":[
+            [false,"uri",["admin","in"],"or"],
+            [false,"cookie",["c_test","jio"],"and"],
+            [true,"ip",[["1.1.1.1","127.0.0.1"],"table"],"and"]
+            ]
+        }
+    ],
+
+    "referer_Mod":[
+        {
+            "state": "on",
+            "uri": ["^/abc.do$","jio"],
+            "referer": ["^.*/(www\\.hao123\\.com|www3\\.hao123\\.com)$","jio"],
+            "action":"next"
+        },
+        {
+            "state": "on",
             "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
-            "referer": ["hao123","in"]
-            
+            "referer": ["*",""],
+            "action":"next"
         },
         {
             "state": "on",
-            "action":["deny","useragent"],
-            "useragent": ["baidu","in"]
+            "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+            "referer": ["101.200.122.200","in"],
+            "action":"allow"
+        }
+    ],
+
+    "uri_Mod":[
+        {
+            "state": "on",
+            "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"],
+            "action": "allow"
         },
         {
             "state": "on",
-            "action":["deny","network"],
-            "network":{"maxReqs":30,"pTime":10,"blackTime":600},
-            "uri": ["/index.html",""]
+            "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
+            "action": "allow"
+        },
+        {
+            "state": "on",
+            "uri": ["\\.(svn|git|htaccess|bash_history)","jio"],
+            "action": "deny"
+        }
+    ],
+
+    "header_Mod":[
+        {
+            "state": "on",
+            "uri": ["*",""],
+            "header": ["*","","Acunetix_Aspect","end"]        
+        },
+        {
+            "state": "on",
+            "uri": ["*",""],
+            "header": ["*","","X_Scan_Memo","all"]        
+        }
+    ],
+
+    "useragent_Mod":[
+        {
+            "state": "on",
+            "useragent": [
+                "HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench",
+                "jio"
+            ]
+        }
+    ],
+
+    "cookie_Mod":[
+        {
+            "state": "on",
+            "cookie": ["\\.\\./","jio"],
+            "action": "deny"
+        },
+        {
+            "state": "on",
+            "cookie": ["\\:\\$","jio"],
+            "action": "deny"
+        }
+    ],
+
+    "args_Mod":[
+        {
+            "state": "on",
+            "query_string": ["\\$\\{","jio"],
+            "action": "deny"
+        },
+        {
+            "state": "on",
+            "query_string": ["'*.*([ |/**/]and|or[ |/**/]).+=.+","jio"],
+            "action": "deny"
+        }
+    ],
+
+    "post_Mod":[
+        {
+            "state": "on",
+            "post_str": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
+            "action": "deny"
+        },
+        {
+            "state": "on",
+            "post_str": ["benchmark\\((.*)\\,(.*)\\)","jio"],
+            "action": "deny"
+        }
+    ],
+
+    "network_Mod":[
+        {
+            "state": "off",
+            "network":{"maxReqs":20,"pTime":10,"blackTime":600},
+            "uri": ["*",""]
+        }
+    ],
+
+    "replace_Mod":[
+        {
+            "state": "on",
+            "uri": ["^/api/ip_dict$","jio"],
+            "replace_list":
+                [
+                 ["deny","","denyFUCK"],
+                 ["allow","","allowPASS"],
+                 ["lzcaptcha\\?key='\\s*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]
+                ]
         }
     ]
 }

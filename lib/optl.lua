@@ -428,7 +428,7 @@ end
 
 --- 对not table 类型的数据 进行 ngx_find
 local function sayHtml_ext(_html,_ty) 
-    ngx.header.content_type = "text/html"    
+    --ngx.header.content_type = "text/html"    
     if _html == nil then 
         _html = "_html is nil"
     elseif type(_html) == "table" then             
@@ -445,7 +445,7 @@ end
 
 --- ngx_find 无条件使用
 local function sayFile(_filename)
-    ngx.header.content_type = "text/html"
+    --ngx.header.content_type = "text/html"
     --local str = readfile(Config.base.htmlPath..filename)
     local str = readfile(_filename) or "filename error"
     -- 对读取的文件内容进行 ngx_find
