@@ -103,6 +103,7 @@ local function action_deny()
 		if tp_denymsg == "number" then
 			ngx.exit(host_deny_msg.deny_msg)
 		elseif tp_denymsg == "string" then
+			ngx.header.content_type = "text/html"
 			ngx.say(host_deny_msg.deny_msg)
 			ngx.exit(200)
 		end
@@ -110,6 +111,7 @@ local function action_deny()
 	if type(config_base.denyMsg.msg) == "number" then
 		ngx.exit(config_base.denyMsg.msg)
 	else
+		ngx.header.content_type = "text/html"
 		ngx.say(tostring(config_base.denyMsg.msg))
 		ngx.exit(200)
 	end
