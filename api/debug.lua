@@ -65,11 +65,6 @@ ngxVar.request_time = ngx_var.request_time
 ngxVar.time_iso8601 = ngx_var.time_iso8601
 ngxVar.time_local = ngx_var.time_local
 
-
-
-
-
-
 local config_dict = ngx.shared.config_dict
 
 local cjson_safe = require "cjson.safe"
@@ -97,7 +92,7 @@ local debug_tb = {
 
     _args = args,
     _headers = headers,
-    _ip = optl.loc_getRealIp(ngxVar.host,ngxVar.remote_addr),
+    _ip = optl.loc_getRealIp(ngxVar.http_host,ngxVar.remote_addr),
 
     _ngxVar = ngxVar
 
@@ -109,7 +104,7 @@ if ngxVar.request_method == "GET" then
 elseif ngxVar.request_method == "POST" then
     local post_str = get_postargs()
     local parser = require "bodyparser"
-    local p, err = parser.new(post_str, ngx.var.http_content_type)
+    local p, err = parser.new(post_str, ngx_var.http_content_type)
     if not p then
         debug_tb["_PostData_error"] = post_str
         optl.sayHtml_ext(debug_tb)

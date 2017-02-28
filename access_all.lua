@@ -4,16 +4,23 @@ local ngx_var = ngx.var
 local ngx_unescape_uri = ngx.unescape_uri
 
 -- 缓存60秒
-local request_guid = optl.set_token(ngx_var.request_id,60)
-ngx.ctx.request_guid = request_guid
+ngx.ctx.request_guid = optl.set_token(ngx_var.request_id,60)
 
 --取消子请求判断
 --if ngx.req.is_internal() then return end
 
+-- 传入 (host,remoteIp)
+-- ipfromset.ips 异常处理
+local loc_getRealIp = optl.loc_getRealIp
+
 -- 获取所有参数的内容
 	local remoteIp = ngx_var.remote_addr
 	local host = ngx_unescape_uri(ngx_var.http_host)
-	local method = ngx_unescape_uri(ngx_var.request_method)
+
+	--- STEP 0
+	local ip = loc_getRealIp(host,remoteIp)
+	
+	local method = ngx_var.request_method
 	local request_uri = ngx_unescape_uri(ngx_var.request_uri)
 	local uri = ngx_unescape_uri(ngx_var.uri)
 	local useragent = ngx_unescape_uri(ngx_var.http_user_agent)
@@ -31,6 +38,7 @@ local base_msg = {}
 	-- string 类型http参数
 	base_msg.remoteIp = remoteIp
 	base_msg.host = host
+	base_msg.ip = ip
 	base_msg.method = method
 	base_msg.request_uri = request_uri
 	base_msg.uri = uri
@@ -38,7 +46,6 @@ local base_msg = {}
 	base_msg.referer = referer
 	base_msg.cookie = cookie
 	base_msg.query_string = query_string
-	-- number 类型参数
 
 	-- table 类型参数
 	base_msg.headers = headers
@@ -70,10 +77,6 @@ local getDict_Config = optl.getDict_Config
 --- remath(str,re_str,options)
 --- 常用二阶匹配规则
 local remath = optl.remath
-
--- 传入 (host,remoteIp)
--- ipfromset.ips 异常处理
-local loc_getRealIp = optl.loc_getRealIp
 
 --- 匹配 host 和 uri
 local function host_uri_remath(_host,_uri)
@@ -117,12 +120,6 @@ local function action_deny()
 	end
 end
 
---- STEP 0
-local ip = loc_getRealIp(host,remoteIp)
-base_msg.ip = ip
--- debug 调试，线上请注释 没有传递filename 默认就是debug.log
--- optl.debug(base_msg,"---- STEP 0 ----")
-
 ---  STEP 1 
 -- black/white ip 访问控制(黑/白名单/log记录)
 -- 2016年7月29日19:12:53 检查
@@ -145,7 +142,7 @@ if config_is_on("ip_Mod") then
 	if host_ip ~= nil then
 		if host_ip == "allow" then -- 跳出后续规则
 			return
-		elseif host_ip == "log" then 
+		elseif host_ip == "log" then
 			Set_count_dict(tmp_host_ip.." log count")
 	 		optl.debug(base_msg,"log",host..".log")
 		else
@@ -161,7 +158,7 @@ if config_is_on("host_method_Mod") then
 	local tb_mod = getDict_Config("host_method_Mod")
 	local check
 	for i,v in ipairs(tb_mod) do
-		if v.state == "on" then			
+		if v.state == "on" then
 			if remath(host,v.hostname[1],v.hostname[2]) and remath(method,v.method[1],v.method[2]) then
 				check = "allow"
 				break
@@ -302,7 +299,6 @@ if config_is_on("app_Mod") then
 					action_deny()
 					break
 
-
 				elseif v.action[1] == "allow" then
 
 					return
@@ -373,9 +369,7 @@ if config_is_on("referer_Mod") then
 					return					
 				end				
 			elseif v.action == "next" then
-				if remath(referer,v.referer[1],v.referer[2]) then
-					-- pass 继续执行
-				else
+				if not remath(referer,v.referer[1],v.referer[2]) then
 					Set_count_dict("referer deny count")
 					optl.debug(base_msg,"deny  No : "..i,"referer.log")
 					action_deny()

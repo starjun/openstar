@@ -57,7 +57,12 @@ local function  hostMod_save(_hostname)
 		if tmp_host == nil then
 			return false
 		else
-			tb_host_mod[_hostname] = host_dict:get(_hostname.."_HostMod") or "{}"
+			local _host_mod_str = host_dict:get(_hostname.."_HostMod") or "{}"
+			if _debug == "no" then
+				return optl.writefile(config_base.jsonPath.."host_json/".._hostname..".json",_host_mod_str,"w+")
+			else
+				return optl.writefile(config_base.jsonPath.."host_json/".._hostname.."_bak.json",_host_mod_str,"w+")
+			end
 		end
 	end
 

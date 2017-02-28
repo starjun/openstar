@@ -30,7 +30,7 @@ local function writefile(_filepath,_msg,_ty)
     -- w+ 覆盖 写文件方式默认是追加方式
     -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
     local fd,err = io.open(_filepath,_ty)
-    if fd == nil then 
+    if fd == nil then
         ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg),err)
         return 
     end -- 文件读取错误返回
@@ -42,32 +42,32 @@ end
 
 --- table/string转换
 local function tableTostring(_obj)
-        local lua = ""  
-        local t = type(_obj)  
-        if t == "number" then  
-            lua = lua .. _obj  
-        elseif t == "boolean" then  
-            lua = lua .. tostring(_obj)  
-        elseif t == "string" then  
-            lua = lua .. string.format("%q", _obj)  
-        elseif t == "table" then  
-            lua = lua .. "{\n"  
-        for k, v in pairs(_obj) do  
-            lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"  
-        end  
-        local metatable = getmetatable(_obj)  
-            if metatable ~= nil and type(metatable.__index) == "table" then  
-            for k, v in pairs(metatable.__index) do  
-                lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"  
-            end  
-        end  
-            lua = lua .. "}"  
-        elseif t == "nil" then  
-            return nil  
-        else  
-            error("can not tableToString a " .. t .. " type.")  
-        end  
-        return lua  
+        local lua = ""
+        local t = type(_obj)
+        if t == "number" then
+            lua = lua .. _obj
+        elseif t == "boolean" then
+            lua = lua .. tostring(_obj)
+        elseif t == "string" then
+            lua = lua .. string.format("%q", _obj)
+        elseif t == "table" then
+            lua = lua .. "{\n"
+            for k, v in pairs(_obj) do
+                lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"
+            end
+            local metatable = getmetatable(_obj)
+                if metatable ~= nil and type(metatable.__index) == "table" then
+                for k, v in pairs(metatable.__index) do
+                    lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"
+                end
+            end
+            lua = lua .. "}"
+        elseif t == "nil" then
+            return nil
+        else
+            error("can not tableToString a " .. t .. " type.")
+        end
+        return lua
 end
 
 local function stringTotable(_str)
@@ -121,12 +121,12 @@ end
 local function remath(_str,_re_str,_options)
     if _str == nil or _re_str == nil or _options == nil then return false end
     if _options == "" then
-    -- 纯字符串匹配 * 表示任意
+        -- 纯字符串匹配 * 表示任意
         if _str == _re_str or _re_str == "*" then
             return true
         end
     elseif _options == "table" then
-    -- table 匹配，在table中 字符串完全匹配
+        -- table 匹配，在table中 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
         for i,v in ipairs(_re_str) do
             if v == _str then
@@ -134,7 +134,7 @@ local function remath(_str,_re_str,_options)
             end
         end
     elseif _options == "in" then 
-    --- 用于包含 查找 string.find
+        --- 用于包含 查找 string.find
         local from , to = string.find(_str, _re_str)
         --if from ~= nil or (from == 1 and to == 0 ) then
         --当_re_str=""时的情况 没有处理
@@ -142,21 +142,21 @@ local function remath(_str,_re_str,_options)
             return true
         end
     elseif _options == "list" then
-    --- list 匹配，o(1) 比table要好些， 字符串完全匹配
+        --- list 匹配，o(1) 比table要好些， 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
         local re = _re_str[_str]
         if re == true then -- 需要判断一下 有可能是值类型的值
             return true
         end
     elseif _options == "@token@" then
-    --- 服务端对token的合法性进行匹配
+        --- 服务端对token的合法性进行匹配
         local a = tostring(token_dict:get(_str))
         if a == _re_str then 
             token_dict:delete(_str) -- 使用一次就删除token
             return true
         end
     elseif _options == "cidr" then
-    --- 基于cidr，用于匹配ip 是否在 ip段中
+        --- 基于cidr，用于匹配ip 是否在 ip段中
         if type(_re_str) ~= "table" then return false end
         for i,v in ipairs(_re_str) do
 
@@ -173,7 +173,7 @@ local function remath(_str,_re_str,_options)
             end
         end
     else
-    --- 正则匹配
+        --- 正则匹配
         local from, to = ngx.re.find(_str, _re_str, _options)
         if from ~= nil then
             return true,string.sub(_str, from, to)
@@ -367,10 +367,10 @@ local function re_app_ext(_app_list,_basemsg)
                 if or_remath(tmp_or,_basemsg) then -- 真
 
                 else
-                    tmp_or = {} -- 情况 or 列表
+                    tmp_or = {} -- 清空 or 列表
                     return false
                 end
-                break            
+                break
             end            
         else
             if table.maxn(tmp_or) == 0 then -- 前面没 or
@@ -427,7 +427,7 @@ local function ngx_find(_str)
 end
 
 --- 对not table 类型的数据 进行 ngx_find
-local function sayHtml_ext(_html,_ty) 
+local function sayHtml_ext(_html,_find_type,_content_type)
     --ngx.header.content_type = "text/html"    
     if _html == nil then 
         _html = "_html is nil"
@@ -435,8 +435,12 @@ local function sayHtml_ext(_html,_ty)
         _html = tableTojson(_html)       
     end
 
-    if _ty ~= nil then
+    if _find_type ~= nil then
         _html = ngx_find(_html)
+    end
+
+    if _content_type ~= nil then
+        ngx.header.content_type = _content_type
     end
 
     ngx.say(_html)
