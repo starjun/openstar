@@ -4,6 +4,8 @@
 
 	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
 
+	"autoSync":{"state":"off","timeAt":5},
+
 	"Mod_state":"on",
 
 	"realIpFrom_Mod" : "on",
