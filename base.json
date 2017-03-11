@@ -34,7 +34,7 @@
 
 	"network_Mod" : "on",
 
-	"replace_Mod" : "on",
+	"replace_Mod" : "off",
 
 	"debug_Mod" : true,
 
