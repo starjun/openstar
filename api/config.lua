@@ -144,7 +144,7 @@ if _action == "save" then
 				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",_msg,"w+")
 			end
 		end
-		if re ~= true then
+		if not re then
 			_code = "error"
 		end
 		optl.sayHtml_ext({code=_code,msg=_msg,debug=_debug})

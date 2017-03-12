@@ -29,11 +29,14 @@ local function pull_redisConfig()
 	  },
 	}
 
+	optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to pull_redisConfig request: ", err)
 		return
+	else
+		return true
 	end
-	--optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..(res or err))
+
 end
 
 -- 推送count_dict统计、计数等
@@ -53,11 +56,14 @@ local function push_count_dict()
 	  },
 	}
 
+	optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to push_count_dict request: ", err)
 		return
+	else
+		return true
 	end
-	--optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..(res or err))
+
 end
 
 -- 保存config_dict、host_dict到本机文件
@@ -77,11 +83,14 @@ local function save_configFile()
 	  },
 	}
 
+	optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to save_configFile request: ", err)
 		return
+	else
+		return true
 	end
-	--optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..(res or err))
+
 end
 
 handler = function()
@@ -92,11 +101,13 @@ handler = function()
 
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
 	if config_base.autoSync.state == "on" then
-		ngx.thread.spawn(pull_redisConfig)
-		ngx.thread.spawn(push_count_dict)
-		ngx.thread.spawn(save_configFile)
+		if pull_redisConfig() then
+			save_configFile()
+		end
 	end
 
+	--推送count_dict到redis
+	push_count_dict()
 
 	--清空过期内存
 	ngx.thread.spawn(flush_expired_dict)
