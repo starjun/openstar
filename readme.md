@@ -18,9 +18,9 @@ grammar_cjkRuby: true
 使用ngx本身的增加配置文件就不说了，使用动态upstream可以参考我另外的项目https://github.com/starjun/dynamic_upstream-by-balancer
 一些接口没有加上去，看看代码自己非常容易搞定了。反向代理的host和后端的IP组都在DICT中（注意是IP组，而不仅仅是类似一些balancer写动态upstream的是一个IP），且支持多种负载均衡方式，相信可以满足大多数需求。https的后面有时间我在完善下。
 
-2：集群相关
+2：集群相关(提供了Master/Slave配置)
 
-目前openstar是支持集群的，规则同步和下发等都是提供了api，都是被动方式，规则为什么没有放到redis中，请自己测试一下，每次规则过滤都从redis取后在序列化，和从dict取在序列化，自己看效果，自己动手测试，顺便说下，规则在集群下当然存在redis中，都是通过api进行操作更新到dict中，而不是每次都从redis中取。
+目前openstar是支持集群的，规则同步和下发等都是提供了api，都是被动方式，规则为什么没有放到redis中，请自己测试一下，每次规则过滤都从redis取后在序列化，和从dict取在序列化，自己动手测试看性能，顺便说下，规则在集群下当然存在redis中，都是通过api进行操作更新到dict中，而不是每次都从redis中取，且最近增加了定时从redis拉取配置功能（测试中...）
 
 3：如有一些技术类问题，请尽量完整一些，包括ngx配置文件，和比较完整的代码，不然真心不好作答，有时间我会尽量回复（不一定是对的），没时间回复的请谅解。
 
@@ -319,6 +319,12 @@ args：`["*","","args_name",1]`
   #该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
   #说明：在使用集群模式下，配置该参数，单机下无须配置使用。redis保存了base.json内容，
   #和conf_json目录下所有规则的json文件，以及拦截记录的计数（如host/method拦截计数）。
+
+  "autoSync":{"state":"Master/Slave/off","timeAt":5},
+  # state对应的几个状态，Master 就是定时将当前服务器内存中的数据推送到redis中
+  # Slave 就是定时从redis中拉取配置到内存后，在保存到文件中
+  # 本机的计数数据一直是定时推送到redis的
+  # timeAt 表示定时时长
 
   "realIpFrom_Mod" : "on",
   #该参数是否开启从http头中取用户真实IP，适用于CDN后端等
@@ -638,8 +644,12 @@ OpenStar测试服务器：
 
 **一些朋友觉得需要增加，当OpenStar作为CDN时，可以配置用户真实IP到自定义http头中**
 该需求后续会加上，一些json就可能合并，比如realIpFrom/realIpSet/denyMsg/host_Mod-state，这些基于host的基础配置合并到一起了。
+
+**因为增加了主、从模式，会定时操作redis,原来的计数数据是在DB 0 中，后面会独立到DB 3，且key也分开。
  
 # 变更历史
+
+## 1.5 应一些朋友强烈要求增加Master/Slave模式，主：定时将内存中的配置推送到redis, 从：定时从redis拉取数据到内存后，并保存到文件
 
 ## 1.4 更新命名相关，以多规则匹配
 原来url改成uri，args改成query_string，修改的比较多，还有增加app_Mod实现多规则匹配，连接符支持OR

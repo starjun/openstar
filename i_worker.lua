@@ -44,6 +44,33 @@ local function pull_redisConfig()
 
 end
 
+-- 推送config_dict、host_dict、count_dict到redis
+local function push_Master()
+	local http = require "resty.http"
+	local httpc = http.new()
+
+	-- The generic form gives us more control. We must connect manually.
+	httpc:set_timeout(500)
+	httpc:connect("127.0.0.1", 5460)
+
+	-- And request using a path, rather than a full URI.
+	-- 目前是调试阶段 denug=yes ,否则就是 no
+	local res, err = httpc:request{
+	  path = "/api/redis?action=push&key=all_dict&debug=yes",
+	  headers = {
+	      ["Host"] = "127.0.0.1:5460",
+	  },
+	}
+
+	if not res then
+		ngx.log(ngx.ERR, "failed to push_Master request: ", err)
+		return
+	else
+		--optl.writefile(config_base.logPath.."i_worker.log","push_Master: "..optl.tableTojson(res))
+		return true
+	end
+end
+
 -- 推送count_dict统计、计数等
 local function push_count_dict()
 	local http = require "resty.http"
@@ -107,14 +134,18 @@ handler = function()
 	local timeAt = config_base.autoSync.timeAt or 5
 
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
-	if config_base.autoSync.state == "on" then
+	if config_base.autoSync.state == "Master" then
+		push_Master()
+	elseif config_base.autoSync.state == "Slave" then
 		if pull_redisConfig() then
 			save_configFile()
 		end
+		--推送count_dict到redis
+		push_count_dict()
+	else
+		--推送count_dict到redis
+		push_count_dict()
 	end
-
-	--推送count_dict到redis
-	push_count_dict()
 
 	--清空过期内存
 	ngx.thread.spawn(flush_expired_dict)
