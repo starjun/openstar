@@ -38,7 +38,7 @@ local function pull_redisConfig()
 		ngx.log(ngx.ERR, "failed to pull_redisConfig request: ", err)
 		return
 	else
-		optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..optl.tableTojson(res))
+		--optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..optl.tableTojson(res))
 		return true
 	end
 
@@ -66,7 +66,7 @@ local function push_count_dict()
 		ngx.log(ngx.ERR, "failed to push_count_dict request: ", err)
 		return
 	else
-		optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..optl.tableTojson(res))
+		--optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..optl.tableTojson(res))
 		return true
 	end
 
@@ -94,7 +94,7 @@ local function save_configFile()
 		ngx.log(ngx.ERR, "failed to save_configFile request: ", err)
 		return
 	else
-		optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..optl.tableTojson(res))
+		--optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..optl.tableTojson(res))
 		return true
 	end
 
