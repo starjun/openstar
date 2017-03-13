@@ -366,7 +366,7 @@ local function push_count_dict(_isexit)
                 return
             end
 
-            local res, err = red:get(_key)
+            local res, err = red:get("count_dict")
             if not res then
                 local _msg = "failed to get key :"..tostring(err)
                 sayHtml_ext({code="error",msg=_msg})
