@@ -2,7 +2,11 @@
 
 if ngx.worker.id() ~= 0 then return end
 
+
+local cjson_safe = require "cjson.safe"
+local optl = require("optl")
 local handler
+local config_base
 
 -- dict 清空过期内存
 local function flush_expired_dict()
@@ -29,7 +33,7 @@ local function pull_redisConfig()
 	  },
 	}
 
-	optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..(res or err))
+	--optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to pull_redisConfig request: ", err)
 		return
@@ -56,7 +60,7 @@ local function push_count_dict()
 	  },
 	}
 
-	optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..(res or err))
+	--optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to push_count_dict request: ", err)
 		return
@@ -83,7 +87,7 @@ local function save_configFile()
 	  },
 	}
 
-	optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..(res or err))
+	--optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to save_configFile request: ", err)
 		return
@@ -96,7 +100,7 @@ end
 handler = function()
 	-- do something
 	local config_dict = ngx.shared.config_dict
-	local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+	config_base = cjson_safe.decode(config_dict:get("base")) or {}
 	local timeAt = config_base.autoSync.timeAt or 5
 
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
