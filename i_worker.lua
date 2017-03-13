@@ -26,18 +26,19 @@ local function pull_redisConfig()
 	httpc:connect("127.0.0.1", 5460)
 
 	-- And request using a path, rather than a full URI.
+	-- 调试阶段debug=yes 否则 应该是 no
 	local res, err = httpc:request{
-	  path = "/api/redis?action=pull&key=all_dict",
+	  path = "/api/redis?action=pull&key=all_dict&debug=yes",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
 	}
 
-	--optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to pull_redisConfig request: ", err)
 		return
 	else
+		optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..res)
 		return true
 	end
 
@@ -53,18 +54,19 @@ local function push_count_dict()
 	httpc:connect("127.0.0.1", 5460)
 
 	-- And request using a path, rather than a full URI.
+	-- 目前是调试阶段 denug=yes ,否则就是 no
 	local res, err = httpc:request{
-	  path = "/api/redis?action=push&key=count_dict",
+	  path = "/api/redis?action=push&key=count_dict&debug=yes",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
 	}
 
-	--optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to push_count_dict request: ", err)
 		return
 	else
+		optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..res)
 		return true
 	end
 
@@ -80,18 +82,19 @@ local function save_configFile()
 	httpc:connect("127.0.0.1", 5460)
 
 	-- And request using a path, rather than a full URI.
+	-- 调试阶段debug=yes 否则应该是 no
 	local res, err = httpc:request{
-	  path = "/api/config?action=save&mod=all_mod",
+	  path = "/api/config?action=save&mod=all_mod&debug=yes",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
 	}
 
-	--optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..(res or err))
 	if not res then
 		ngx.log(ngx.ERR, "failed to save_configFile request: ", err)
 		return
 	else
+		optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..res)
 		return true
 	end
 
