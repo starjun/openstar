@@ -10,6 +10,9 @@ grammar_cjkRuby: true
 
 一些同学问的比较多的问题：
 
+0：规则组问题
+支持IFTTT模式，如条件是（referer中包含baidu 或者 cookie中不包含abc 且useragent正则匹配spider）等等这样复杂的表达式，执行动作也是有多个可以使用(deny allow log refile rehtml relua*)可以定制各种复杂的场景。
+
 1：关于多站点的事
 
 使用ngx本身的增加配置文件就不说了，使用动态upstream可以参考我另外的项目https://github.com/starjun/dynamic_upstream-by-balancer
