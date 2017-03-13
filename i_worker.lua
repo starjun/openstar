@@ -139,6 +139,8 @@ handler = function()
 		if config_dict:replace("base",cjson_safe.encode(config_base)) then
 			push_Master()
 		end
+		config_base.autoSync.state = "Master"
+		config_dict:replace("base",cjson_safe.encode(config_base))
 	elseif config_base.autoSync.state == "Slave" then
 		if pull_redisConfig() then
 			save_configFile()
