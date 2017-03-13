@@ -135,7 +135,10 @@ handler = function()
 
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
 	if config_base.autoSync.state == "Master" then
-		push_Master()
+		config_base.autoSync.state = "Slave"
+		if config_dict:replace("base",cjson_safe.encode(config_base)) then
+			push_Master()
+		end
 	elseif config_base.autoSync.state == "Slave" then
 		if pull_redisConfig() then
 			save_configFile()
