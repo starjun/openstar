@@ -9,8 +9,8 @@
 --    config_dict 的key = base realIpFrom_Mod deny_Msg uri_Mod header_Mod
 --         useragent_Mod cookie_Mod args_Mod post_Mod network_Mod 
 --         replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
---    count_dict 的key = count_dict
---    host_dict 的 key = host_Mod %host%_HostMod
+--    count_dict 的 key = count_dict
+--    host_dict 的  key = host_Mod %host%_HostMod
 
 --    redis DB 1 存放 ip_dict 
 --    ip_dict 的 key = %ip% ,%host%-%ip%
@@ -93,7 +93,7 @@ local function push_host_Mod(_isexit)
     local _tb_host,tb_host_all,tb_host_name = host_dict:get_keys(0),{},{}
 
     for i,v in ipairs(_tb_host) do
-        local from , to = string.find(v, "_HostMod")
+        local from , to = string.find(v, "_HostMod$")
         if from == nil then
             local tmp_tb = {}
             tmp_tb[1],tmp_tb[2] = v,host_dict:get(v)
@@ -395,8 +395,8 @@ local function push_count_dict(_isexit)
             end
 
         --- 2 合并后数据 push
-            local json_config = cjson_safe.encode(tb_all)
-            local ok, err = red:set("count_dict", json_config)
+            local json_count_dict = cjson_safe.encode(tb_all)
+            local ok, err = red:set("count_dict", json_count_dict)
             if not ok then
                 local _msg = "failed to set count_dict: "..tostring(err)
                 sayHtml_ext({code="error",msg=_msg})
@@ -406,11 +406,10 @@ local function push_count_dict(_isexit)
 
         --- 3 清空本地数据
             count_dict:flush_all()
-            local re = count_dict:flush_expired(0)
 
         --- 4 返回
             if _isexit == nil then
-                sayHtml_ext({code="ok",msg=re})
+                sayHtml_ext({code="ok",msg="push_count_dict ok"})
             else
                 return
             end
@@ -493,6 +492,7 @@ elseif _action == "get" then
     --ngx.say(res)
     sayHtml_ext({code="ok",key=_key,value=res})
 
+--推送数据到redis
 elseif _action == "push" then
 
     if _key == "config_dict" then  --保存dict中的config_dict到redis
@@ -612,7 +612,8 @@ elseif _action == "push" then
 
     end
 
-elseif _action == "pull" then --- 从redis拉取配置到dict
+--- 从redis拉取配置到dict
+elseif _action == "pull" then
 
     if _key == "config_dict" then
 

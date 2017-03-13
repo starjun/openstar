@@ -43,64 +43,51 @@ local function config_save()
 				re = optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
 			end
 		end
-		if re ~= true then break end
+		if not re then break end
 	end
 	return re
 end
 
 local function  hostMod_save(_hostname)
-	-- 新增判断 _hostname
+	_hostname = _hostname or ""
 	local tb_host_mod ={}
-
-	if _hostname ~= "" then
-		local tmp_host = host_dict:get(_hostname)
-		if tmp_host == nil then
-			return false
-		else
-			local _host_mod_str = host_dict:get(_hostname.."_HostMod") or "{}"
-			if _debug == "no" then
-				return optl.writefile(config_base.jsonPath.."host_json/".._hostname..".json",_host_mod_str,"w+")
-			else
-				return optl.writefile(config_base.jsonPath.."host_json/".._hostname.."_bak.json",_host_mod_str,"w+")
-			end
-		end
-	end
-
-	local _tb_host,tb_host_name = host_dict:get_keys(0),{}
-	for i,v in ipairs(_tb_host) do
-		local from , to = string.find(v, "_HostMod")
+	local _hostDict_all,_host_Mod = host_dict:get_keys(0),{}
+	for i,v in ipairs(_hostDict_all) do
+		local from , to = string.find(v, "_HostMod$")
 		if from == nil then
 			local tmp_tb = {}
 			tmp_tb[1],tmp_tb[2] = v,host_dict:get(v)
-			table.insert(tb_host_name, tmp_tb)
+			table.insert(_host_Mod, tmp_tb)
 			if _hostname == "" then
+				tb_host_mod[v] = host_dict:get(v.."_HostMod") or "{}"
+			elseif _hostname == v then
 				tb_host_mod[v] = host_dict:get(v.."_HostMod") or "{}"
 			end
 		end
 	end
-	--optl.sayHtml_ext({_tb_host=_tb_host,tb_host_mod=tb_host_mod,tb_host_name=tb_host_name})
-	local j_tb_host_name = optl.tableTojson(tb_host_name)
+
+	local json_host_Mod = optl.tableTojson(_host_Mod)
 
 	local re
 	if _debug == "no" then
-		re = optl.writefile(config_base.jsonPath.."host_json/host_Mod.json",j_tb_host_name,"w+")
-		if re ~= true then
+		re = optl.writefile(config_base.jsonPath.."host_json/host_Mod.json",json_host_Mod,"w+")
+		if not re then
 			return false
 		end
-		for i,v in ipairs(tb_host_name) do
-			re = optl.writefile(config_base.jsonPath.."host_json/"..v[1]..".json",tb_host_mod[v[1]],"w+")
-			if re ~= true then
+		for k,v in pairs(tb_host_mod) do
+			re = optl.writefile(config_base.jsonPath.."host_json/"..k..".json",v,"w+")
+			if not re then
 				return false
 			end
 		end
 	else
-		re = optl.writefile(config_base.jsonPath.."host_json/host_Mod_bak.json",j_tb_host_name,"w+")
-		if re ~= true then
+		re = optl.writefile(config_base.jsonPath.."host_json/host_Mod_bak.json",json_host_Mod,"w+")
+		if not re then
 			return false
 		end
-		for i,v in ipairs(tb_host_name) do
-			re = optl.writefile(config_base.jsonPath.."host_json/"..v[1].."_bak.json",tb_host_mod[v[1]],"w+")
-			if re ~= true then
+		for k,v in pairs(tb_host_mod) do
+			re = optl.writefile(config_base.jsonPath.."host_json/"..k.."_bak.json",v,"w+")
+			if not re then
 				return false
 			end
 		end
@@ -116,14 +103,14 @@ if _action == "save" then
 		local _msg = "save ok"
 
 		local re = config_save()
-		if re ~= true then  
+		if not re then  
 			_code = "error" 
 			_msg = "config_dic save error"
 			sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 		end
 		
-		re = hostMod_save(_host)
-		if re ~= true then  
+		re = hostMod_save()
+		if not re then  
 			_code = "error"
 			_msg = "host_dict save error"
 		end
@@ -157,7 +144,7 @@ if _action == "save" then
 				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",_msg,"w+")
 			end
 		end
-		if re ~= true then
+		if not re then
 			_code = "error"
 		end
 		optl.sayHtml_ext({code=_code,msg=_msg,debug=_debug})

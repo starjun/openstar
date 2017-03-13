@@ -428,11 +428,11 @@ end
 
 --- 对not table 类型的数据 进行 ngx_find
 local function sayHtml_ext(_html,_find_type,_content_type)
-    --ngx.header.content_type = "text/html"    
-    if _html == nil then 
+    --ngx.header.content_type = "text/html"
+    if _html == nil then
         _html = "_html is nil"
-    elseif type(_html) == "table" then             
-        _html = tableTojson(_html)       
+    elseif type(_html) == "table" then
+        _html = tableTojson(_html)
     end
 
     if _find_type ~= nil then
