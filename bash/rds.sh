@@ -4,7 +4,7 @@ down_path_redis=/opt/redis
 down_url=http://download.redis.io/releases/redis-3.2.1.tar.gz
 
 install_path_redis=/opt/redis/redis-3.2.1
-psd=yesorno
+psd=yesorno123!@#qawe
 
 if [ "$1" = "start" ];then
 
@@ -26,6 +26,7 @@ elif [ "$1" = "install" ]; then
 	cd redis-3.2.1
 	make	
 
+	#echo "requirepass ${psd}" >> ${install_path_redis}/redis.conf
 else
 
      ${install_path_redis}/src/redis-cli -a ${psd}
