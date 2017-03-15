@@ -9,12 +9,13 @@
 --    config_dict 的key = base realIpFrom_Mod deny_Msg uri_Mod header_Mod
 --         useragent_Mod cookie_Mod args_Mod post_Mod network_Mod 
 --         replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
---    count_dict 的 key = count_dict
 --    host_dict 的  key = host_Mod %host%_HostMod
 
 --    redis DB 1 存放 ip_dict 
 --    ip_dict 的 key = %ip% ,%host%-%ip%
 
+--    redis DB 2 存放 count_dict
+--    count_dict 的 key = global request count ,global request get|post|head等, 拦截计数，请求计数等
 
 -- local redis_iresty = require "redis_iresty"
 local redis = require "resty.redis"
@@ -357,8 +358,8 @@ end
 
 local function push_count_dict(_isexit)
         --- 0 获取远程数据
-            -- 切换ip_dict 数据库 DB 0
-            local ok, err = red:select(0)
+            -- 切换count_dict 数据库 DB 2
+            local ok, err = red:select(2)
             if not ok then
                 local _msg = "failed to select : "..tostring(err)
                 sayHtml_ext({code="error",msg=_msg})
@@ -366,18 +367,35 @@ local function push_count_dict(_isexit)
                 return
             end
 
-            local res, err = red:get("count_dict")
+            local res, err = red:keys("*")
             if not res then
                 local _msg = "failed to get key :"..tostring(err)
                 sayHtml_ext({code="error",msg=_msg})
                 --ngx.say("failed to get "..tostring(_key)..": ", err)
                 return
             end
-            -- if res == ngx.null then
-            --     ngx.say("key not found.")
-            --     return
-            -- end
-            res = cjson_safe.decode(res) or {}
+
+            local tb_count_dict
+
+            if #res ~= 0 then
+                tb_count_dict = {}
+                red:init_pipeline()
+                --- 先取值
+                for i,v in ipairs(res) do
+                    red:get(v)
+                end
+                local results, err = red:commit_pipeline()
+                if not results then
+                    local _msg = "failed to commit the pipelined (push_count_dict) requests: "..tostring(err)
+                    sayHtml_ext({code="error",msg=_msg})
+                    --ngx.say("failed to commit the pipelined (get key) requests: ", err)
+                    return
+                end
+
+                for i, v in ipairs(results) do
+                    tb_count_dict[res[i]] = v
+                end
+            end
 
         --- 1 合并本机数据
             local count_dict = ngx.shared.count_dict
@@ -386,22 +404,35 @@ local function push_count_dict(_isexit)
                 tb_all[v] = count_dict:get(v)
             end
             
-            for k,v in pairs(res) do
-                if tb_all[k] == nil then
-                    tb_all[k] = v
-                else
-                    tb_all[k] = tonumber(v) + tonumber(tb_all[k])
+            if tb_count_dict ~= nil then
+                for k,v in pairs(tb_count_dict) do
+                    if tb_all[k] == nil then
+                        tb_all[k] = v
+                    else
+                        tb_all[k] = tonumber(v) + tonumber(tb_all[k])
+                    end
                 end
             end
 
         --- 2 合并后数据 push
-            local json_count_dict = cjson_safe.encode(tb_all)
-            local ok, err = red:set("count_dict", json_count_dict)
-            if not ok then
-                local _msg = "failed to set count_dict: "..tostring(err)
+            red:init_pipeline()
+            for k,v in pairs(tb_all) do
+                red:set(k,v)
+            end
+
+            local results, err = red:commit_pipeline()
+            if not results then
+                local _msg = "failed to commit the pipelined requests: "..tostring(err)
                 sayHtml_ext({code="error",msg=_msg})
-                --ngx.say("failed to set count_dict: ", err)
+                --ngx.say("failed to commit the pipelined requests: ", err)
                 return
+            end
+
+            for i,v in ipairs(results) do
+                if v ~= "OK" then
+                    sayHtml_ext({code="error",msg="push count_dict keys error"})
+                    return
+                end
             end
 
         --- 3 清空本地数据

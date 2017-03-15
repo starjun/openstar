@@ -13,7 +13,7 @@ if [ "$1" = "install" ];then
 	rpm -Uvh ${rpm_uri}
 	yum groupinstall -y "Development tools"
 	yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git
-	#############################	
+	#############################
 	mkdir -p ${install_path}
 	mkdir -p ${build_path}
 	#############################	
