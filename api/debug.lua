@@ -107,6 +107,7 @@ elseif ngxVar.request_method == "POST" then
     local p, err = parser.new(post_str, ngx_var.http_content_type)
     if not p then
         debug_tb["_PostData_error"] = post_str
+        debug_tb["get_post_args"] = ngx.req.get_post_args()
         optl.sayHtml_ext(debug_tb)
     end
 
