@@ -148,8 +148,7 @@ handler = function()
 		--推送count_dict到redis
 		push_count_dict()
 	else
-		--推送count_dict到redis
-		push_count_dict()
+		-- nothing todo
 	end
 
 	--清空过期内存
