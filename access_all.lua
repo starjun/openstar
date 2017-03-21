@@ -1,13 +1,11 @@
 -----  access_all by zj  -----
 local optl = require("optl")
 local ngx_var = ngx.var
+local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
 
--- 缓存60秒
-ngx.ctx.request_guid = optl.set_token(ngx_var.request_id,60)
-
---取消子请求判断
---if ngx.req.is_internal() then return end
+-- 经测试可直接用request_id,无重复产生
+ngx_ctx.request_guid = ngx_var.request_id
 
 -- 传入 (host,remoteIp)
 -- ipfromset.ips 异常处理

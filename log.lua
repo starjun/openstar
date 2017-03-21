@@ -1,10 +1,11 @@
 
 local optl = require("optl")
 local ngx_var = ngx.var
+local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
 
-local request_guid = ngx.ctx.request_guid
-optl.del_token(request_guid)
+local request_guid = ngx_ctx.request_guid
+
 
 -- 全局访问计数
 local gl_request_count = "global request count"

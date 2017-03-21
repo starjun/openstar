@@ -1,9 +1,7 @@
 
---if ngx.req.is_internal() then return end
-
-local ngx_unescape_uri = ngx.unescape_uri
 local ngx_var = ngx.var
-
+local ngx_ctx = ngx.ctx
+local ngx_unescape_uri = ngx.unescape_uri
 
 local remoteIP = ngx_var.remote_addr
 local uri = ngx_unescape_uri(ngx_var.uri)
@@ -47,15 +45,14 @@ local function host_uri_remath(_host,_uri)
 	end
 end
 
--- 返回内容的替换使用 ngx.re.sub 后续会更新用户可指定替换函数(如 ngx.re.gsub)
--- 参考使用资料 http://blog.csdn.net/weiyuefei/article/details/38439017
+-- 返回内容的替换使用 ngx.re.gsub 后续会更新用户可指定替换函数(如 ngx.re.sub)
 local function ngx_2(reps,str_all)
 	for k,v in ipairs(reps) do
 		local tmp3 = optl.ngx_find(v[3])
 		if v[2] == "" then
-			str_all = ngx.re.sub(str_all,v[1],tmp3)
+			str_all = ngx.re.gsub(str_all,v[1],tmp3)
 		else
-			str_all = ngx.re.sub(str_all,v[1],tmp3,v[2])
+			str_all = ngx.re.gsub(str_all,v[1],tmp3,v[2])
 		end		
 	end
 	ngx.arg[1] = str_all
@@ -65,7 +62,7 @@ end
 local Replace_Mod = getDict_Config("replace_Mod")
 
 -- ngx.ctx.request_guid 一定要保证存在
-local token_tmp = tostring(ngx.ctx.request_guid)..remoteIP
+local token_tmp = ngx_ctx.request_guid..remoteIP
 
 --- STEP 12
 for key,value in ipairs(Replace_Mod) do
