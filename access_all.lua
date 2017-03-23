@@ -580,3 +580,14 @@ if config_is_on("network_Mod") then
 		end
 	end
 end
+
+--- STEP 14
+if config_is_on("replace_Mod") then
+	local Replace_Mod = getDict_Config("replace_Mod")
+	for i,v in ipairs(Replace_Mod) do
+		if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
+			ngx_ctx.body_mod = v
+			break
+		end
+	end
+end
