@@ -1,8 +1,134 @@
 [
     {
         "state": "on",
-        "query_string": ["\\.\\./","jio"],
         "hostname": ["*",""],
+        "query_string": ["\\.\\./","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["\\:\\$","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["\\$\\{","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["'*.*([ |/**/]and|or[ |/**/]).+=.+","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["select.+(from|limit)","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["(?:(union(.*?)select))","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["having|rongjitest","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["benchmark\\((.*)\\,(.*)\\)","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["base64_decode\\(","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["(?:from\\W+information_schema\\W)","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["(?:(?:current_)user|database|schema|connection_id)\\s*\\(","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["(?:etc\\/\\W*passwd)","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["into(\\s+)+(?:dump|out)file\\s*","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["group\\s+by.+\\(","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["xwork\\.MethodAccessor","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["java\\.lang","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
+        "query_string": ["(onmouseover|onerror|onload)\\=\t","jio"],
         "action": "deny"
     }
 ]
