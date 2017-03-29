@@ -11,7 +11,7 @@
         "realipfrom": "x-for-f"
     },
     "10.112.29.56": {
-        "ips": "*",
+        "ips": ["*",""],
         "realipfrom": "v3-realip-from"
     }
 }
