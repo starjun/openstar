@@ -12,14 +12,14 @@ local _code = "ok"
 if _action == "reload" then
     local comm = ngx_path.."sbin/nginx -s reload"
     local re = os.execute(comm)
-    if re ~= 0 then
+    if not re then
         _code = "error"
     end
     optl.sayHtml_ext({code=_code,msg=re,action=_action})
 else
     local comm = ngx_path.."sbin/nginx -t"
     local re = os.execute(comm)
-    if re ~= 0 then
+    if not re then
         _code = "error"
     end
     --local t = io.popen("ls -a")
