@@ -1,12 +1,14 @@
 
 {
-	"openstar_version":"v 1.5",
+	"openstar_version":"v 1.5.0.7",
 
 	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
 
 	"autoSync":{"state":"Master/Slave/off","timeAt":5},
 
 	"Mod_state":"on",
+
+	"ngx_status":"on",
 
 	"realIpFrom_Mod" : "on",
 

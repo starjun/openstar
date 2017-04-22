@@ -4,7 +4,7 @@ local ngx_var = ngx.var
 local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
 
--- 经测试可直接用request_id,无重复产生
+-- 经测试可直接用request_id,无重复产生 1.11.0.0
 ngx_ctx.request_guid = ngx_var.request_id
 
 -- 传入 (host,remoteIp)
