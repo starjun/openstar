@@ -309,12 +309,15 @@ args：`["*","","args_name",1]`
   ```
 
 {
-  "openstar_version":"v 1.4",  
+  "openstar_version":"v 1.5.0.7",
   #该参数就是OpenStar标记版本更新的
 
   "Mod_state":"on",
   #该参数是全局规则开关，目前支持`on off log`
   #增加`log` 表示仅记录,即原来的拦截就会失效
+
+  "ngx_status":"on",
+  #该参数是请求计数开关控制
 
   "redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
   #该参数设定redis相关参数，state：是否开启；redis的ip、端口、密码等参数
@@ -650,7 +653,8 @@ OpenStar测试服务器：
  
 # 变更历史
 
-## 1.5 应一些朋友强烈要求增加Master/Slave模式，主：定时将内存中的配置推送到redis, 从：定时从redis拉取数据到内存后，并保存到文件
+## 1.5 应一些朋友强烈要求增加Master/Slave模式
+主：定时将内存中的配置推送到redis, 从：定时从redis拉取数据到内存后，并保存到文件
 
 ## 1.4 更新命名相关，以多规则匹配
 原来url改成uri，args改成query_string，修改的比较多，还有增加app_Mod实现多规则匹配，连接符支持OR

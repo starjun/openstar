@@ -4,7 +4,7 @@ local ngx_var = ngx.var
 local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
 
--- 经测试可直接用request_id,无重复产生 1.11.0.0
+-- 经测试可直接用request_id,无重复产生 openresty >= 1.11.0.0
 ngx_ctx.request_guid = ngx_var.request_id
 
 -- 传入 (host,remoteIp)
@@ -24,7 +24,7 @@ local loc_getRealIp = optl.loc_getRealIp
 	local useragent = ngx_unescape_uri(ngx_var.http_user_agent)
 	local referer = ngx_unescape_uri(ngx_var.http_referer)
 	local cookie = ngx_unescape_uri(ngx_var.http_cookie)
-	local query_string = optl.get_args()
+	local query_string = ngx_unescape_uri(ngx_var.query_string)
 
 	local headers = ngx.req.get_headers()
 	local args = ngx.req.get_uri_args()

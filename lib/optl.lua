@@ -507,11 +507,6 @@ end
         -- return ngx.unescape_uri(args_name)
     end
 
-    --- 获取所有args参数[query_string]
-    local function get_args()
-        return ngx.unescape_uri(ngx.var.query_string)
-    end
-
     --- 获取单个post值 非POST方法使用会异常
     local function get_postByName(_name)
         if _name == nil then return "" end
@@ -584,7 +579,6 @@ optl.debug = debug
 
 --- 请求相关
 optl.get_argsByName = get_argsByName
-optl.get_args = get_args
 optl.get_postByName = get_postByName
 optl.get_posts = get_posts
 optl.get_headers = get_headers
