@@ -72,8 +72,6 @@ local config_base = cjson_safe.decode(config_dict:get("base")) or {}
 
 local optl = require("optl")
 
-local get_postargs = optl.get_posts
-
 if jit then 
     lua_version = jit.version
 else 
@@ -102,9 +100,9 @@ local debug_tb = {
 if ngxVar.request_method == "GET" then
     optl.sayHtml_ext(debug_tb)
 elseif ngxVar.request_method == "POST" then
-    local post_str = get_postargs()
+    local post_str = optl.get_post_str()
     local parser = require "bodyparser"
-    local p, err = parser.new(post_str, ngx_var.http_content_type)
+    local p, err = parser.new(post_str, ngx_var.http_content_type,100)
     if not p then
         debug_tb["_PostData_error"] = post_str
         debug_tb["get_post_args"] = ngx.req.get_post_args()

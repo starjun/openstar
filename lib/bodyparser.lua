@@ -32,7 +32,8 @@ local function get_boundary(header)
 end
 
 
-function _M.new(body, content_type)
+function _M.new(body, content_type,_len)
+   _len = _len or 1024
    if not content_type then
        return nil, "no Content-Type header specified"
    end
@@ -50,6 +51,7 @@ function _M.new(body, content_type)
       boundary = "--" .. boundary,
       boundary2 = "\r\n--" .. boundary,
       body = body,
+      _len = len,
    }, mt)
 end
 
@@ -112,7 +114,11 @@ function _M.parse_part(self)
       return nil
    end
 
-   local part_body = sub(body, start, fr - 1)
+   local cnt_tmp = start + self._len
+   if cnt_tmp >= (fr - 1) then
+      cnt_tmp = fr - 1
+   end
+   local part_body = sub(body, start, cnt_tmp)
 
    self.start = to + 3
 

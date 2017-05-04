@@ -27,10 +27,17 @@ local loc_getRealIp = optl.loc_getRealIp
 	local query_string = ngx_unescape_uri(ngx_var.query_string)
 
 	local headers = ngx.req.get_headers()
-	local args = ngx.req.get_uri_args()
+	local headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
 
-local get_postargs = optl.get_posts
-local post_date
+	local args = ngx.req.get_uri_args()
+	local args_data = optl.get_table(args)
+
+	local posts = {}
+	local post_data = ""
+	if method == "POST" then
+		posts = ngx.req.get_post_args()
+		post_data = optl.get_table(posts)
+	end
 
 local base_msg = {}
 	-- string 类型http参数
@@ -48,6 +55,12 @@ local base_msg = {}
 	-- table 类型参数
 	base_msg.headers = headers
 	base_msg.args = args
+	base_msg.posts = posts
+
+	-- table_str
+	base_msg.headers_data = headers_data
+	base_msg.args_data = args_data
+	base_msg.post_data = post_data
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
@@ -319,8 +332,7 @@ if config_is_on("app_Mod") then
 					http_tmp["headers"] = headers
 					http_tmp["query_string"] = query_string
 					if method == "POST" then
-						post_date = get_postargs()
-						http_tmp["post"] = post_date						
+						http_tmp["post"] = optl.get_post_str()
 					end
 					optl.debug(base_msg,"log Msg : "..optl.tableTojson(http_tmp),"app.log")
 
@@ -509,25 +521,22 @@ end
 
 --- STEP 12
 -- post (黑/白名单)
-if config_is_on("post_Mod") and method == "POST" then
+if config_is_on("post_Mod") and post_data ~= "" then
 	local post_mod = getDict_Config("post_Mod")
-	local post_str = post_date or get_postargs()
-	if post_str ~= "" then
-		for i,v in ipairs(post_mod) do
-			if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
+	for i,v in ipairs(post_mod) do
+		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
 
-				if remath(post_str,v.post_str[1],v.post_str[2]) then
-					if v.action == "deny" then
-						Set_count_dict("post deny count")
-						optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")
-						action_deny()
-						break
-					elseif v.action == "log" then
-						Set_count_dict("post log count")
-						optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")							
-					elseif v.action == "allow" then
-						return
-					end
+			if remath(post_data,v.post_str[1],v.post_str[2]) then
+				if v.action == "deny" then
+					Set_count_dict("post deny count")
+					optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")
+					action_deny()
+					break
+				elseif v.action == "log" then
+					Set_count_dict("post log count")
+					optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")
+				elseif v.action == "allow" then
+					return
 				end
 			end
 		end

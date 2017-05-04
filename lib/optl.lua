@@ -510,15 +510,15 @@ end
     --- 获取单个post值 非POST方法使用会异常
     local function get_postByName(_name)
         if _name == nil then return "" end
-        ngx.req.read_body()
+        --ngx.req.read_body()
         local posts_name = ngx.req.get_post_args()[_name]
         if type(posts_name) == "table" then posts_name = posts_name[1] end
         return ngx.unescape_uri(posts_name)
     end
 
     --- 获取所有POST参数（包含表单）
-    local function get_posts()
-        ngx.req.read_body()
+    local function get_post_str()
+        --ngx.req.read_body()
         local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
         if not data then 
             local datafile = ngx.req.get_body_file()
@@ -534,10 +534,24 @@ end
         return ngx.unescape_uri(data)
     end
 
-    --- 获取header原始字符串
-    local function get_headers(_bool)
-        -- _bool 是否包含 `GET / HTTP/1.1` 请求头
-        return ngx.unescape_uri(ngx.req.raw_header(_bool))
+    local function get_table(_tb)
+        local tb_args = {}
+        for k,v in pairs(_tb) do
+            if type(v) == "table" then
+                local tmp_v = {}
+                for i,vv in ipairs(v) do
+                    if vv == true then
+                        vv=""
+                    end
+                    table.insert(tmp_v,vv)
+                end
+                v = table.concat(tmp_v,",")
+            elseif v == true then
+                v= ""
+            end
+            table.insert(tb_args,v)
+        end
+        return table.concat(tb_args,",")
     end
 
 local optl={}
@@ -580,7 +594,7 @@ optl.debug = debug
 --- 请求相关
 optl.get_argsByName = get_argsByName
 optl.get_postByName = get_postByName
-optl.get_posts = get_posts
-optl.get_headers = get_headers
+optl.get_post_str = get_post_str
+optl.get_table = get_table
 
 return optl

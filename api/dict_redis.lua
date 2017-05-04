@@ -357,94 +357,46 @@ local function pull_ip_Mod(_isexit)
 end
 
 local function push_count_dict(_isexit)
-        --- 0 获取远程数据
-            -- 切换count_dict 数据库 DB 2
-            local ok, err = red:select(2)
-            if not ok then
-                local _msg = "failed to select : "..tostring(err)
-                sayHtml_ext({code="error",msg=_msg})
-                --ngx.say("failed to select : ", err)
-                return
-            end
+    red:init_pipeline()
+    local _code = "ok"
+    local _msg = "push_count_dict ok"
+    local error_tb = {}
 
-            local res, err = red:keys("*")
-            if not res then
-                local _msg = "failed to get key :"..tostring(err)
-                sayHtml_ext({code="error",msg=_msg})
-                --ngx.say("failed to get "..tostring(_key)..": ", err)
-                return
-            end
+    local _tb = count_dict:get_keys(0)
+    if #_tb > 0 then
+        for i,v in ipairs(_tb) do
+            local number_v = tonumber(count_dict:get(v)) or 0
+            local redis_cmd = string.format("redis.call('select',2) local cnt = tonumber(redis.call('get','%s') or 0) return redis.call('set','%s',cnt+%s)",v,v,number_v)
+            red:eval(redis_cmd,0)
+        end
 
-            local tb_count_dict
+        local results, err = red:commit_pipeline()
+        if not results then
+            local _msg = "failed to commit the pipelined (push_count_dict) requests: "..tostring(err)
+            sayHtml_ext({code="error",msg=_msg})
+            return
+        end
 
-            if #res ~= 0 then
-                tb_count_dict = {}
-                red:init_pipeline()
-                --- 先取值
-                for i,v in ipairs(res) do
-                    red:get(v)
-                end
-                local results, err = red:commit_pipeline()
-                if not results then
-                    local _msg = "failed to commit the pipelined (push_count_dict) requests: "..tostring(err)
-                    sayHtml_ext({code="error",msg=_msg})
-                    --ngx.say("failed to commit the pipelined (get key) requests: ", err)
-                    return
-                end
-
-                for i, v in ipairs(results) do
-                    tb_count_dict[res[i]] = v
-                end
-            end
-
-        --- 1 合并本机数据
-            local count_dict = ngx.shared.count_dict
-            local _tb,tb_all = count_dict:get_keys(0),{}
-            for i,v in ipairs(_tb) do
-                tb_all[v] = count_dict:get(v)
-            end
-            
-            if tb_count_dict ~= nil then
-                for k,v in pairs(tb_count_dict) do
-                    if tb_all[k] == nil then
-                        tb_all[k] = v
-                    else
-                        tb_all[k] = tonumber(v) + tonumber(tb_all[k])
-                    end
-                end
-            end
-
-        --- 2 合并后数据 push
-            red:init_pipeline()
-            for k,v in pairs(tb_all) do
-                red:set(k,v)
-            end
-
-            local results, err = red:commit_pipeline()
-            if not results then
-                local _msg = "failed to commit the pipelined requests: "..tostring(err)
-                sayHtml_ext({code="error",msg=_msg})
-                --ngx.say("failed to commit the pipelined requests: ", err)
-                return
-            end
-
-            for i,v in ipairs(results) do
-                if v ~= "OK" then
-                    sayHtml_ext({code="error",msg="push count_dict keys error"})
-                    return
-                end
-            end
-
-        --- 3 清空本地数据
-            count_dict:flush_all()
-
-        --- 4 返回
-            if _isexit == nil then
-                sayHtml_ext({code="ok",msg="push_count_dict ok"})
+        for i, v in ipairs(results) do
+            if v == "OK" then
+                count_dict:delete(_tb[i])
             else
-                return
+                _code = "error"
+                local err_tmp ={}
+                err_tmp[_tb[i]]=v
+                table.insert(error_tb,err_tmp)
             end
-            
+        end
+    end
+
+    if _isexit == nil then
+        if _code == "error" then            
+            _msg = error_tb
+        end
+        sayHtml_ext({code=_code,msg=_msg})
+    else
+        return
+    end
 end
 
 if _action == "set" then
