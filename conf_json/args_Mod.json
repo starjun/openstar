@@ -20,7 +20,7 @@
     {
         "state": "on",
         "hostname": ["*",""],
-        "query_string": ["'*.*([ |/**/]and|or[ |/**/]).+=.+","jio"],
+        "query_string": ["'*.*([ |/\\*\\*/]and|or[ |/\\*\\*/]).+=.+","jio"],
         "action": "deny"
     },
     {

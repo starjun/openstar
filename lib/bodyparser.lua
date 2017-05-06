@@ -33,7 +33,6 @@ end
 
 
 function _M.new(body, content_type,_len)
-   _len = _len or 1024
    if not content_type then
        return nil, "no Content-Type header specified"
    end
@@ -113,11 +112,15 @@ function _M.parse_part(self)
       self.start = start
       return nil
    end
-
-   local cnt_tmp = start + self._len
-   if cnt_tmp >= (fr - 1) then
+   local cnt_tmp
+   if self._len == nil then
       cnt_tmp = fr - 1
-   end
+   else
+      cnt_tmp = start + self._len
+      if cnt_tmp >= (fr - 1) then
+         cnt_tmp = fr - 1
+      end
+   end   
    local part_body = sub(body, start, cnt_tmp)
 
    self.start = to + 3

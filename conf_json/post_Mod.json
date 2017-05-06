@@ -8,7 +8,7 @@
     {
         "state": "on",
         "hostname": ["*",""],
-        "post_str": ["'*.*([ |/**/]and|or[ |/**/]).+=.+","jio"],
+        "post_str": ["'*.*([ |/\\*\\*/]and|or[ |/\\*\\*/]).+=.+","jio"],
         "action": "deny"
     },
     {
