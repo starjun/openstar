@@ -529,12 +529,12 @@ if config_is_on("post_Mod") and post_data ~= "" then
 			if remath(post_data,v.post_str[1],v.post_str[2]) then
 				if v.action == "deny" then
 					Set_count_dict("post deny count")
-					optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")
+					optl.debug(base_msg,"deny post : "..post_data.."No : "..i,"post.log")
 					action_deny()
 					break
 				elseif v.action == "log" then
 					Set_count_dict("post log count")
-					optl.debug(base_msg,"deny post : "..post_str.."No : "..i,"post.log")
+					optl.debug(base_msg,"deny post : "..post_data.."No : "..i,"post.log")
 				elseif v.action == "allow" then
 					return
 				end
