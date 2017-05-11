@@ -2,14 +2,13 @@
 local ngx_var = ngx.var
 local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
-local optl = require("optl")
 
 if ngx_ctx.body_mod == nil then
 	return
 end
 
 local token_dict = ngx.shared.token_dict
-
+local optl = require("optl")
 
 -- 返回内容的替换使用 ngx.re.gsub 后续会更新用户可指定替换函数(如 ngx.re.sub)
 local function ngx_2(reps,str_all)

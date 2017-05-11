@@ -6,8 +6,7 @@ local ngx_unescape_uri = ngx.unescape_uri
 
 --local request_guid = ngx_ctx.request_guid
 local config_dict = ngx.shared.config_dict
-local cjson_safe = require "cjson.safe"
-local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+local config_base = optl.config_base
 
 
 local  function ngx_status()

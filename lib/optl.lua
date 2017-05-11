@@ -517,7 +517,7 @@ end
     end
 
     --- 获取所有POST参数（包含表单）
-    local function get_post_str()
+    local function get_post_all()
         --ngx.req.read_body()
         local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
         if not data then 
@@ -555,6 +555,9 @@ end
     end
 
 local optl={}
+
+-- 配置json
+optl.config_base = config_base
 
 --- 文件读写
 optl.readfile = readfile
@@ -594,7 +597,7 @@ optl.debug = debug
 --- 请求相关
 optl.get_argsByName = get_argsByName
 optl.get_postByName = get_postByName
-optl.get_post_str = get_post_str
+optl.get_post_all = get_post_all
 optl.get_table = get_table
 
 return optl

@@ -34,6 +34,7 @@ local loc_getRealIp = optl.loc_getRealIp
 
 	local posts = {}
 	local post_data = ""
+	local post_all = ""
 	if method == "POST" then
 		posts = ngx.req.get_post_args()
 		post_data = optl.get_table(posts)
@@ -61,6 +62,7 @@ local base_msg = {}
 	base_msg.headers_data = headers_data
 	base_msg.args_data = args_data
 	base_msg.post_data = post_data
+	base_msg.post_all = post_all
 
 local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
@@ -68,8 +70,7 @@ local ip_dict = ngx.shared.ip_dict
 local host_dict = ngx.shared.host_dict
 
 local cjson_safe = require "cjson.safe"
-local config_base = cjson_safe.decode(config_dict:get("base")) or {}
-
+local config_base = optl.config_base
 
 local host_Mod_state = host_dict:get(host)
 
@@ -325,16 +326,13 @@ if config_is_on("app_Mod") then
 						optl.debug(base_msg,"deny No : "..i,"app.log")
 						action_deny()
 						break
-					end				
+					end
 
 				elseif v.action[1] == "log" then
-					local http_tmp = {}
-					http_tmp["headers"] = headers
-					http_tmp["query_string"] = query_string
 					if method == "POST" then
-						http_tmp["post"] = optl.get_post_str()
+						post_all = optl.get_post_all()
 					end
-					optl.debug(base_msg,"log Msg : "..optl.tableTojson(http_tmp),"app.log")
+					optl.debug(base_msg,"log Msg : "..optl.tableTojson(base_msg),"app.log")
 
 				elseif v.action[1] == "rehtml" then
 					optl.sayHtml_ext(v.rehtml,1)
@@ -499,8 +497,7 @@ if config_is_on("args_Mod") and query_string ~= "" then
 	local args_mod = getDict_Config("args_Mod")
 
 	for i,v in ipairs(args_mod) do
-		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
-		
+		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then		
 			if remath(query_string,v.query_string[1],v.query_string[2]) then
 				if v.action == "deny" then
 					Set_count_dict("args deny count")
@@ -509,14 +506,13 @@ if config_is_on("args_Mod") and query_string ~= "" then
 					break
 				elseif v.action == "log" then
 					Set_count_dict("args log count")
-					optl.debug(base_msg,"log args = "..query_string.." No : "..i,"args.log")							
+					optl.debug(base_msg,"log args = "..query_string.." No : "..i,"args.log")				
 				elseif v.action == "allow" then
-					return							
+					return	
 				end
 			end
-			
 		end
-	end	
+	end
 end
 
 --- STEP 12
