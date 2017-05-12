@@ -100,7 +100,7 @@ local debug_tb = {
 if ngxVar.request_method == "GET" then
     optl.sayHtml_ext(debug_tb)
 elseif ngxVar.request_method == "POST" then
-    local post_str = optl.get_post_str()
+    local post_str = optl.get_post_all()
     local parser = require "bodyparser"
     local p, err = parser.new(post_str, ngx_var.http_content_type,100)
     if not p then
