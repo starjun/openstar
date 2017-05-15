@@ -1,9 +1,9 @@
 
 local ngx_var = ngx.var
-local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
+local next_ctx = ngx.ctx.next_ctx or {}
 
-if ngx_ctx.body_mod == nil then
+if type(next_ctx.replace_Mod) ~= "table" then
 	return
 end
 
@@ -24,8 +24,8 @@ local function ngx_2(reps,str_all)
 	token_dict:delete(token_tmp)
 end
 
--- ngx.ctx.request_guid 一定要保证存在
-local token_tmp = ngx_ctx.request_guid
+-- ngx.ctx.next_ctx.request_guid 一定要保证存在
+local token_tmp = next_ctx.request_guid
 
 if ngx.arg[1] ~= '' then -- 请求正常
 	local chunk = token_dict:get(token_tmp)
@@ -38,7 +38,7 @@ if ngx.arg[1] ~= '' then -- 请求正常
 	end
 end
 
-local tmp_replace_mod = ngx_ctx.body_mod
+local tmp_replace_mod = next_ctx.replace_Mod
 if ngx.arg[2] then
 	ngx_2(tmp_replace_mod.replace_list,token_dict:get(token_tmp))
 else

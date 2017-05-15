@@ -1,6 +1,6 @@
 
 {
-	"openstar_version":"v 1.5.0.11",
+	"openstar_version":"v 1.5.0.12",
 
 	"redis_Mod" : {"state":"on","ip":"127.0.0.1","Port" : 6379,"Password":""},
 
@@ -38,8 +38,6 @@
 
 	"replace_Mod" : "off",
 
-	"debug_Mod" : true,
-
 	"baseDir" : "/opt/openresty/openstar/",
 
 	"logPath" : "/opt/openresty/openstar/logs/",
@@ -48,5 +46,25 @@
 
 	"htmlPath" : "/opt/openresty/openstar/index/",
 
-	"denyMsg" : {"state":"on","msg":"openstar deny"}
+	"denyMsg" : {"state":"on","msg":"openstar deny"},
+
+	"log_conf": {
+		"state":"on",
+		"tb_formart":[
+			"$time",
+			"$remoteIp",
+			"$host",
+			"$ip",
+			"$method",
+			"$server_protocol",
+			"$status",
+			"$request_uri",
+			"$useragent",
+			"$referer",
+			"waf_log:",
+			"$waf_log",
+			"\n"
+		],
+		"tb_concat":" "
+	}
 }

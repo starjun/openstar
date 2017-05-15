@@ -1,8 +1,10 @@
 
 -- 用于生成唯一随机字符串
 local random = require "resty-random"
-
 local cjson_safe = require "cjson.safe"
+local ngx_re_find = ngx.re.find
+local ngx_re_gsub = ngx.re.gsub
+local ngx_unescape_uri = ngx.unescape_uri
 
 local token_dict = ngx.shared.token_dict
 local count_dict = ngx.shared.count_dict
@@ -174,7 +176,7 @@ local function remath(_str,_re_str,_options)
         end
     else
         --- 正则匹配
-        local from, to = ngx.re.find(_str, _re_str, _options)
+        local from, to = ngx_re_find(_str, _re_str, _options)
         if from ~= nil then
             return true,string.sub(_str, from, to)
         end
@@ -205,8 +207,8 @@ local function loc_getRealIp(_host,_remoteIp)
         end
         if remath(_remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
             --- header 中key名称 - 需要转换成 _
-            local x = 'http_'..ngx.re.gsub(tostring(ipfromset.realipfrom),'-','_')
-            local ip = ngx.unescape_uri(ngx.var[x])
+            local x = 'http_'..ngx_re_gsub(tostring(ipfromset.realipfrom),'-','_')
+            local ip = ngx_unescape_uri(ngx.var[x])
             if ip == "" then
                 ip = _remoteIp
             end
@@ -416,12 +418,12 @@ local function ngx_find(_str)
     -- str = string.gsub(str,"@ngx_time@",ngx.time())
     -- ngx.re.gsub 效率要比string.gsub要好一点，参考openresty最佳实践
     _str = tostring(_str)
-    _str = ngx.re.gsub(_str,"@ngx_localtime@",tostring(ngx.localtime()))
+    _str = ngx_re_gsub(_str,"@ngx_localtime@",tostring(ngx.localtime()))
 
     -- string.find 字符串 会走jit,所以就没有用ngx模块
     -- 当前情况下，对token仅是全局替换一次，请注意
     if string.find(_str,"@token@") ~= nil then       
-        _str = ngx.re.gsub(_str,"@token@",tostring(set_token()))
+        _str = ngx_re_gsub(_str,"@token@",tostring(set_token()))
     end 
     return _str
 end
@@ -463,48 +465,17 @@ local function sayLua(_luapath)
     return re
 end
 
--- 记录debug日志
--- 更新记录IP 2016年6月7日 22:22:15
--- 目录配置异常，则log路径就是 /tmp/
--- 参数循序 base_msg info filename
-local function debug(_base_msg,_info,_filename)
-    if config_base.debug_Mod == false then return end --- 判断debug开启状态
-    if _filename == nil then
-        _filename = "debug.log"
-    end
-    local filepath = config_base.logPath or "/tmp/"
-    filepath = filepath.._filename
-
-    local remoteIp = _base_msg.remoteIp
-    local host = _base_msg.host
-    local ip = _base_msg.ip
-    if remoteIp == ip then
-        ip = "-"
-    end    
-    local time = ngx.localtime()
-    local method = _base_msg.method
-    local status = ngx.var.status
-    local request_uri = _base_msg.request_uri
-    local uri = _base_msg.uri
-    local useragent = _base_msg.useragent
-    local referer = _base_msg.referer
-    local str = string.format([[%s "%s" "%s" [%s] "%s" "%s" "%s" "%s" "%s" "%s"]],
-        remoteIp,host,ip,time,method,status,uri,useragent,referer,_info)
-    
-    writefile(filepath,str)
-end
-
 --- 请求相关 正常使用阶段在access/rewrite set没测试过
 
     --- 获取单个args值
     local function get_argsByName(_name)
         if _name == nil then return "" end
         local x = 'arg_'.._name
-        local _name = ngx.unescape_uri(ngx.var[x])
+        local _name = ngx_unescape_uri(ngx.var[x])
         return _name
         -- local args_name = ngx.req.get_uri_args()[_name]
         -- if type(args_name) == "table" then args_name = args_name[1] end
-        -- return ngx.unescape_uri(args_name)
+        -- return ngx_unescape_uri(args_name)
     end
 
     --- 获取单个post值 非POST方法使用会异常
@@ -513,7 +484,7 @@ end
         --ngx.req.read_body()
         local posts_name = ngx.req.get_post_args()[_name]
         if type(posts_name) == "table" then posts_name = posts_name[1] end
-        return ngx.unescape_uri(posts_name)
+        return ngx_unescape_uri(posts_name)
     end
 
     --- 获取所有POST参数（包含表单）
@@ -531,7 +502,7 @@ end
                 end
             end
         end
-        return ngx.unescape_uri(data)
+        return ngx_unescape_uri(data)
     end
 
     local function get_table(_tb)
@@ -590,9 +561,6 @@ optl.action_remath = action_remath
 optl.sayHtml_ext = sayHtml_ext
 optl.sayFile = sayFile
 optl.sayLua = sayLua
-
---- log 相关
-optl.debug = debug
 
 --- 请求相关
 optl.get_argsByName = get_argsByName

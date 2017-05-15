@@ -372,8 +372,9 @@ args：`["*","","args_name",1]`
   "replace_Mod" : "off",
   #该参数是否启用应答内容替换规则
 
-  "debug_Mod" : true,
-  #该参数是否启用日志打印（true表示启用）
+  --"debug_Mod" : true,
+  --#该参数是否启用日志打印（true表示启用）
+  --已经删除该参数
 
   "baseDir" : "/opt/openresty/openstar/",
   #该参数表示设置OpenStar根路径（绝对路径）
@@ -388,8 +389,32 @@ args：`["*","","args_name",1]`
   "htmlPath" : "/opt/openresty/openstar/index/",
   #该参数表示在app_Mod规则中一些文件、脚本存放路径
 
-  "denyMsg" : {"state":"on","msg":403}
+  "denyMsg" : {"state":"on","msg":403},
   #该参数表示，应用层拒绝访问时，显示的内容配置（现支持基于host配置内容/状态码）关联对应denyHost_Mod.json文件
+
+  "log_conf": {
+    "state":"on",
+    "tb_formart":[
+      "$time",
+      "$remoteIp",
+      "$host",
+      "$ip",
+      "$method",
+      "$server_protocol",
+      "$status",
+      "$request_uri",
+      "$useragent",
+      "$referer",
+      "waf_log:",
+      "$waf_log",
+      "\n"
+    ],
+    "tb_concat":" "
+  }
+  # 更新log_conf配置项，支持自定义logformat，文件名称固定到一个文件了（waf.log）
+  # state：日志开关，tb_formart：log拼接参数（支持动态变量），tb_concat：table的连接字符
+  # 动态变量支持：time(时间),remoteIp(直连ip),host(http头中的host),ip(从header头取的用户ip),method(请求的方法),server_protocol(协议和版本),status(状态),request_uri(请求的完整url，包含get的args参数),useragent,referer,cookie,query_string(get的args参数),headers_data(整个请求头),args_data(所有get参数的值),post_data(所有post参数的值)，post_all(整个post的内容体【暂不支持】),body_bytes_sent(返回内容长度)
+  # 后续可以继续增加动态变量
 }
 
   ```
