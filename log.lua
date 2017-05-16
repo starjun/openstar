@@ -19,8 +19,6 @@ local config_dict = ngx.shared.config_dict
 local config_base = optl.config_base
 local fd = G_filehandler 
 
-
-
 local  function ngx_status()
 	-- 全局访问计数
 	local gl_request_count = "global request count"
