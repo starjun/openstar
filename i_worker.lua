@@ -28,7 +28,7 @@ local function pull_redisConfig()
 	-- And request using a path, rather than a full URI.
 	-- 调试阶段debug=yes 否则 应该是 no
 	local res, err = httpc:request{
-	  path = "/api/redis?action=pull&key=all_dict&debug=yes",
+	  path = "/api/dict_redis?action=pull&key=all_dict&debug=yes",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -38,7 +38,6 @@ local function pull_redisConfig()
 		ngx.log(ngx.ERR, "failed to pull_redisConfig request: ", err)
 		return
 	else
-		--optl.writefile(config_base.logPath.."i_worker.log","pull_redisConfig: "..optl.tableTojson(res))
 		return true
 	end
 
@@ -56,7 +55,7 @@ local function push_Master()
 	-- And request using a path, rather than a full URI.
 	-- 目前是调试阶段 denug=yes ,否则就是 no
 	local res, err = httpc:request{
-	  path = "/api/redis?action=push&key=all_dict&debug=yes",
+	  path = "/api/dict_redis?action=push&key=all_dict&debug=yes",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -66,7 +65,6 @@ local function push_Master()
 		ngx.log(ngx.ERR, "failed to push_Master request: ", err)
 		return
 	else
-		--optl.writefile(config_base.logPath.."i_worker.log","push_Master: "..optl.tableTojson(res))
 		return true
 	end
 end
@@ -83,7 +81,7 @@ local function push_count_dict()
 	-- And request using a path, rather than a full URI.
 	-- 目前是调试阶段 denug=yes ,否则就是 no
 	local res, err = httpc:request{
-	  path = "/api/redis?action=push&key=count_dict&debug=yes",
+	  path = "/api/dict_redis?action=push&key=count_dict&debug=yes",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -93,7 +91,6 @@ local function push_count_dict()
 		ngx.log(ngx.ERR, "failed to push_count_dict request: ", err)
 		return
 	else
-		--optl.writefile(config_base.logPath.."i_worker.log","push_count_dict: "..optl.tableTojson(res))
 		return true
 	end
 
@@ -121,7 +118,6 @@ local function save_configFile()
 		ngx.log(ngx.ERR, "failed to save_configFile request: ", err)
 		return
 	else
-		--optl.writefile(config_base.logPath.."i_worker.log","save_configFile: "..optl.tableTojson(res))
 		return true
 	end
 
@@ -129,18 +125,18 @@ end
 
 handler = function()
 	-- do something
-	local config_dict = ngx.shared.config_dict
-	config_base = cjson_safe.decode(config_dict:get("base")) or {}
+	local config = optl.config
+	config_base = config.base or {}
 	local timeAt = config_base.autoSync.timeAt or 5
-
+	local config_dict = ngx.shared.config_dict
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
 	if config_base.autoSync.state == "Master" then
-		config_base.autoSync.state = "Slave"
-		if config_dict:replace("base",cjson_safe.encode(config_base)) then
+		config.base.autoSync.state = "Slave"
+		if config_dict:replace("config",cjson_safe.encode(config)) then
 			push_Master()
 		end
-		config_base.autoSync.state = "Master"
-		config_dict:replace("base",cjson_safe.encode(config_base))
+		config.base.autoSync.state = "Master"
+		config_dict:replace("config",cjson_safe.encode(config))
 	elseif config_base.autoSync.state == "Slave" then
 		if pull_redisConfig() then
 			save_configFile()

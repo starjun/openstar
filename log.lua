@@ -15,7 +15,6 @@ if base_msg ~= nil then
     base_msg.body_bytes_sent = ngx_var.body_bytes_sent or 0
 end
 
-local config_dict = ngx.shared.config_dict
 local config_base = optl.config_base
 local fd = G_filehandler 
 

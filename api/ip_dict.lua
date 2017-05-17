@@ -16,10 +16,7 @@ if _value ~= "allow" and _value ~= "log" then _value = "deny" end
 local _time = tonumber( get_argsByName("time")) or 0
 
 local ip_dict = ngx.shared["ip_dict"]
-local config_dict = ngx.shared.config_dict
-
-local cjson_safe = require "cjson.safe"
-local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+local config_base = optl.config_base
 
 
 

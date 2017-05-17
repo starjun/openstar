@@ -3,7 +3,7 @@ local config = {}
 local cjson_safe = require "cjson.safe"
 
 --- base.json 文件绝对路径 [需要自行根据自己服务器情况设置]
-local base_json = "/opt/openresty/openstar/base.json"
+local base_json = "/opt/openresty/openstar/conf_json/base.json"
 
 --- 将全局配置参数存放到共享内存（*_dict）中
 local config_dict = ngx.shared.config_dict
@@ -87,10 +87,7 @@ function loadConfig()
 	config.denyMsg = loadjson(_basedir.."denyMsg.json")
 
 	-- 后续 整个config放到一个key中，不再分开，减少acc阶段序列化次数
-	for k,v in pairs(config) do
-		v = cjson_safe.encode(v)
-		config_dict:safe_set(k,v,0)
-	end
+	config_dict:safe_set("config",cjson_safe.encode(config),0)
 end
 
 loadConfig()

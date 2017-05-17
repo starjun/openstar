@@ -9,7 +9,8 @@ local ngx_unescape_uri = ngx.unescape_uri
 local token_dict = ngx.shared.token_dict
 local count_dict = ngx.shared.count_dict
 local config_dict = ngx.shared.config_dict
-local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+local config = cjson_safe.decode(config_dict:get("config")) or {}
+local config_base = config.base or {}
 
 --- 文件读写
 local function readfile(_filepath)
@@ -44,32 +45,32 @@ end
 
 --- table/string转换
 local function tableTostring(_obj)
-        local lua = ""
-        local t = type(_obj)
-        if t == "number" then
-            lua = lua .. _obj
-        elseif t == "boolean" then
-            lua = lua .. tostring(_obj)
-        elseif t == "string" then
-            lua = lua .. string.format("%q", _obj)
-        elseif t == "table" then
-            lua = lua .. "{\n"
-            for k, v in pairs(_obj) do
+    local lua = ""
+    local t = type(_obj)
+    if t == "number" then
+        lua = lua .. _obj
+    elseif t == "boolean" then
+        lua = lua .. tostring(_obj)
+    elseif t == "string" then
+        lua = lua .. string.format("%q", _obj)
+    elseif t == "table" then
+        lua = lua .. "{\n"
+        for k, v in pairs(_obj) do
+            lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"
+        end
+        local metatable = getmetatable(_obj)
+            if metatable ~= nil and type(metatable.__index) == "table" then
+            for k, v in pairs(metatable.__index) do
                 lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"
             end
-            local metatable = getmetatable(_obj)
-                if metatable ~= nil and type(metatable.__index) == "table" then
-                for k, v in pairs(metatable.__index) do
-                    lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"
-                end
-            end
-            lua = lua .. "}"
-        elseif t == "nil" then
-            return nil
-        else
-            error("can not tableToString a " .. t .. " type.")
         end
-        return lua
+        lua = lua .. "}"
+    elseif t == "nil" then
+        return nil
+    else
+        error("can not tableToString a " .. t .. " type.")
+    end
+    return lua
 end
 
 local function stringTotable(_str)
@@ -192,7 +193,7 @@ end
 
 --- 取config_dict中的json数据
 local function getDict_Config(_Config_jsonName)
-    local re = cjson_safe.decode(config_dict:get(_Config_jsonName)) or {}
+    local re = config[_Config_jsonName] or {}
     return re
 end
 
@@ -528,6 +529,7 @@ end
 local optl={}
 
 -- 配置json
+optl.config = config
 optl.config_base = config_base
 
 --- 文件读写

@@ -68,9 +68,8 @@ ngxVar.time_local = ngx_var.time_local
 local config_dict = ngx.shared.config_dict
 
 local cjson_safe = require "cjson.safe"
-local config_base = cjson_safe.decode(config_dict:get("base")) or {}
-
 local optl = require("optl")
+local config_base = optl.config_base
 
 if jit then 
     lua_version = jit.version

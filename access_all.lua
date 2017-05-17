@@ -67,7 +67,6 @@ local base_msg = {}
 
 next_ctx.base_msg = base_msg
 
-local config_dict = ngx.shared.config_dict
 local limit_ip_dict = ngx.shared.limit_ip_dict
 local ip_dict = ngx.shared.ip_dict
 local host_dict = ngx.shared.host_dict
@@ -542,7 +541,6 @@ if config_is_on("post_Mod") and post_data ~= "" and action_tag == "" then
 		end
 	end
 end
-
 
 --- STEP 13
 -- network_Mod 访问控制

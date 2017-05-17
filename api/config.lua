@@ -20,29 +20,18 @@ local _host = get_argsByName("host")
 local config_dict = ngx.shared.config_dict
 local host_dict = ngx.shared.host_dict
 
-local _tb,config = config_dict:get_keys(0),{}
-for i,v in ipairs(_tb) do
-	config[v] = config_dict:get(v)
-end
+local config = optl.config
 
-local config_base = cjson_safe.decode(config_dict:get("base")) or {}
+local config_base = optl.config_base
 
 local function config_save()
 	local re
 	for k,v in pairs(config) do
-		if k == "base" then
-			if _debug == "no" then
-				re = optl.writefile(config_base.baseDir..k..".json",v,"w+")
-			else
-				re = optl.writefile(config_base.baseDir..k.."_bak.json",v,"w+")
-			end
+		if _debug == "no" then
+			re = optl.writefile(config_base.jsonPath..k..".json",v,"w+")
 		else
-			if _debug == "no" then
-				re = optl.writefile(config_base.jsonPath..k..".json",v,"w+")
-			else
-				re = optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
-			end
-		end
+			re = optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
+		end		
 		if not re then break end
 	end
 	return re
@@ -123,14 +112,7 @@ if _action == "save" then
 		if not _msg and _mod ~= "host_Mod" then 
 			sayHtml_ext({code="error",msg="mod is Non-existent",debug=_debug}) 
 		end
-		if _mod == "base" then
-			if _debug == "no" then
-				re = optl.writefile(config_base.baseDir.._mod..".json",_msg,"w+")
-			else
-				re = optl.writefile(config_base.baseDir.._mod.."_bak.json",_msg,"w+")
-			end
-		elseif _mod == "host_Mod" then
-		-- 目前基于host的模块规则是 全部保存 并不能基于某一个host进行保存
+		if _mod == "host_Mod" then
 			re = hostMod_save(_host)
 			if re then
 				_msg = "host_dict save ok"
