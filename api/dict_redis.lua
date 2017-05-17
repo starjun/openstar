@@ -115,7 +115,6 @@ local function push_config(_isexit)
         end
         res_tb[_tb[i]] = res
     end
-    sayHtml_ext({code=_code,msg=res_tb})
 
     -- 执行结果都在res_tb中
     if _isexit then

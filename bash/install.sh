@@ -21,10 +21,9 @@ function openstar(){
 	unzip -o openstar.zip
 	mv -f openstar-master openstar
 	chown nobody:nobody -R openstar
-	mv -f nginx/conf/nginx.conf nginx/conf/nginx.conf.bak
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
-	ln -sf ${install_path}/openstar/conf/our.conf ${install_path}/nginx/conf/our.conf
+	ln -sf ${install_path}/openstar/conf/http.conf ${install_path}/nginx/conf/http.conf
 }
 
 function echo_ServerMsg(){
