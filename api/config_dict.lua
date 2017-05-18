@@ -16,7 +16,7 @@ local _id = get_argsByName("id")
 local _value = get_argsByName("value")
 local _value_type = get_argsByName("value_type")
 
-local tmpdict = ngx.shared.config_dict
+local config_dict = ngx.shared.config_dict
 local config = optl.config
 local config_base = optl.config_base
 
@@ -27,22 +27,20 @@ if _action == "get" then
 	if _mod == "all_mod" then
 		local tmp_config = {}
 		for k,v in pairs(config) do
-			tmp_config[k] = v
+			tmp_config[k] = cjson_safe.encode(v)
 		end
 		tmp_config.code = _code
 		optl.sayHtml_ext(tmp_config)
 
-	elseif _mod == "" then
-	-- 显示所有 keys 的 name
+	elseif _mod == "" then-- 显示所有 keys 的 name
 		local tmp_config = {}
 		for k,v in pairs(config) do
 			table.insert(tmp_config,k)
 		end
-		_tb.code = _code
-		optl.sayHtml_ext(_tb)
+		tmp_config.code = _code
+		optl.sayHtml_ext(tmp_config)
 
 	else
-
 		local _tb = config[_mod]
 		if _tb == nil then optl.sayHtml_ext({code="error",msg="mod is Non-existent"}) end
 		if _id == "" then
@@ -60,7 +58,7 @@ if _action == "get" then
 			--- realIpFrom_Mod 和 base 和 denyHost_Mod 特殊处理
 			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyMsg" then
 				_id = tonumber(_id)
-			end			
+			end
 			optl.sayHtml_ext({code=_code,msg=_tb[_id]})
 		end
 
@@ -76,7 +74,7 @@ elseif _action == "set" then
 		if type(tmp_value) == "table" then
 			local _old_value = _tb
 			config[_mod] = tmp_value
-			local re = tmpdict:replace("config",cjson_safe.encode(config))--将对应mod整体进行替换
+			local re = config_dict:replace("config",cjson_safe.encode(config))--将对应mod整体进行替换
 			if re ~= true then
 				_code = "error"
 				optl.sayHtml_ext({code=_code,msg="replace error"})
@@ -101,7 +99,7 @@ elseif _action == "set" then
 		if _old_value == nil then optl.sayHtml_ext({code="error",msg="id is nil"}) end
 
 		config[_mod][_id] = _value
-		local re = tmpdict:replace("config",cjson_safe.encode(config))
+		local re = config_dict:replace("config",cjson_safe.encode(config))
 		if re ~= true then
 			_code = "error"
 			optl.sayHtml_ext({code=_code,msg="replace error"})
@@ -127,7 +125,7 @@ elseif _action == "add" then
 	if _mod == "realIpFrom_Mod"  or _mod == "denyMsg" then
 		if _tb[_id] == nil and _id ~= "" then
 			config[_mod][_id] = _value
-			local re = tmpdict:replace("config",cjson_safe.encode(config))
+			local re = config_dict:replace("config",cjson_safe.encode(config))
 			if re ~= true then
 				_code = "error"
 				optl.sayHtml_ext({code=_code,msg="replace error"})
@@ -141,7 +139,7 @@ elseif _action == "add" then
 		optl.sayHtml_ext({code="error",msg="base does not support add"})
 	else
 		table.insert(config[_mod],_value)
-		local re = tmpdict:replace("config",cjson_safe.encode(config))
+		local re = config_dict:replace("config",cjson_safe.encode(config))
 		if re ~= true then
 			_code = "error"
 			optl.sayHtml_ext({code=_code,msg="replace error"})
@@ -156,12 +154,11 @@ elseif _action == "del" then
 	if _tb == nil then optl.sayHtml_ext({code="error",msg="mod is Non-existent"}) end
 
 	if _mod == "realIpFrom_Mod" or _mod == "denyMsg" then
-		local rr = _tb[_id]
-		if rr == nil then
+		if _tb[_id] == nil then
 			optl.sayHtml_ext({code="error",msg="id is Non-existent"})
 		else
 			config[_mod][_id] = nil
-			local re = tmpdict:replace("config",cjson_safe.encode(config))
+			local re = config_dict:replace("config",cjson_safe.encode(config))
 			if re ~= true then
 				_code = "error"
 				optl.sayHtml_ext({code=_code,msg="replace error"})
@@ -179,7 +176,7 @@ elseif _action == "del" then
 			if rr == nil then
 				optl.sayHtml_ext({code="error",msg="id is Non-existent"})
 			else
-				local re = tmpdict:replace("config",cjson_safe.encode(config))
+				local re = config_dict:replace("config",cjson_safe.encode(config))
 				if re ~= true then
 					_code = "error"
 					optl.sayHtml_ext({code=_code,msg="replace error"})

@@ -11,7 +11,7 @@ local ngx_path = ngx.config.prefix()
 local _code = "ok"
 if _action == "reload" then
     local comm_test = ngx_path.."sbin/nginx -t"
-    local re = os.execute(comm)
+    local re = os.execute(comm_test)
     if not re then
         _code = "error"
         optl.sayHtml_ext({code=_code,msg=comm_test})

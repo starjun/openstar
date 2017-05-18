@@ -91,4 +91,4 @@ function loadConfig()
 end
 
 loadConfig()
-G_filehandler = io.open(config.base.logPath.."waf.log","a+")
+G_filehandler = io.open(config.base.logPath..(config.base.log_conf.filename or "waf.log"),"a+")

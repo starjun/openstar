@@ -17,7 +17,6 @@ local _mod = get_argsByName("mod")
 local _debug = get_argsByName("debug")
 local _host = get_argsByName("host")
 
-local config_dict = ngx.shared.config_dict
 local host_dict = ngx.shared.host_dict
 
 local config = optl.config

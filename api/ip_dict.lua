@@ -81,7 +81,7 @@ elseif _action == "get" then
 		for i,v in ipairs(_tb) do
 			tb_all[v] = ip_dict:get(v)
 		end
-		tb_all.state = config_base["realIpFrom_Mod"]
+		tb_all.state = config_base["ip_Mod"]
 		tb_all.code = "ok"
 		optl.sayHtml_ext(tb_all)
 	elseif _ip == "" then

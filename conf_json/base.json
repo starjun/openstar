@@ -49,6 +49,7 @@
 
 	"log_conf": {
 		"state":"on",
+		"filename":"waf.log",
 		"tb_formart":[
 			"$time",
 			"$remoteIp",

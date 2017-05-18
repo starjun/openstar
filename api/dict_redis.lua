@@ -41,8 +41,6 @@ if redis_mod.state == "off" then
     sayHtml_ext({code="error",msg="redis_Mod state is off"})
 end
 
-
-
 local _action = get_argsByName("action")
 local _key = get_argsByName("key")
 local _value = get_argsByName("value")
@@ -60,7 +58,6 @@ if not ok then
 end
 
 -- 请注意这里 auth 的调用过程
-
 local count, err = red:get_reused_times()
 if 0 == count then
     if redis_mod.Password ~= "" then
@@ -150,21 +147,26 @@ local function pull_config(_isexit)
         return
     end
 
-    for i, res in ipairs(results) do
-        config[_tb[i]] = cjson_safe.decode(res)
-    end
     local _msg ={}
+    for i, res in ipairs(results) do
+        local tb_res = cjson_safe.decode(res)
+        if tb_res ~= nil then
+            config[_tb[i]] = tb_res
+            _msg[_tb[i]] = "pull ok"
+        else
+            _msg[_tb[i]] = "pull error"
+        end
+    end
+    
     local _code = "ok"
     local re = config_dict:replace("config",cjson_safe.encode(config))
     if re ~= true then
        _code = "error"
-    end
-    _msg[v] = re
-    
-    
+    end  
+
     -- 执行结果都在res_tb中
     if _isexit then
-        sayHtml_ext({code = _code,msg=res_tb})
+        sayHtml_ext({code = _code,msg=_msg})
     else
         return
     end
@@ -202,9 +204,9 @@ local function push_host_Mod(_isexit)
     tb_host_name = {}
     -- 批量执行redis命令 set，结果集，同执行循序一致
     red:init_pipeline()
-    for i,v in pairs(tb_host_all) do
-        table.insert(tb_host_name,i)
-        red:set(i,v)
+    for k,v in pairs(tb_host_all) do
+        table.insert(tb_host_name,k)
+        red:set(k,v)
     end
 
     local results, err = red:commit_pipeline()
@@ -215,18 +217,18 @@ local function push_host_Mod(_isexit)
         return
     end
 
-    local res_tb ={}
+    local _msg ={}
     local _code = "ok"
     for i, res in ipairs(results) do
         if res ~= "OK" then
             _code = "error"
         end
-        res_tb[tb_host_name[i]] = res
+        _msg[tb_host_name[i]] = res
     end
 
     -- 执行结果都在res_tb中
     if _isexit then
-        sayHtml_ext({code = _code,msg=res_tb})
+        sayHtml_ext({code = _code,msg=_msg})
     else
         return
     end
@@ -278,7 +280,7 @@ local function pull_host_Mod(_isexit)
 
     local _msg = {}
     local _code = "ok"
-    -- 清空本地 host_dict
+    -- ? 清空本地 host_dict
     host_dict:flush_all()    
     _msg.flush_expired = host_dict:flush_expired(0)
 
@@ -327,9 +329,9 @@ local function push_ip_Mod(_isexit)
     -- 批量执行 redis set 命令
     local _tb = {}
     red:init_pipeline()
-    for i,v in pairs(tb_ip_all) do
-        table.insert(_tb,i)
-        red:set(i,v)
+    for k,v in pairs(tb_ip_all) do
+        table.insert(_tb,k)
+        red:set(k,v)
     end
     local results, err = red:commit_pipeline()
     if not results then
@@ -414,28 +416,17 @@ local function pull_ip_Mod(_isexit)
         res_tb[ok[i]].time = res
     end
     
-    -- 清理ip_dict中 value 为allow deny log 的永久数据
-    -- local _tb_ip_name = ip_dict:get_keys(0)
-    -- for i,v in ipairs(_tb_ip_name) do
-    --     local ip_value = ip_dict:get(v)
-    --     --- init 中，永久ip只有这3个value
-    --     if ip_value == "allow" or ip_value == "deny" or ip_value == "log" then            
-    --         ip_dict:delete(v)            
-    --     end
-    -- end
-    -- ip_dict:flush_expired(0)
-
     -- 将redis中的数据添加
     local _msg = {}
     local _code = "ok"
-    for i,v in pairs(res_tb) do        
-        if v.time ~= 0 then 
+    for k,v in pairs(res_tb) do        
+        if v.time ~= 0 then
             if v.time == -1 then v.time = 0 end
-            local re = ip_dict:safe_set(i,v.value,v.time)
+            local re = ip_dict:safe_set(k,v.value,v.time)
             if re ~= true then
                 _code = "error"
             end
-            _msg[i] = re
+            _msg[k] = re
         end
     end
     
@@ -598,7 +589,7 @@ elseif _action == "push" then
 
         local _key_v = config[_key]
         if _key_v == nil then
-            local _msg = "key is nil"
+            local _msg = "config[".._key.."] is nil"
             sayHtml_ext({code="error",msg=_msg})
             --ngx.say("key is nil")
         else
@@ -610,7 +601,7 @@ elseif _action == "push" then
                 return
             end
             --ngx.say("set ".._key.." result: ", ok)
-            sayHtml_ext({code="ok",msg=ok})
+            sayHtml_ext({code="ok",msg="config[".._key.."] push ok"})
         end
 
     end
@@ -649,8 +640,8 @@ elseif _action == "pull" then
         local _code = "ok"
         _msg.key = _key
         _msg.old_value = config[_key]
-        _msg.new_value = res
-        config[_key] = cjson_safe.decode(res)
+        _msg.new_value = cjson_safe.decode(res)
+        config[_key] = _msg.new_value
         local re = config_dict:replace("config",cjson_safe.encode(config))
         if re ~= true then
             _code = "error"

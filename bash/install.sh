@@ -6,6 +6,8 @@ install_version=1.11.2.2
 #1.11.2.2 nginx 1.11.2 , 1.11.2.1 nginx 1.11.2 , 1.9.15.1 nginx 1.9.15
 openresty_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
 openstar_uri=https://codeload.github.com/starjun/openstar/zip/master
+
+# centos 6 = remi-release-6.rpm ; centos 7 = remi-release-7.rpm
 rpm_uri=http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
 
 function YUM_start(){

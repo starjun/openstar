@@ -35,15 +35,9 @@ elseif _action == "set" then
 
 	if _token == "" then
 		local re = optl.set_token()
-		if not re then
-			_code = "error"
-		end
 		optl.sayHtml_ext({code=_code,msg=re})
 	else
 		local re = optl.set_token(_token)
-		if not re then
-			_code = "error"
-		end
 		optl.sayHtml_ext({code = _code,msg=re})
 	end
 

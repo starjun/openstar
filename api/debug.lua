@@ -65,9 +65,7 @@ ngxVar.request_time = ngx_var.request_time
 ngxVar.time_iso8601 = ngx_var.time_iso8601
 ngxVar.time_local = ngx_var.time_local
 
-local config_dict = ngx.shared.config_dict
-
-local cjson_safe = require "cjson.safe"
+-- local cjson_safe = require "cjson.safe"
 local optl = require("optl")
 local config_base = optl.config_base
 
@@ -77,7 +75,7 @@ else
     lua_version = _VERSION
 end
 local debug_tb = {
-    _Openstar_version = config_base.openstar_version,
+    _Openstar_version = optl.readfile(config_base.baseDir.."dist.ini"),
     _pid = ngx.worker.pid(),
     _worker_count =ngx.worker.count(),
     _worker_id = ngx.worker.id(),
@@ -99,11 +97,11 @@ local debug_tb = {
 if ngxVar.request_method == "GET" then
     optl.sayHtml_ext(debug_tb)
 elseif ngxVar.request_method == "POST" then
-    local post_str = optl.get_post_all()
+    local post_all = optl.get_post_all()
     local parser = require "bodyparser"
-    local p, err = parser.new(post_str, ngx_var.http_content_type,100)
+    local p, err = parser.new(post_all, ngx_var.http_content_type,100)
     if not p then
-        debug_tb["_PostData_error"] = post_str
+        debug_tb["_PostData_error"] = post_all
         debug_tb["get_post_args"] = ngx.req.get_post_args()
         optl.sayHtml_ext(debug_tb)
     end

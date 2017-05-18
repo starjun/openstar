@@ -4,7 +4,6 @@ if ngx.worker.id() ~= 0 then return end
 
 
 local cjson_safe = require "cjson.safe"
-local optl = require("optl")
 local handler
 local config_base
 
@@ -55,7 +54,7 @@ local function push_Master()
 	-- And request using a path, rather than a full URI.
 	-- 目前是调试阶段 denug=yes ,否则就是 no
 	local res, err = httpc:request{
-	  path = "/api/dict_redis?action=push&key=all_dict&debug=yes",
+	  path = "/api/dict_redis?action=push&key=all_dict",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -81,7 +80,7 @@ local function push_count_dict()
 	-- And request using a path, rather than a full URI.
 	-- 目前是调试阶段 denug=yes ,否则就是 no
 	local res, err = httpc:request{
-	  path = "/api/dict_redis?action=push&key=count_dict&debug=yes",
+	  path = "/api/dict_redis?action=push&key=count_dict",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -93,7 +92,6 @@ local function push_count_dict()
 	else
 		return true
 	end
-
 end
 
 -- 保存config_dict、host_dict到本机文件
@@ -124,11 +122,11 @@ local function save_configFile()
 end
 
 handler = function()
-	-- do something
-	local config = optl.config
+	-- do something	
+	local config_dict = ngx.shared.config_dict
+	local config = cjson_safe.decode(config_dict:get("config")) or {}
 	config_base = config.base or {}
 	local timeAt = config_base.autoSync.timeAt or 5
-	local config_dict = ngx.shared.config_dict
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
 	if config_base.autoSync.state == "Master" then
 		config.base.autoSync.state = "Slave"

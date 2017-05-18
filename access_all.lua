@@ -71,7 +71,6 @@ local limit_ip_dict = ngx.shared.limit_ip_dict
 local ip_dict = ngx.shared.ip_dict
 local host_dict = ngx.shared.host_dict
 
-local cjson_safe = require "cjson.safe"
 local config_base = optl.config_base
 
 local host_Mod_state = host_dict:get(host)
@@ -148,7 +147,7 @@ if config_is_on("ip_Mod") then
 			Set_count_dict("ip log count")
 	 		--next_ctx.waf_log = "[ip_Mod] log"
 		else
-			--next_ctx.waf_log = next_ctx.waf_log or "[ip_Mod] deny"
+			--next_ctx.waf_log = "[ip_Mod] deny"
 			Set_count_dict(ip)
 			action_deny()
 		end
@@ -161,9 +160,9 @@ if config_is_on("ip_Mod") then
 			return
 		elseif host_ip == "log" then
 			Set_count_dict(tmp_host_ip.." log count")
-	 		--next_ctx.waf_log = next_ctx.waf_log or "[host_ip_Mod] log"
+	 		--next_ctx.waf_log = "[host_ip_Mod] log"
 		else
-			--next_ctx.waf_log = next_ctx.waf_log or "[host_ip_Mod] deny"
+			--next_ctx.waf_log = "[host_ip_Mod] deny"
 			Set_count_dict(tmp_host_ip)
 			action_deny()
 		end
@@ -223,7 +222,7 @@ end
 -- host_Mod 规则过滤
 -- 动作支持 （allow deny log）
 if  host_Mod_state == "on" and action_tag == "" then
-	local tb = cjson_safe.decode(host_dict:get(host.."_HostMod")) or {}
+	local tb = optl.stringTojson(host_dict:get(host.."_HostMod"))
 	local _action
 	for i,v in ipairs(tb) do
 		if v.state == "on" then
@@ -338,7 +337,7 @@ if config_is_on("app_Mod") and action_tag == "" then
 					if method == "POST" then
 						post_all = optl.get_post_all()
 					end
-					optl.writefile(config_base.logPath.."app.log","log Msg : "..optl.tableTojson(base_msg))
+					optl.writefile(config_base.logPath.."app.log","log Msg : \n"..optl.tableTojson(base_msg))
 					-- app_Mod的action=log单独记录，用于debug调试
 				elseif v.action[1] == "rehtml" then
 					optl.sayHtml_ext(v.rehtml,1)
@@ -373,7 +372,7 @@ end
 -- --- STEP 6
 -- -- referer过滤模块
 --  动作支持（allow deny log next）
-if config_is_on("referer_Mod") and action_tag == "" then
+if config_is_on("referer_Mod") and referer ~= "" and action_tag == "" then
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
@@ -408,7 +407,7 @@ end
 
 --- STEP 7
 -- uri 过滤(黑/白名单/log)
-if config_is_on("uri_Mod") and action_tag == "" then
+if config_is_on("uri_Mod") and uri ~= "/" and action_tag == "" then
 	local uri_mod = getDict_Config("uri_Mod")
 	for i, v in ipairs( uri_mod ) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
@@ -447,7 +446,7 @@ end
 
 --- STEP 9
 -- useragent(黑、白名单/log记录)
-if config_is_on("useragent_Mod") and action_tag == "" then
+if config_is_on("useragent_Mod") and useragent ~= "" and action_tag == "" then
 	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then

@@ -72,5 +72,5 @@ end
 if next_ctx.waf_log ~= nil and config_base.log_conf.state == "on" then
 	base_msg.waf_log = next_ctx.waf_log
 	local log_str = logformat(base_msg,config_base.log_conf)
-	writefile_handler(config_base.logPath.."waf.log",log_str)
+	writefile_handler(config_base.logPath..(config_base.log_conf.filename or "waf.log"),log_str)
 end
