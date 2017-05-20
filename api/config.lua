@@ -27,9 +27,9 @@ local function config_save()
 	local re
 	for k,v in pairs(config) do
 		if _debug == "no" then
-			re = optl.writefile(config_base.jsonPath..k..".json",v,"w+")
+			re = optl.writefile(config_base.jsonPath..k..".json",optl.tableTojson(v),"w+")
 		else
-			re = optl.writefile(config_base.jsonPath..k.."_bak.json",v,"w+")
+			re = optl.writefile(config_base.jsonPath..k.."_bak.json",optl.tableTojson(v),"w+")
 		end		
 		if not re then break end
 	end
@@ -120,9 +120,9 @@ if _action == "save" then
 			end			
 		else
 			if _debug == "no" then
-				re = optl.writefile(config_base.jsonPath.._mod..".json",_msg,"w+")
+				re = optl.writefile(config_base.jsonPath.._mod..".json",optl.tableTojson(_msg),"w+")
 			else
-				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",_msg,"w+")
+				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",optl.tableTojson(_msg),"w+")
 			end
 		end
 		if not re then
