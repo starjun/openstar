@@ -213,7 +213,7 @@ if config_is_on("rewrite_Mod") and action_tag == "" then
 			-- 备用 使用url尾巴跳转方式进行验证
 				
 			end
-			
+
 		end
 	end
 end
@@ -273,7 +273,7 @@ if  host_Mod_state == "on" and action_tag == "" then
 
 			elseif v.action[2] == "network" and remath(uri,v.uri[1],v.uri[2]) then
 
-				local mod_host_ip = ip.." host_network_Mod No "..i
+				local mod_host_ip = ip..host.." host_network_Mod No "..i
 				local ip_count = limit_ip_dict:get(mod_host_ip)
 				if ip_count == nil then
 					local pTime =  v.network.pTime or 10
@@ -379,15 +379,15 @@ if config_is_on("referer_Mod") and referer ~= "" and action_tag == "" then
 
 			if v.action == "allow" then
 				if remath(referer,v.referer[1],v.referer[2]) then
-					return					
-				end				
+					return		
+				end
 			elseif v.action == "next" then
 				if not remath(referer,v.referer[1],v.referer[2]) then
 					Set_count_dict("referer deny count")
 					next_ctx.waf_log = next_ctx.waf_log or "[referer_Mod] deny  No : "..i
 					action_deny()
 					break
-				end				
+				end
 			elseif v.action == "log" then
 				if remath(referer,v.referer[1],v.referer[2]) then
 					Set_count_dict("referer log count")
@@ -423,9 +423,9 @@ if config_is_on("uri_Mod") and uri ~= "/" and action_tag == "" then
 				Set_count_dict("uri log count")
 				next_ctx.waf_log = next_ctx.waf_log or "[uri_mod] log No : "..i
 			end
-			
+
 		end
-	end	
+	end
 end
 
 --- STEP 8
@@ -464,7 +464,7 @@ if config_is_on("useragent_Mod") and useragent ~= "" and action_tag == "" then
 					break
 				end
 			end
-			
+
 		end
 	end
 end
@@ -582,7 +582,7 @@ if config_is_on("network_Mod") and action_tag == "" then
 				    limit_ip_dict:incr(mod_ip,1)
 				end
 			end
-			
+
 		end
 	end
 end

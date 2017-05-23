@@ -1,11 +1,15 @@
+local _worker_count = ngx.worker.count()
+local _worker_id = ngx.worker.id()
 
-
-if ngx.worker.id() ~= 0 then return end
-
-
+local config_dict = ngx.shared.config_dict
 local cjson_safe = require "cjson.safe"
+
 local handler
+local handler_all
+local handler_zero
+
 local config_base
+
 
 -- dict 清空过期内存
 local function flush_expired_dict()
@@ -27,7 +31,7 @@ local function pull_redisConfig()
 	-- And request using a path, rather than a full URI.
 	-- 调试阶段debug=yes 否则 应该是 no
 	local res, err = httpc:request{
-	  path = "/api/dict_redis?action=pull&key=all_dict&debug=yes",
+	  path = "/api/dict_redis?action=pull&key=all_dict",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -39,7 +43,6 @@ local function pull_redisConfig()
 	else
 		return true
 	end
-
 end
 
 -- 推送config_dict、host_dict、count_dict到redis
@@ -95,7 +98,8 @@ local function push_count_dict()
 end
 
 -- 保存config_dict、host_dict到本机文件
-local function save_configFile()
+local function save_configFile(_debug)
+	_debug = _debug or "yes"
 	local http = require "resty.http"
 	local httpc = http.new()
 
@@ -106,7 +110,7 @@ local function save_configFile()
 	-- And request using a path, rather than a full URI.
 	-- 调试阶段debug=yes 否则应该是 no
 	local res, err = httpc:request{
-	  path = "/api/config?action=save&mod=all_mod&debug=yes",
+	  path = "/api/config?action=save&mod=all_mod&debug=".._debug,
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -118,12 +122,11 @@ local function save_configFile()
 	else
 		return true
 	end
-
 end
 
-handler = function()
+handler_zero = function ()
 	-- do something	
-	local config_dict = ngx.shared.config_dict
+	
 	local config = cjson_safe.decode(config_dict:get("config")) or {}
 	config_base = config.base or {}
 	local timeAt = config_base.autoSync.timeAt or 5
@@ -149,9 +152,33 @@ handler = function()
 	ngx.thread.spawn(flush_expired_dict)
 
 	--
-	local ok, err = ngx.timer.at(timeAt, handler)
+	local ok, err = ngx.timer.at(timeAt, handler_zero)
 	if not ok then
-		ngx.log(ngx.ERR, "failed to startup handler worker...", err)
+		ngx.log(ngx.ERR, "failed to startup handler_zero worker...", err)
+	end
+end
+
+handler_all = function ()
+	local optl = require("optl")
+	local config = cjson_safe.decode(config_dict:get("config"))
+	-- 简单判断config,最好是内容规则的判断
+	if config ~= nil then
+		optl.config = config
+		if type(config.base) == "table" then
+			optl.config_base = config.base
+		end
+	end
+
+	local ok, err = ngx.timer.at(5, handler_all)
+	if not ok then
+		ngx.log(ngx.ERR, "failed to startup handler_all worker...", err)
+	end
+end
+
+handler = function()
+	handler_all()
+	if _worker_id == 0 then
+		handler_zero()
 	end
 end
 
