@@ -18,7 +18,7 @@ local _value_type = get_argsByName("value_type")
 
 local config_dict = ngx.shared.config_dict
 local config = optl.config
-local config_base = optl.config_base
+local config_base = config.base or {}
 
 
 local _code = "ok"
@@ -57,7 +57,7 @@ if _action == "get" then
 		else
 			--- realIpFrom_Mod 和 base 和 denyHost_Mod 特殊处理
 			if _mod ~= "realIpFrom_Mod" and _mod ~= "base" and _mod ~= "denyMsg" then
-				_id = tonumber(_id)
+				_id = tonumber(_id) or 1
 			end
 			optl.sayHtml_ext({code=_code,msg=_tb[_id]})
 		end

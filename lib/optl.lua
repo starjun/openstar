@@ -10,7 +10,6 @@ local token_dict = ngx.shared.token_dict
 local count_dict = ngx.shared.count_dict
 local config_dict = ngx.shared.config_dict
 local config = cjson_safe.decode(config_dict:get("config")) or {}
-local config_base = config.base or {}
 
 --- 文件读写
 local function readfile(_filepath)
@@ -103,13 +102,14 @@ end
 -- 可能会无限循环
 local function set_token(_token,_t,_len)
     _len = _len or 10
+    local _lenNext = _len + 1
     _token = _token or guid(_len)
     _t = _t or 2*60
     local re = token_dict:add(_token,true,_t)  --- -- 缓存2分钟 非重复插入
     if re then
         return _token
     else
-        return set_token(guid(_len+1),_t)
+        return set_token(guid(_lenNext),_t,_lenNext)
     end
 end
 
@@ -184,40 +184,23 @@ local function remath(_str,_re_str,_options)
     end
 end
 
---- 判断config_dict中模块开关是否开启
-local function config_is_on(_config_arg)
-    if config_base[_config_arg] == "on" then
-        return true
-    end
-end
-
---- 取config_dict中的json数据
-local function getDict_Config(_Config_jsonName)
-    local re = config[_Config_jsonName] or {}
-    return re
-end
-
 -- 传入 (host,remoteIp)
 -- ipfromset.ips 异常处理
-local function loc_getRealIp(_host,_remoteIp)
-    if config_is_on("realIpFrom_Mod") then
-        local tb_mod = getDict_Config("realIpFrom_Mod")
-        local ipfromset = tb_mod[_host]
-        if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then
-            return _remoteIp
+local function loc_getRealIp(_host,_remoteIp,_tb_mod)
+    local tb_mod = _tb_mod or {}
+    local ipfromset = tb_mod[_host]
+    if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then
+        return _remoteIp
+    end
+    if remath(_remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+        --- header 中key名称 - 需要转换成 _
+        --local x = 'http_'..ngx_re_gsub(tostring(ipfromset.realipfrom),'-','_')
+        local x = 'http_'..ipfromset.realipfrom
+        local ip = ngx_unescape_uri(ngx.var[x])
+        if ip == "" then
+            ip = _remoteIp
         end
-        if remath(_remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
-            --- header 中key名称 - 需要转换成 _
-            --local x = 'http_'..ngx_re_gsub(tostring(ipfromset.realipfrom),'-','_')
-            local x = 'http_'..ipfromset.realipfrom
-            local ip = ngx_unescape_uri(ngx.var[x])
-            if ip == "" then
-                ip = _remoteIp
-            end
-            return ip
-        else
-            return _remoteIp
-        end
+        return ip
     else
         return _remoteIp
     end
@@ -531,7 +514,6 @@ local optl={}
 
 -- 配置json
 optl.config = config
-optl.config_base = config_base
 
 --- 文件读写
 optl.readfile = readfile
@@ -551,8 +533,6 @@ optl.set_token = set_token
 optl.del_token = del_token
 
 optl.remath = remath
-optl.config_is_on = config_is_on
-optl.getDict_Config = getDict_Config
 optl.loc_getRealIp = loc_getRealIp
 
 optl.set_count_dict = set_count_dict

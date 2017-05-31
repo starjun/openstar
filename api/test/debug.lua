@@ -67,11 +67,11 @@ ngxVar.time_local = ngx_var.time_local
 
 -- local cjson_safe = require "cjson.safe"
 local optl = require("optl")
-local config_base = optl.config_base
+local config_base = optl.config.base or {}
 
-if jit then 
+if jit then
     lua_version = jit.version
-else 
+else
     lua_version = _VERSION
 end
 local debug_tb = {
@@ -87,7 +87,6 @@ local debug_tb = {
 
     _args = args,
     _headers = headers,
-    _ip = optl.loc_getRealIp(ngxVar.http_host,ngxVar.remote_addr),
 
     _ngxVar = ngxVar
 

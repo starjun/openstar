@@ -54,10 +54,8 @@ local function push_Master()
 	httpc:set_timeout(500)
 	httpc:connect("127.0.0.1", 5460)
 
-	-- And request using a path, rather than a full URI.
-	-- 目前是调试阶段 denug=yes ,否则就是 no
 	local res, err = httpc:request{
-	  path = "/api/dict_redis?action=push&key=all_dict",
+	  path = "/api/dict_redis?action=push&key=all_dict&slave=yes",
 	  headers = {
 	      ["Host"] = "127.0.0.1:5460",
 	  },
@@ -132,12 +130,7 @@ handler_zero = function ()
 	local timeAt = config_base.autoSync.timeAt or 5
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
 	if config_base.autoSync.state == "Master" then
-		config.base.autoSync.state = "Slave"
-		if config_dict:replace("config",cjson_safe.encode(config)) then
 			push_Master()
-		end
-		config.base.autoSync.state = "Master"
-		config_dict:replace("config",cjson_safe.encode(config))
 	elseif config_base.autoSync.state == "Slave" then
 		if pull_redisConfig() then
 			save_configFile()
@@ -164,12 +157,9 @@ handler_all = function ()
 	-- 简单判断config,最好是内容规则的判断
 	if config ~= nil then
 		optl.config = config
-		if type(config.base) == "table" then
-			optl.config_base = config.base
-		end
 	end
 
-	local ok, err = ngx.timer.at(5, handler_all)
+	local ok, err = ngx.timer.at(2, handler_all)
 	if not ok then
 		ngx.log(ngx.ERR, "failed to startup handler_all worker...", err)
 	end

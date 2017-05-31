@@ -29,7 +29,7 @@ local ip_dict = ngx.shared.ip_dict
 local config_dict = ngx.shared.config_dict
 
 local config = optl.config
-local config_base = optl.config_base
+local config_base = config.base or {}
 local redis_mod = config_base.redis_Mod or {}
 
 
@@ -45,6 +45,7 @@ local _action = get_argsByName("action")
 local _key = get_argsByName("key")
 local _value = get_argsByName("value")
 local _db = tonumber(get_argsByName("db")) or 0
+local _slave = get_argsByName("slave")
 
 local red = redis:new()
 red:set_timeout(2000) -- 2 sec
@@ -91,6 +92,9 @@ local function push_config(_isexit)
 
     red:init_pipeline()
     local _tb = {}
+    if _slave == "yes" then
+        config.base.autoSync.state = "Slave"
+    end
     for k,v in pairs(config) do
         red:set(k, cjson_safe.encode(v))
         table.insert(_tb,k)

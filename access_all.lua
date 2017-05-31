@@ -3,22 +3,23 @@ local optl = require("optl")
 local ngx_var = ngx.var
 local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
+local config = optl.config
+local config_base = config.base or {}
+
+local limit_ip_dict = ngx.shared.limit_ip_dict
+local ip_dict = ngx.shared.ip_dict
+local host_dict = ngx.shared.host_dict
+
+
 
 -- 经测试可直接用request_id,无重复产生 openresty >= 1.11.0.0
-local next_ctx = {request_guid = request_id}
+local next_ctx = {request_guid = ngx_var.request_id}
 ngx_ctx.next_ctx = next_ctx
-
--- 传入 (host,remoteIp)
--- ipfromset.ips 异常处理
-local loc_getRealIp = optl.loc_getRealIp
 
 -- 获取所有参数的内容
 	local remoteIp = ngx_var.remote_addr
 	local host = ngx_unescape_uri(ngx_var.http_host)
-
-	--- STEP 0
-	local ip = loc_getRealIp(host,remoteIp)
-	
+	local ip = remoteIp
 	local method = ngx_var.request_method
 	local request_uri = ngx_unescape_uri(ngx_var.request_uri)
 	local uri = ngx_unescape_uri(ngx_var.uri)
@@ -67,11 +68,6 @@ local base_msg = {}
 
 next_ctx.base_msg = base_msg
 
-local limit_ip_dict = ngx.shared.limit_ip_dict
-local ip_dict = ngx.shared.ip_dict
-local host_dict = ngx.shared.host_dict
-
-local config_base = optl.config_base
 
 local host_Mod_state = host_dict:get(host)
 
@@ -82,10 +78,17 @@ if config_base["Mod_state"] == "off" or host_Mod_state == "off" then
 end
 
 --- 判断config_dict中模块开关是否开启
-local config_is_on = optl.config_is_on
+local function config_is_on(_config_arg)
+    if config_base[_config_arg] == "on" then
+        return true
+    end
+end
 
 --- 取config_dict中的json数据
-local getDict_Config = optl.getDict_Config
+local function getDict_Config(_Config_jsonName)
+    local re = config[_Config_jsonName] or {}
+    return re
+end
 
 --- remath(str,re_str,options)
 --- 常用二阶匹配规则
@@ -133,6 +136,13 @@ local function action_deny()
 		ngx.say(tostring(config_base.denyMsg.msg))
 		ngx.exit(200)
 	end
+end
+
+---  SETP 0
+-- 获取用户真实IP（如有CND情况下，从header头取）
+if config_is_on("realIpFrom_Mod") then
+	ip = optl.loc_getRealIp(host,remoteIp,getDict_Config("realIpFrom_Mod"))
+	base_msg.ip = ip
 end
 
 ---  STEP 1 

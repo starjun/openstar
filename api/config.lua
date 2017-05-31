@@ -8,6 +8,7 @@
 
 local cjson_safe = require "cjson.safe"
 local optl = require("optl")
+local JSON = require("JSON")
 
 local get_argsByName = optl.get_argsByName
 local sayHtml_ext = optl.sayHtml_ext
@@ -21,15 +22,15 @@ local host_dict = ngx.shared.host_dict
 
 local config = optl.config
 
-local config_base = optl.config_base
+local config_base = config.base or {}
 
 local function config_save()
 	local re
 	for k,v in pairs(config) do
 		if _debug == "no" then
-			re = optl.writefile(config_base.jsonPath..k..".json",optl.tableTojson(v),"w+")
+			re = optl.writefile(config_base.jsonPath..k..".json",JSON:encode_pretty(v),"w+")
 		else
-			re = optl.writefile(config_base.jsonPath..k.."_bak.json",optl.tableTojson(v),"w+")
+			re = optl.writefile(config_base.jsonPath..k.."_bak.json",JSON:encode_pretty(v),"w+")
 		end		
 		if not re then break end
 	end
@@ -54,7 +55,7 @@ local function  hostMod_save(_hostname)
 		end
 	end
 
-	local json_host_Mod = optl.tableTojson(_host_Mod)
+	local json_host_Mod = JSON:encode_pretty(_host_Mod)
 
 	local re
 	if _debug == "no" then
@@ -63,7 +64,7 @@ local function  hostMod_save(_hostname)
 			return false
 		end
 		for k,v in pairs(tb_host_mod) do
-			re = optl.writefile(config_base.jsonPath.."host_json/"..k..".json",v,"w+")
+			re = optl.writefile(config_base.jsonPath.."host_json/"..k..".json",JSON:encode_pretty(v),"w+")
 			if not re then
 				return false
 			end
@@ -74,7 +75,7 @@ local function  hostMod_save(_hostname)
 			return false
 		end
 		for k,v in pairs(tb_host_mod) do
-			re = optl.writefile(config_base.jsonPath.."host_json/"..k.."_bak.json",v,"w+")
+			re = optl.writefile(config_base.jsonPath.."host_json/"..k.."_bak.json",JSON:encode_pretty(v),"w+")
 			if not re then
 				return false
 			end
@@ -120,9 +121,9 @@ if _action == "save" then
 			end			
 		else
 			if _debug == "no" then
-				re = optl.writefile(config_base.jsonPath.._mod..".json",optl.tableTojson(_msg),"w+")
+				re = optl.writefile(config_base.jsonPath.._mod..".json",JSON:encode_pretty(_msg),"w+")
 			else
-				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",optl.tableTojson(_msg),"w+")
+				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",JSON:encode_pretty(_msg),"w+")
 			end
 		end
 		if not re then
