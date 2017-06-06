@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# bash 版本
+version=0.1
+
 down_path_redis=/opt/redis
 down_url=http://download.redis.io/releases/redis-3.2.1.tar.gz
 

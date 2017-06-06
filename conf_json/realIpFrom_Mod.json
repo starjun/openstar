@@ -1,17 +1,17 @@
 {
     "id.game.com": {
         "ips": ["111.206.199.57"],
-        "realipfrom": "CDN-R-IP"
+        "realipfrom": "CDN_R_IP"
     },
     "101.200.122.200": {
         "ips": [
             "101.254.241.149",
             "106.37.236.170"
         ],
-        "realipfrom": "x-for-f"
+        "realipfrom": "x_for_f"
     },
     "10.112.29.56": {
         "ips": ["*",""],
-        "realipfrom": "v3-realip-from"
+        "realipfrom": "v3_realip_from"
     }
 }

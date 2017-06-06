@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# bash 版本
+version=0.1
+
 url=http://10.112.29.56/
 c=1000
 n=100000

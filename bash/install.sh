@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# bash 版本
+version=0.1
+
 build_path=/data/openresty
 install_path=/opt/openresty
 
@@ -28,6 +32,27 @@ function openstar(){
 	ln -sf ${install_path}/openstar/conf/http.conf ${install_path}/nginx/conf/http.conf
 }
 
+function openresty(){
+	#############################
+	mkdir -p ${install_path}
+	mkdir -p ${build_path}
+	#############################
+	cd ${build_path}
+	wget ${openresty_uri}
+	tar zxvf openresty-${install_version}.tar.gz
+
+	cd ${build_path}/openresty-${install_version}
+	./configure --prefix=${install_path} --with-luajit
+	gmake
+	gmake install
+
+	chown nobody:nobody -R ${install_path}
+	cd ${install_path}
+	chown root:nobody nginx/sbin/nginx
+	chmod 750 nginx/sbin/nginx
+	chmod u+s nginx/sbin/nginx
+}
+
 function echo_ServerMsg(){
 	#### 查看服务器信息 版本、内存、CPU 等等 ####
 	echo "uname －a"
@@ -50,25 +75,9 @@ function echo_ServerMsg(){
 if [ "$1" = "install" ];then
 	YUM_start
 
-	#############################
-	mkdir -p ${install_path}
-	mkdir -p ${build_path}
-	#############################
-	cd ${build_path}
-	wget ${openresty_uri}
-	tar zxvf openresty-${install_version}.tar.gz
-
-	cd ${build_path}/openresty-${install_version}
-	./configure --prefix=${install_path} --with-luajit
-	gmake
-	gmake install
+	openresty
 
 	openstar
-
-	chown nobody:nobody -R ${install_path}
-	chown root:nobody nginx/sbin/nginx
-	chmod 750 nginx/sbin/nginx
-	chmod u+s nginx/sbin/nginx
 
 	##############################
 	echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile
@@ -89,22 +98,7 @@ elif [ "$1" = "openstar" ]; then
 
 elif [ "$1" = "openresty" ]; then
 
-	#############################
-	mkdir -p ${install_path}
-	mkdir -p ${build_path}
-	#############################
-	cd ${build_path}
-	wget ${openresty_uri}
-	tar zxvf openresty-${install_version}.tar.gz
-	cd openresty-${install_version}
-	./configure --prefix=${install_path} --with-luajit
-	gmake
-	gmake install
-
-	chown nobody:nobody -R ${install_path}
-	chown root:nobody nginx/sbin/nginx
-	chmod 750 nginx/sbin/nginx
-	chmod u+s nginx/sbin/nginx
+	openresty
 
 else
 	echo_ServerMsg
