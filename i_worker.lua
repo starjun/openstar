@@ -153,12 +153,16 @@ end
 
 handler_all = function ()
 	local optl = require("optl")
-	local config = cjson_safe.decode(config_dict:get("config"))
-	-- 简单判断config,最好是内容规则的判断
-	if config ~= nil then
-		optl.config = config
+	local dict_config_version = config_dict:get("config_version")
+	local optl_config_version = optl.config_version
+	if dict_config_version ~= optl_config_version then
+		local config = cjson_safe.decode(config_dict:get("config"))
+		-- 简单判断config,最好是内容规则的判断
+		if config ~= nil then
+			optl.config = config
+			optl.config_version = dict_config_version
+		end
 	end
-
 	local ok, err = ngx.timer.at(2, handler_all)
 	if not ok then
 		ngx.log(ngx.ERR, "failed to startup handler_all worker...", err)

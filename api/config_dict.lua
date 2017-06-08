@@ -79,6 +79,7 @@ elseif _action == "set" then
 				_code = "error"
 				optl.sayHtml_ext({code=_code,msg="replace error"})
 			end
+			config_dict:incr("config_version",1)
 			optl.sayHtml_ext({code=_code,old_value=_old_value,new_value=tmp_value})
 		else
 			optl.sayHtml_ext({code="error",msg="value to json error"})
@@ -104,6 +105,7 @@ elseif _action == "set" then
 			_code = "error"
 			optl.sayHtml_ext({code=_code,msg="replace error"})
 		end
+		config_dict:incr("config_version",1)
 		optl.sayHtml_ext({code=_code,old_value=_old_value,new_value=_value})
 
 	end
@@ -130,6 +132,7 @@ elseif _action == "add" then
 				_code = "error"
 				optl.sayHtml_ext({code=_code,msg="replace error"})
 			end
+			config_dict:incr("config_version",1)
 			optl.sayHtml_ext({code=_code,msg=_mod,value=_value})
 		else
 		 	optl.sayHtml_ext({code="error",msg="id is existent"})
@@ -144,6 +147,7 @@ elseif _action == "add" then
 			_code = "error"
 			optl.sayHtml_ext({code=_code,msg="replace error"})
 		end
+		config_dict:incr("config_version",1)
 		optl.sayHtml_ext({code=_code,msg=_mod,value=_value})
 	end
 	
@@ -163,6 +167,7 @@ elseif _action == "del" then
 				_code = "error"
 				optl.sayHtml_ext({code=_code,msg="replace error"})
 			end
+			config_dict:incr("config_version",1)
 			optl.sayHtml_ext({code=_code,mod=_mod,id=_id})
 		end
 	elseif _mod == "base" then
@@ -181,6 +186,7 @@ elseif _action == "del" then
 					_code = "error"
 					optl.sayHtml_ext({code=_code,msg="replace error"})
 				end
+				config_dict:incr("config_version",1)
 				optl.sayHtml_ext({code=_code,mod=_mod,id=_id})
 			end		
 		end			

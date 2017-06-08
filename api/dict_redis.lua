@@ -166,6 +166,8 @@ local function pull_config(_isexit)
     local re = config_dict:replace("config",cjson_safe.encode(config))
     if re ~= true then
        _code = "error"
+    else
+        config_dict:incr("config_version",1)
     end  
 
     -- 执行结果都在res_tb中
@@ -649,6 +651,8 @@ elseif _action == "pull" then
         local re = config_dict:replace("config",cjson_safe.encode(config))
         if re ~= true then
             _code = "error"
+        else
+            config_dict:incr("config_version",1)
         end
         -- 执行结果 在 code 中
         sayHtml_ext({code = _code,msg=_msg})

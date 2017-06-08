@@ -10,6 +10,7 @@ local token_dict = ngx.shared.token_dict
 local count_dict = ngx.shared.count_dict
 local config_dict = ngx.shared.config_dict
 local config = cjson_safe.decode(config_dict:get("config")) or {}
+local config_version = 0
 
 --- 文件读写
 local function readfile(_filepath)
@@ -514,6 +515,7 @@ local optl={}
 
 -- 配置json
 optl.config = config
+optl.config_version = config_version
 
 --- 文件读写
 optl.readfile = readfile
