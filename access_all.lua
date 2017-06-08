@@ -141,7 +141,7 @@ end
 ---  SETP 0
 -- 获取用户真实IP（如有CND情况下，从header头取）
 if config_is_on("realIpFrom_Mod") then
-	ip = optl.loc_getRealIp(host,remoteIp,getDict_Config("realIpFrom_Mod"))
+	ip = optl.loc_getRealIp(remoteIp,getDict_Config("realIpFrom_Mod")[host])
 	base_msg.ip = ip
 end
 

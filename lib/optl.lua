@@ -185,18 +185,17 @@ local function remath(_str,_re_str,_options)
     end
 end
 
--- 传入 (host,remoteIp)
--- ipfromset.ips 异常处理
-local function loc_getRealIp(_host,_remoteIp,_tb_mod)
-    local tb_mod = _tb_mod or {}
-    local ipfromset = tb_mod[_host]
-    if type(ipfromset) ~= "table" or type(ipfromset.ips) ~= "table" then
+-- 传入 (remoteIp,ipfrom)
+-- ipfrom.ips 异常处理
+local function loc_getRealIp(_remoteIp,_ipfrom)
+    local ipfrom = _ipfrom or {}
+    if type(ipfrom.ips) ~= "table" then
         return _remoteIp
     end
-    if remath(_remoteIp,ipfromset.ips[1],ipfromset.ips[2]) then
+    if remath(_remoteIp,ipfrom.ips[1],ipfrom.ips[2]) then
         --- header 中key名称 - 需要转换成 _
-        --local x = 'http_'..ngx_re_gsub(tostring(ipfromset.realipfrom),'-','_')
-        local x = 'http_'..ipfromset.realipfrom
+        --local x = 'http_'..ngx_re_gsub(tostring(ipfrom.realipfrom),'-','_')
+        local x = 'http_'..ipfrom.realipfrom
         local ip = ngx_unescape_uri(ngx.var[x])
         if ip == "" then
             ip = _remoteIp
