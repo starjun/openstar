@@ -28,7 +28,7 @@ local count_dict = ngx.shared.count_dict
 local ip_dict = ngx.shared.ip_dict
 local config_dict = ngx.shared.config_dict
 
-local config = optl.config
+local config = cjson_safe.decode(config_dict:get("config")) or {}
 local config_base = config.base or {}
 local redis_mod = config_base.redis_Mod or {}
 

@@ -17,7 +17,7 @@ local _value = get_argsByName("value")
 local _value_type = get_argsByName("value_type")
 
 local config_dict = ngx.shared.config_dict
-local config = optl.config
+local config = cjson_safe.decode(config_dict:get("config")) or {}
 local config_base = config.base or {}
 
 
