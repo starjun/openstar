@@ -17,30 +17,30 @@ local next_ctx = {request_guid = ngx_var.request_id}
 ngx_ctx.next_ctx = next_ctx
 
 -- 获取所有参数的内容
-	local remoteIp = ngx_var.remote_addr
-	local host = ngx_unescape_uri(ngx_var.http_host)
-	local ip = remoteIp
-	local method = ngx_var.request_method
-	local request_uri = ngx_unescape_uri(ngx_var.request_uri)
-	local uri = ngx_unescape_uri(ngx_var.uri)
-	local useragent = ngx_unescape_uri(ngx_var.http_user_agent)
-	local referer = ngx_unescape_uri(ngx_var.http_referer)
-	local cookie = ngx_unescape_uri(ngx_var.http_cookie)
-	local query_string = ngx_unescape_uri(ngx_var.query_string)
+local remoteIp = ngx_var.remote_addr
+local host = ngx_unescape_uri(ngx_var.http_host)
+local ip = remoteIp
+local method = ngx_var.request_method
+local request_uri = ngx_unescape_uri(ngx_var.request_uri)
+local uri = ngx_unescape_uri(ngx_var.uri)
+local useragent = ngx_unescape_uri(ngx_var.http_user_agent)
+local referer = ngx_unescape_uri(ngx_var.http_referer)
+local cookie = ngx_unescape_uri(ngx_var.http_cookie)
+local query_string = ngx_unescape_uri(ngx_var.query_string)
 
-	local headers = ngx.req.get_headers()
-	local headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
+local headers = ngx.req.get_headers()
+local headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
 
-	local args = ngx.req.get_uri_args()
-	local args_data = optl.get_table(args)
+local args = ngx.req.get_uri_args()
+local args_data = optl.get_table(args)
 
-	local posts = {}
-	local post_data = ""
-	local post_all = ""
-	if method == "POST" then
-		posts = ngx.req.get_post_args()
-		post_data = optl.get_table(posts)
-	end
+local posts = {}
+local post_data = ""
+local post_all = ""
+if method == "POST" then
+	posts = ngx.req.get_post_args()
+	post_data = optl.get_table(posts)
+end
 
 local base_msg = {}
 	-- string 类型http参数
@@ -184,7 +184,7 @@ end
 if config_is_on("host_method_Mod") and action_tag == "" then
 	local tb_mod = getDict_Config("host_method_Mod")
 	local check
-	for i,v in ipairs(tb_mod) do
+	for _,v in ipairs(tb_mod) do
 		if v.state == "on" then
 			if remath(host,v.hostname[1],v.hostname[2]) and remath(method,v.method[1],v.method[2]) then
 				check = "allow"
@@ -204,7 +204,7 @@ end
 -- 本来想着放到rewrite阶段使用的，方便统一都放到access阶段了。
 if config_is_on("rewrite_Mod") and action_tag == "" then
 	local tb_mod = getDict_Config("rewrite_Mod")
-	for i,v in ipairs(tb_mod) do
+	for _,v in ipairs(tb_mod) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 
 			if v.action[1] == "set-cookie" then
@@ -574,11 +574,11 @@ if config_is_on("network_Mod") and action_tag == "" then
 							ip_dict:safe_set(host.."-"..ip,mod_ip,blacktime)
 						end
 					elseif v.hostname[2] == "table" then
-						for j,vj in ipairs(v.hostname[1]) do
+						for _,vj in ipairs(v.hostname[1]) do
 							ip_dict:safe_set(vj.."-"..ip,mod_ip,blacktime)
 						end
 					elseif v.hostname[2] == "list" then
-						for j,vj in pairs(v.hostname[1]) do
+						for j,_ in pairs(v.hostname[1]) do
 							ip_dict:safe_set(j.."-"..ip,mod_ip,blacktime)
 						end
 					else
@@ -600,7 +600,7 @@ end
 --- STEP 14
 if config_is_on("replace_Mod") and action_tag == "" then
 	local Replace_Mod = getDict_Config("replace_Mod")
-	for i,v in ipairs(Replace_Mod) do
+	for _,v in ipairs(Replace_Mod) do
 		if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
 			next_ctx.replace_Mod = v
 			--ngx_ctx.body_mod = v

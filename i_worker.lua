@@ -14,7 +14,7 @@ local config_base
 -- dict 清空过期内存
 local function flush_expired_dict()
 	local dict_list = {"token_dict","count_dict","config_dict","host_dict","ip_dict","limit_ip_dict"}
-	for i,v in ipairs(dict_list) do
+	for _,v in ipairs(dict_list) do
 		ngx.shared[v]:flush_expired()
 	end
 end

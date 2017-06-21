@@ -41,7 +41,7 @@ function loadConfig()
 	-- STEP 1
 	--- 将ip_mod放入 ip_dict 中
 	local tb_ip_mod = loadjson(_basedir.."ip_Mod.json")
-	for i,v in ipairs(tb_ip_mod) do
+	for _,v in ipairs(tb_ip_mod) do
 		if v.action == "allow" then
 			ip_dict:safe_set(v.ip,"allow",0)
 			--- key 存在会覆盖 lru算法关闭
@@ -61,7 +61,7 @@ function loadConfig()
 	-- STEP 4
 	--- 读取host规则json 到host_dict
 	local host_tb = loadjson(_basedir.."host_json/host_Mod.json")
-	for i,v in ipairs(host_tb) do
+	for _,v in ipairs(host_tb) do
 		local host,state = v[1],v[2] or "off"
 		if host ~= nil then
 			host_dict:safe_set(host,state,0)
