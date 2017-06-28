@@ -224,9 +224,9 @@ git clone
 
 ## 配置规则
 
-一般情况下匹配某一规则由2个参数组成，第二个参数标识第一个参数类型
+一般情况下匹配某一规则由3个参数组成，第二个参数标识第一个参数类型,第三个参数表示是否取反，默认为`nil` 即 `false` 表示不取反
 
-hostname：`["*",""]` 
+hostname：`["*",""]` = `["*","",false]`
 
 ==>表示匹配所有域名（使用字符串匹配，非正则，非常快）
 
@@ -244,14 +244,14 @@ hostname：`[{"127.0.0.1":true,"127.0.0.1:5460":true},"list"]`
 
 uri：`["/admin","in"]` 
 
-==>表示匹配uri中包含/admin的所有uri都会被匹配（**string.find($uri,参数1)**）
+==>表示匹配uri中包含/admin的所有uri都会被匹配（**string.find($uri,参数1,1,true)**）
 
 ip：`[["127.0.0.1/32",""113.45.199.0/24""],"cidr"]` 
 
 ==>表示匹配的ip在这两组ip段/ip中
 
-args：`["*","","args_name","all"]` 
-args：`["*","","args_name","end"]` 
+args：`["*","","args_name","all",false]` 
+args：`["*","","args_name","end"]` = `["*","","args_name","end",false]`
 args：`["*","","args_name",1]` 
 
 说明：第3个参数表示取args参数table的key名称，第4个参数表示取args[args_name]为table时，匹配所有(all)，匹配最后一个(end),匹配第几个(数字)，默认取第一个
@@ -278,7 +278,7 @@ args：`["*","","args_name",1]`
  
  3：rewrite_Mod ==> 跳转模块，set-cookie操作
 
- 4：host_Mod ==> 对应host执行的规则过滤（url,referer,useragent等）
+ 4：host_Mod ==> 对应host执行的规则过滤（uri,referer,useragent等）
 
     这里是产品中提供给独立用户使用的比较弱的过滤规则，后面会完全开放所有过滤规则。
  
@@ -368,15 +368,17 @@ args：`["*","","args_name",1]`
   "post_Mod" : "on",
   #该参数是否启用post过滤，准确的说是post整体内容的过滤
 
+  "post_form":12040,
+  #该参数表示post表单时，规则过滤时取文件内容的长度
+
   "network_Mod" : "on",
   #该参数是否启用network过滤频率规则
 
   "replace_Mod" : "off",
   #该参数是否启用应答内容替换规则
 
-  --"debug_Mod" : true,
-  --#该参数是否启用日志打印（true表示启用）
-  --已经删除该参数
+  "debug_Mod" : true,
+  #该参数是否启用调试(影响json文件保存名称)
 
   "baseDir" : "/opt/openresty/openstar/",
   #该参数表示设置OpenStar根路径（绝对路径）
@@ -415,7 +417,7 @@ args：`["*","","args_name",1]`
   }
   # 更新log_conf配置项，支持自定义logformat，文件名称固定到一个文件了（waf.log）
   # state：日志开关，tb_formart：log拼接参数（支持动态变量），tb_concat：table的连接字符
-  # 动态变量支持：time(时间),remoteIp(直连ip),host(http头中的host),ip(从header头取的用户ip),method(请求的方法),server_protocol(协议和版本),status(状态),request_uri(请求的完整url，包含get的args参数),useragent,referer,cookie,query_string(get的args参数),headers_data(整个请求头),args_data(所有get参数的值),post_data(所有post参数的值)，post_all(整个post的内容体【暂不支持】),body_bytes_sent(返回内容长度)
+  # 动态变量支持：time(时间),remoteIp(直连ip),host(http头中的host),ip(从header头取的用户ip),method(请求的方法),server_protocol(协议和版本),status(状态),request_uri(请求的完整url，包含get的args参数),useragent,referer,cookie,query_string(get的args参数),headers_data(整个请求头),args_data(所有get参数的值),posts_data(所有post参数的值)，post_all(整个post的内容体【暂不支持】),body_bytes_sent(返回内容长度)
   # 后续可以继续增加动态变量
 }
 
@@ -501,9 +503,7 @@ args：`["*","","args_name",1]`
   6：relua ==> 表示返回lua执行脚本（使用dofile操作）
   
   7：relua_str ==> 表示返回lua代码执行
-
-  8：next ==> 表示继续执行，否则拒绝 同referer_Mod模块中一致
-  
+ 
   hostname：匹配的host
   
   uri：匹配的uri
@@ -519,8 +519,8 @@ args：`["*","","args_name",1]`
  - 说明：
  `{"state":"on","uri":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["*",""],"action":"allow"}`
  
-  上面的例子表示，host为127.0.0.1，uri配置的正则成功，referer正则匹配成功就放行**【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的不同的location动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】**，action表示执行的动作，`allow`表示规则匹配成功后，跳出后续所有规则（一般对静态资源图片），referer匹配失败就拒绝访问（白名单），防盗链为主，`next`表示匹配成功后，继续后续规则的匹配（这里主要可以设置防护站外的CSRF），referer匹配失败就拒绝访问（白名单）
-  
+  上面的例子表示，host为127.0.0.1，uri配置的正则成功，referer正则匹配成功就放行**【这里把一些图片等静态资源可以放到这里，因为使用OpenStar，不需要将access_by_lua_file 专门放到nginx的不同的location动态节点去，这样后续的匹配规则就不对这些静态资源进行匹配了，减少总体的匹配次数，提高效率】**，action表示执行的动作，`allow`表示规则匹配成功后，跳出后续所有规则（一般对静态资源图片），referer匹配失败就拒绝访问（白名单），防盗链为主；规则的取反可以设置防护站外的CSRF
+
   state：表示规则是否开启
   uri：表示匹配的uri
   hostname：匹配host
@@ -680,6 +680,9 @@ OpenStar测试服务器：
 post表单处理比较麻烦，暂时初步完成，测试后会更新
  
 # 变更历史
+
+## 1.7 更新二阶匹配规则支持取反，动作取消next等
+原二阶规则：["baidu","in"],支持取反后：["baidu","in",true];最后的默认是nil也就是false,不取反的意思，所以规则基本可以之间复用，动作为next的需要修改一下即可
 
 ## 1.6 更新计数count_dict到DB 2,key也进行分开，优化规则缓存
 规则进行了缓存，大幅提高性能，json文件保存进行了美化等......

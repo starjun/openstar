@@ -3,6 +3,7 @@ local _worker_id = ngx.worker.id()
 
 local config_dict = ngx.shared.config_dict
 local cjson_safe = require "cjson.safe"
+local http = require "resty.http"
 
 local handler
 local handler_all
@@ -21,9 +22,8 @@ end
 
 -- 拉取config_dict配置数据
 local function pull_redisConfig()
-	local http = require "resty.http"
-	local httpc = http.new()
 
+	local httpc = http.new()
 	-- The generic form gives us more control. We must connect manually.
 	httpc:set_timeout(500)
 	httpc:connect("127.0.0.1", 5460)
@@ -47,9 +47,8 @@ end
 
 -- 推送config_dict、host_dict、count_dict到redis
 local function push_Master()
-	local http = require "resty.http"
-	local httpc = http.new()
 
+	local httpc = http.new()
 	-- The generic form gives us more control. We must connect manually.
 	httpc:set_timeout(500)
 	httpc:connect("127.0.0.1", 5460)
@@ -71,9 +70,8 @@ end
 
 -- 推送count_dict统计、计数等
 local function push_count_dict()
-	local http = require "resty.http"
-	local httpc = http.new()
 
+	local httpc = http.new()
 	-- The generic form gives us more control. We must connect manually.
 	httpc:set_timeout(500)
 	httpc:connect("127.0.0.1", 5460)
@@ -96,8 +94,11 @@ local function push_count_dict()
 end
 
 -- 保存config_dict、host_dict到本机文件
-local function save_configFile(_debug)
-	_debug = _debug or "yes"
+local function save_configFile()
+	local _debug = "no"
+	if config_base.debug_Mod then
+		_debug = "yes"
+	end
 	local http = require "resty.http"
 	local httpc = http.new()
 
@@ -163,7 +164,7 @@ handler_all = function ()
 			optl.config_version = dict_config_version
 		end
 	end
-	local ok, err = ngx.timer.at(2, handler_all)
+	local ok, err = ngx.timer.at(1, handler_all)
 	if not ok then
 		ngx.log(ngx.ERR, "failed to startup handler_all worker...", err)
 	end

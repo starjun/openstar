@@ -139,10 +139,10 @@ local function remath(_str,_re_str,_options)
         end
     elseif _options == "in" then 
         --- 用于包含 查找 string.find
-        local from , to = string.find(_str, _re_str)
+        local from , to = string.find(_str, _re_str,1,true)
         --if from ~= nil or (from == 1 and to == 0 ) then
-        --当_re_str=""时的情况 没有处理
-        if from ~= nil then
+        --当_re_str=""时的情况 已处理
+        if from ~= nil and to ~= 0 then
             return true
         end
     elseif _options == "list" then
@@ -185,14 +185,29 @@ local function remath(_str,_re_str,_options)
     end
 end
 
+--- 扩展 常用二阶匹配规则（支持取反）
+-- 说明：[_restr,_options]  _str 就是被匹配的内容
+-- eg "ip":["*",""]
+-- eg "hostname":[["www.abc.com","127.0.0.1"],"table",false/true]
+local function remath_Invert(_str,_re_str,_options,_Invert)
+    if _Invert then
+        if not remath(_str,_re_str,_options) then
+            return true
+        end
+    else
+        if remath(_str,_re_str,_options) then
+            return true
+        end
+    end
+end
+
 -- 传入 (remoteIp,ipfrom)
--- ipfrom.ips 异常处理
 local function loc_getRealIp(_remoteIp,_ipfrom)
     local ipfrom = _ipfrom or {}
     if type(ipfrom.ips) ~= "table" then
         return _remoteIp
     end
-    if remath(_remoteIp,ipfrom.ips[1],ipfrom.ips[2]) then
+    if remath_Invert(_remoteIp,ipfrom.ips[1],ipfrom.ips[2],ipfrom.ips[3]) then
         --- header 中key名称 - 需要转换成 _
         --local x = 'http_'..ngx_re_gsub(tostring(ipfrom.realipfrom),'-','_')
         local x = 'http_'..ipfrom.realipfrom
@@ -208,41 +223,39 @@ end
 
 -- 增加 三阶匹配规则
 local function remath3(_tbMod,_modrule)
-    if type(_tbMod) ~= "table" or type(_modrule) ~= "table" then 
-        return false 
-    end
-    
     local _re_str = _modrule[1]
     local _options = _modrule[2]
     local _str = _tbMod[_modrule[3]]
+
     -- 取 args/headers 中某一个key (_str可能是一个table)
     local _ty = _modrule[4] or 1
+    local _Invert = _modrule[5]
 
     if type(_str) == "table" then
         if _ty == "end" then
-            _ty = table.maxn(_str)
-            if remath(_str[_ty],_re_str,_options) then
+            _ty = #_str
+            if remath_Invert(_str[_ty],_re_str,_options,_Invert) then
                 return true
             end
         elseif _ty == "all" then
             for i,v in ipairs(_str) do
-                if remath(v,_re_str,_options) then
+                if remath_Invert(v,_re_str,_options,_Invert) then
                     return true
                 end
             end
         else -- table 中的某一个
             -- 超出范围判断
-            if _ty > table.maxn(_str) then  
+            if _ty > #_str then  
                 _ty = 1
             else
-                _ty = table.maxn(_str)
+                _ty = #_str
             end
-            if remath(_str[_ty],_re_str,_options) then
+            if remath_Invert(_str[_ty],_re_str,_options,_Invert) then
                 return true
             end
         end
     else
-        if remath(_str,_re_str,_options) then
+        if remath_Invert(_str,_re_str,_options,_Invert) then
             return true
         end
     end
@@ -250,135 +263,62 @@ end
 
 -- 基于modName 进行规则判断
 -- _modName = uri host args cookie 等
--- _modRule = ["*",""] ["admin","in"] ["\w{6}","jio"] 
--- ["asd","in","args_name1"] ["asd","in","args_name1","all"] ["asd","in","args_name1","end"]
+-- _modRule = ["*",""] ["admin","in",true] ["\w{6}","jio",false] 
+-- ["asd","in","args_name1"] ["asd","in","args_name1","all",true] ["asd","in","args_name1","end",false]
 local function action_remath(_modName,_modRule,_base_Msg)
 
-    if _modName == nil or _base_Msg == nil or type(_modRule) ~= "table" then 
-        return false 
+    if _modName == nil or type(_base_Msg) ~= "table" or type(_modRule) ~= "table" then
+        return false
     end
     if type(_base_Msg[_modName]) == "table" then
         if remath3(_base_Msg[_modName],_modRule) then
             return true
         end
     else
-        if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
+        if remath_Invert(_base_Msg[_modName],_modRule[1],_modRule[2],_modRule[3]) then
             return true
         end
     end
-
-    -- 明细写法
-        -- if _modName == "remoteIp" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "host" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "method" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "uri" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "request_uri" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "useragent" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "referer" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "cookie" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- elseif _modName == "query_string" then
-        --     if remath(_base_Msg[_modName],_modRule[1],_modRule[2]) then
-        --         return true
-        --     end
-        -- -- table 类型
-        -- elseif _modName == "headers" then
-        --     if remath3(_base_Msg[_modName],_modRule) then
-        --         return true
-        --     end
-        -- elseif _modName == "args" then
-        --     if remath3(_base_Msg[_modName],_modRule) then
-        --         return true
-        --     end
-        -- end
 end
 
 -- 对 or 规则list 进行判断
 local function or_remath(_or_list,_basemsg)
     -- or 匹配 任意一个为真 则为真
-    if type(_or_list) ~= "table" then return false end
     for i,v in ipairs(_or_list) do
-        if v[1] then --  取反
-            if not action_remath(v[2],v[3],_basemsg) then -- 真
-                return true
-            else
-            
-            end
-        else
-            if action_remath(v[2],v[3],_basemsg) then -- 真
-                return true
-            else
-            
-            end
-        end
+        if action_remath(v[1],v[2],_basemsg) then -- 真
+            return true        
+        end        
     end
     return false
 end
 
 -- 对自定义规则列表进行判断
 -- 传入一个规则列表 和 base_msg
--- [false,"uri",["admin","in"],"and"]
--- [true,"cookie",["\\w{5}","jio"],"or"]
--- [true,"referer",["baidu","in"]]
+-- ["uri",["admin","in"],"and"]
+-- ["cookie",["\\w{5}","jio",true],"or"]
+-- ["referer",["baidu","in",true]]
 local function re_app_ext(_app_list,_basemsg)
-    if type(_app_list) ~= "table" or type(_basemsg) ~= "table" then return false end
-    local list_cnt = table.maxn(_app_list)
+    if type(_app_list) ~= "table" then return false end
+    local list_cnt = #_app_list
     local tmp_or = {}
     for i,v in ipairs(_app_list) do
-        if v[4] == "or" then
+        if v[3] == "or" then
             table.insert(tmp_or,v)
             if i == list_cnt then
-                if or_remath(tmp_or,_basemsg) then -- 真
-
-                else
-                    tmp_or = {} -- 清空 or 列表
-                    return false
-                end
-                break
-            end            
+                return or_remath(tmp_or,_basemsg)
+            end
         else
-            if table.maxn(tmp_or) == 0 then -- 前面没 or
-                if v[1] then --取反
-                    if not action_remath(v[2],v[3],_basemsg) then -- 真
+            if #tmp_or == 0 then -- 前面没 or
+                if action_remath(v[2],v[3],_basemsg) then -- 真
 
-                    else -- 假 跳出
-                        return false
-                    end
-                else
-                    if action_remath(v[2],v[3],_basemsg) then -- 真
-
-                    else -- 假 跳出
-                        return false
-                    end
+                else -- 假 跳出
+                    return false
                 end
             else -- 一组 or 计算
                 table.insert(tmp_or, v)
                 if or_remath(tmp_or,_basemsg) then -- 真
 
-                else                    
+                else
                     return false
                 end
                 tmp_or = {} -- 清空 or 列表
@@ -534,6 +474,7 @@ optl.set_token = set_token
 optl.del_token = del_token
 
 optl.remath = remath
+optl.remath_Invert = remath_Invert
 optl.loc_getRealIp = loc_getRealIp
 
 optl.set_count_dict = set_count_dict

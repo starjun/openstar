@@ -33,9 +33,13 @@
 
 	"post_Mod" : "on",
 
+	"post_form":10240,
+
 	"network_Mod" : "on",
 
 	"replace_Mod" : "off",
+
+	"debug_Mod" : true,
 
 	"baseDir" : "/opt/openresty/openstar/",
 

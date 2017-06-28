@@ -30,7 +30,7 @@ local  function ngx_status()
 	local host = ngx_var.http_host or "unknown host"
 	local server_name = ngx_var.server_name
 
-	if server_name == "localhost" or server_name == "localhost:5460" then
+	if server_name == "localhost" or server_name == "localhost5460" then
 		host = server_name
 	end
 

@@ -1,6 +1,7 @@
 [
     {
         "state":"on",
+        "action":"deny",
         "method":[
             {
                 "POST":true,
@@ -14,7 +15,8 @@
                 "101.200.122.200":true,
                 "www.g.com":true
             },
-            "list"
+            "list",
+            true
         ]
     }
 ]

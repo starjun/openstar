@@ -11,8 +11,7 @@
 	{
 	    "state": "on",
 	    "method": [["GET","POST"],"table"],
-	    "hostname": ["*\\.test\\.com","jio"]
-	
+	    "hostname": ["*\\.test\\.com","jio"]	
 	}
 	或者：    
 	{
@@ -28,7 +27,7 @@
 	    "hostname": ["*",""]
 	}
 
-配置规则就是这样，请多测试几次，就熟悉了，也是比较简单；关于这个jio的意思，其实就是`ngx.re.find(参数1,参数2,"jio")` 这里使用，区分大小写就是：` jo`；具体的一些参数请参考http://blog.csdn.net/weiyuefei/article/details/38439017
+配置规则就是这样，请多测试几次，就熟悉了，也是比较简单；关于这个jio的意思，其实就是`ngx.re.find(参数1,参数2,"jio")` 这里使用，区分大小写就是：`jo`；具体的一些参数请参考http://blog.csdn.net/weiyuefei/article/details/38439017
 
 ## 获取用户真实ip设置
 在一些应用场景下，需要从http头的某一字段中获取用户真实IP，一般默认用`X-Forwarded-For` 或者 `X-Real-IP`，但是有时会被黑客伪装（没有设置remote Ip源），以及一些CDN厂商自定义的http头（CDN-SOURCE-IP），故就需要我们配置那个host，从哪些remote ip 来的，取http头中哪个标记字段
@@ -128,16 +127,16 @@
 
 比较好理解，注意hostname和uri的匹配方式（二阶匹配）
 
-`next`：动作继续，如果基本的hostname和url匹配成功后，后面的规则匹配失败就拒绝访问了
-支持参数：remoteIp host method request\_uri uri useragent referer cookie query_string
-基础匹配host和uri，匹配成功后，`action`值中，第一个是`next`，表示匹配继续动作，匹配成功后继续后续的规则匹配，匹配失败拒绝，第二个`ip`的检查，**这个场景也是比较多，就是对某个文件夹（uri路径、程序后台路径、phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）**。
+**这个场景也是比较多，就是对某个文件夹（uri路径、程序后台路径、phpmyadmin 等这样管理后台，通过IP访问控制）这样可以精细到文件夹的IP访问控制（非常实用的功能）**。
 ---
     {
         "state": "on",
-        "action": ["next","ip"],
-        "ip":[["106.37.236.170","1.1.1.1"],"table"],
+        "action": ["deny"],
         "hostname": [["101.200.122.200","127.0.0.1"],"table"],
-        "uri": ["/api/.*","jio"]
+        "uri": ["/api/.*","jio"],
+        "app_ext":[
+		["ip",[["106.37.236.170","1.1.1.1"],"table",true]]
+        ]
     }
 
 这个配置就表示，访问`/api/.*`这些目录的只有`ip`为`1.1.1.1`和`106.37.236.170`，是不是很简单，对目录进行明细的IP访问控制。
@@ -198,9 +197,10 @@
 	    ],
 	    "referer": [
 	        "^.*/(www\\.test\\.com|www3\\.test\\.com)$",
-	        "jio"
+	        "jio",
+	        true
 	    ],
-	    "action":"next"
+	    "action":"deny"
 	
 	}
 
@@ -302,7 +302,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 	        "*",
 	        ""
 	    ],
-	    "query_string": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
+	    "args_data": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
 	    "action": "deny"
 	}
 	// -- XSS
@@ -312,7 +312,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 	        "*",
 	        ""
 	    ],
-	    "query_string": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
+	    "args_data": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
 	    "action": "deny"
 	}
 

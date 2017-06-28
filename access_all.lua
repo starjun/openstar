@@ -35,11 +35,13 @@ ngx_ctx.next_ctx = next_ctx
 	local args_data = optl.get_table(args)
 
 	local posts = {}
-	local post_data = ""
-	local post_all = ""
+	local posts_data = ""
+	local post_all
 	if method == "POST" then
+		-- 简易排除form表单
+		--local from,to = string.find(ngx_var.http_content_type,"boundary",1,true)
 		posts = ngx.req.get_post_args()
-		post_data = optl.get_table(posts)
+		posts_data = optl.get_table(posts)
 	end
 
 local base_msg = {}
@@ -63,8 +65,7 @@ local base_msg = {}
 	-- table_str
 	base_msg.headers_data = headers_data
 	base_msg.args_data = args_data
-	base_msg.post_data = post_data
-	base_msg.post_all = post_all
+	base_msg.posts_data = posts_data
 
 next_ctx.base_msg = base_msg
 
@@ -73,7 +74,7 @@ local host_Mod_state = host_dict:get(host)
 
 --- 2016年8月4日 增加全局Mod开关
 --  增加基于host的过滤模块开关判断
-if config_base["Mod_state"] == "off" or host_Mod_state == "off" then
+if config_base.Mod_state == "off" or host_Mod_state == "off" then
 	return
 end
 
@@ -82,24 +83,28 @@ local function config_is_on(_config_arg)
     if config_base[_config_arg] == "on" then
         return true
     end
+    -- return config_base[_config_arg] == "on"
 end
 
 --- 取config_dict中的json数据
 local function getDict_Config(_Config_jsonName)
     local re = config[_Config_jsonName] or {}
     return re
+    -- return (config[_Config_jsonName] or {})
 end
 
---- remath(str,re_str,options)
---- 常用二阶匹配规则
-local remath = optl.remath
+--- remath_ext 是 remath_Invert(str,re_str,options,true) 的扩展
+local function remath_ext(str,remath_rule)
+	if type(remath_rule) ~= "table" then return false end
+	if optl.remath_Invert(str,remath_rule[1],remath_rule[2],remath_rule[3]) then
+		return true
+	end
+	-- return optl.remath_Invert(str,remath_rule[1],remath_rule[2],remath_rule[3])
+end
 
 --- 匹配 host 和 uri
 local function host_uri_remath(_host,_uri)
-	if _host == nil or _uri == nil then
-		return false
-	end
-	if remath(host,_host[1],_host[2]) and remath(uri,_uri[1],_uri[2]) then
+	if remath_ext(host,_host) and remath_ext(uri,_uri) then
 		return true
 	end
 end
@@ -114,7 +119,7 @@ local function action_deny()
 	-- 2016年9月19日
 	-- 增加Mod_state = log , host_Mod state = log
 	-- 在拒绝请求都进行了log记录，仅ip黑名单的没有记录（因为量的问题），故可直接return
-	if config_base["Mod_state"] == "log" or host_Mod_state == "log" then
+	if config_base.Mod_state == "log" or host_Mod_state == "log" then
 		return
 	end
 	if config_base.denyMsg.state == "on" then
@@ -146,7 +151,7 @@ if config_is_on("realIpFrom_Mod") then
 end
 
 ---  STEP 1 
--- black/white ip 访问控制(黑/白名单/log记录)
+-- black/white ip 访问控制(黑/白名单/log记录) [ip类拦截数据太多未写日志，可自行取消next_ctx.waf_log赋值的注释]
 -- 2016年7月29日19:12:53 检查
 if config_is_on("ip_Mod") then
 	local _ip_v = ip_dict:get(ip) --- 全局IP 黑白名单
@@ -155,9 +160,9 @@ if config_is_on("ip_Mod") then
 			return
 		elseif _ip_v == "log" then 
 			Set_count_dict("ip log count")
-	 		--next_ctx.waf_log = "[ip_Mod] log"
+	 		--next_ctx.waf_log = "[ip] log"
 		else
-			--next_ctx.waf_log = "[ip_Mod] deny"
+			--next_ctx.waf_log = "[ip] deny"
 			Set_count_dict(ip)
 			action_deny()
 		end
@@ -170,9 +175,9 @@ if config_is_on("ip_Mod") then
 			return
 		elseif host_ip == "log" then
 			Set_count_dict(tmp_host_ip.." log count")
-	 		--next_ctx.waf_log = "[host_ip_Mod] log"
+	 		--next_ctx.waf_log = "[host_ip] log"
 		else
-			--next_ctx.waf_log = "[host_ip_Mod] deny"
+			--next_ctx.waf_log = "[host_ip] deny"
 			Set_count_dict(tmp_host_ip)
 			action_deny()
 		end
@@ -180,38 +185,36 @@ if config_is_on("ip_Mod") then
 end
 
 ---  STEP 2
--- host and method  访问控制(白名单)
+-- host and method  访问控制
 if config_is_on("host_method_Mod") and action_tag == "" then
 	local tb_mod = getDict_Config("host_method_Mod")
-	local check
+	local check = "deny"
 	for i,v in ipairs(tb_mod) do
-		if v.state == "on" then
-			if remath(host,v.hostname[1],v.hostname[2]) and remath(method,v.method[1],v.method[2]) then
-				check = "allow"
-				break
-			end
+		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(method,v.method) then
+			check = "next"
+			break
 		end
 	end
-	if check ~= "allow" then
+	if check == "deny" then
 		Set_count_dict("host_method deny count")
-	 	next_ctx.waf_log = next_ctx.waf_log or "[host_method_Mod] deny"
+	 	next_ctx.waf_log = next_ctx.waf_log or "[host_method] deny"
 	 	action_deny()
 	end
 end
 
 --- STEP 3
--- rewrite 跳转阶段(set-cookie)
+-- rewrite 跳转阶段(set_cookie)
 -- 本来想着放到rewrite阶段使用的，方便统一都放到access阶段了。
 if config_is_on("rewrite_Mod") and action_tag == "" then
 	local tb_mod = getDict_Config("rewrite_Mod")
 	for i,v in ipairs(tb_mod) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 
-			if v.action[1] == "set-cookie" then
-				local token = ngx.md5(v.action[2] .. ip)
-				local token_name = v.action[3] or "token"
+			if v.action == "set_cookie" then
+				local token = ngx.md5(v.set_cookie[1] .. ip)
+				local token_name = v.set_cookie[2] or "token"
 				-- 没有设置 tokenname 默认就是 token
-	            if (ngx_var["cookie_"..token_name] ~= token) then
+	            if ngx_var["cookie_"..token_name] ~= token then
 	                ngx.header["Set-Cookie"] = {token_name.."=" .. token}
 	                if method == "POST" then
 	                	return ngx.redirect(request_uri,307)
@@ -219,7 +222,7 @@ if config_is_on("rewrite_Mod") and action_tag == "" then
 	                	return ngx.redirect(request_uri)
 	                end
 	            end
-			elseif v.action[1] == "set-url" then
+			elseif v.action == "set_url" then
 			-- 备用 使用url尾巴跳转方式进行验证
 				
 			end
@@ -236,54 +239,54 @@ if  host_Mod_state == "on" and action_tag == "" then
 	local _action
 	for i,v in ipairs(tb) do
 		if v.state == "on" then
-			if v.action[2] == "uri" and remath(uri,v.uri[1],v.uri[2]) then
+			if v.action[2] == "uri" and remath_ext(uri,v.uri) then
 
-				_action = v.action[1]				
+				_action = v.action[1] or "deny"
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host] deny No: "..i
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host] log No: "..i
 				elseif _action == "allow" then
 					return
 				end
 				
-			elseif v.action[2] == "referer" and remath(referer,v.referer[1],v.referer[2]) and remath(uri,v.uri[1],v.uri[2]) then
+			elseif v.action[2] == "referer" and remath_ext(referer,v.referer) and remath_ext(uri,v.uri) then
 
-				_action = v.action[1]
+				_action = v.action[1] or "deny"
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host] deny No: "..i
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host] log No: "..i
 				elseif _action == "allow" then
 					return
 				end
 
-			elseif v.action[2] == "useragent" and remath(useragent,v.useragent[1],v.useragent[2]) then
+			elseif v.action[2] == "useragent" and remath_ext(useragent,v.useragent) then
 				
-				_action = v.action[1]
+				_action = v.action[1] or "deny"
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host] deny No: "..i
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host] log No: "..i
 				elseif _action == "allow" then
 					return
 				end
 
-			elseif v.action[2] == "network" and remath(uri,v.uri[1],v.uri[2]) then
+			elseif v.action[2] == "network" and remath_ext(uri,v.uri) then
 
-				local mod_host_ip = ip..host.." host_network_Mod No "..i
+				local mod_host_ip = ip..host.." host_network No "..i
 				local ip_count = limit_ip_dict:get(mod_host_ip)
 				if ip_count == nil then
 					local pTime =  v.network.pTime or 10
@@ -293,7 +296,7 @@ if  host_Mod_state == "on" and action_tag == "" then
 					if ip_count >= maxReqs then
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
-						next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No : "..i
+						next_ctx.waf_log = next_ctx.waf_log or "[host] deny No : "..i
 						-- network 触发直接拦截
 						Set_count_dict(host.." deny count")
 						action_deny()
@@ -322,7 +325,7 @@ if config_is_on("app_Mod") and action_tag == "" then
 				if v.action[1] == "deny" then
 						
 					Set_count_dict("app deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No : "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[app] deny No : "..i
 					action_deny()
 					break
 
@@ -330,27 +333,16 @@ if config_is_on("app_Mod") and action_tag == "" then
 
 					return
 
-				elseif v.action[1] == "next" then
-					--- base_msg 中的 remoteIp host referer useragent method uri request_uri ip
-					--- 以上是 next 动作可以匹配的http参数
-					local check_next = v.action[2]				
-					if type(base_msg[check_next]) ~= "table" and remath(base_msg[check_next],v[check_next][1],v[check_next][2]) then
-						-- pass 匹配成功 无操作
-					else					
-						Set_count_dict("app next count")
-						next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] next No : "..i
-						action_deny()
-						break
-					end
-
 				elseif v.action[1] == "log" then
 					if method == "POST" then
-						post_all = optl.get_post_all()
+						post_all = post_all or optl.get_post_all()
+						base_msg.post_all = post_all 
 					end
 					optl.writefile(config_base.logPath.."app.log","log Msg : \n"..optl.tableTojson(base_msg))
 					-- app_Mod的action=log单独记录，用于debug调试
+
 				elseif v.action[1] == "rehtml" then
-					optl.sayHtml_ext(v.rehtml,1)
+					optl.sayHtml_ext(v.rehtml,true)
 					break
 
 				elseif v.action[1] == "refile" then
@@ -382,34 +374,21 @@ end
 -- --- STEP 6
 -- -- referer过滤模块
 --  动作支持（allow deny log next）
-if config_is_on("referer_Mod") and referer ~= "" and action_tag == "" then
+if config_is_on("referer_Mod") and action_tag == "" then
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
-		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
+		if v.state == "on" and host_uri_remath(v.hostname,v.uri) and remath_ext(referer,v.referer) then
 
 			if v.action == "allow" then
-				if remath(referer,v.referer[1],v.referer[2]) then
-					return		
-				end
-			elseif v.action == "next" then
-				if not remath(referer,v.referer[1],v.referer[2]) then
-					Set_count_dict("referer deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[referer_Mod] deny  No : "..i
-					action_deny()
-					break
-				end
+				return
 			elseif v.action == "log" then
-				if remath(referer,v.referer[1],v.referer[2]) then
-					Set_count_dict("referer log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[referer_Mod] log  No : "..i
-				end
+				Set_count_dict("referer log count")
+				next_ctx.waf_log = next_ctx.waf_log or "[referer] log  No : "..i
 			else
-				if remath(referer,v.referer[1],v.referer[2]) then
-					Set_count_dict("referer deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[referer_Mod] deny  No : "..i
-					action_deny()
-					break
-				end
+				Set_count_dict("referer deny count")
+				next_ctx.waf_log = next_ctx.waf_log or "[referer] deny  No : "..i
+				action_deny()
+				break
 			end
 		end
 	end
@@ -417,7 +396,7 @@ end
 
 --- STEP 7
 -- uri 过滤(黑/白名单/log)
-if config_is_on("uri_Mod") and uri ~= "/" and action_tag == "" then
+if config_is_on("uri_Mod") and action_tag == "" then
 	local uri_mod = getDict_Config("uri_Mod")
 	for i, v in ipairs( uri_mod ) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
@@ -426,12 +405,12 @@ if config_is_on("uri_Mod") and uri ~= "/" and action_tag == "" then
 				return
 			elseif v.action ==	"deny" then
 				Set_count_dict("uri deny count")
-				next_ctx.waf_log = next_ctx.waf_log or "[uri_mod] deny No : "..i
+				next_ctx.waf_log = next_ctx.waf_log or "[uri] deny No : "..i
 				action_deny()
 				break
 			elseif v.action == "log" then
 				Set_count_dict("uri log count")
-				next_ctx.waf_log = next_ctx.waf_log or "[uri_mod] log No : "..i
+				next_ctx.waf_log = next_ctx.waf_log or "[uri] log No : "..i
 			end
 
 		end
@@ -446,7 +425,7 @@ if config_is_on("header_Mod") and action_tag == "" then
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 			if optl.action_remath("headers",v.header,base_msg) then
 				Set_count_dict("header deny count")
-			 	next_ctx.waf_log = next_ctx.waf_log or "[header_Mod] deny No : "..i
+			 	next_ctx.waf_log = next_ctx.waf_log or "[header] deny No : "..i
 			 	action_deny()
 			 	break
 			end
@@ -456,72 +435,62 @@ end
 
 --- STEP 9
 -- useragent(黑、白名单/log记录)
-if config_is_on("useragent_Mod") and useragent ~= "" and action_tag == "" then
+if config_is_on("useragent_Mod") and action_tag == "" then
 	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
-		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
-
-			if remath(useragent,v.useragent[1],v.useragent[2]) then
-				if v.action == "allow" then
-					return
-				elseif v.action == "log" then
-					Set_count_dict("useragent log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[useragent_Mod] log No : "..i
-				else
-					Set_count_dict("useragent deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[useragent_Mod] deny No : "..i
-					action_deny()
-					break
-				end
+		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(useragent,v.useragent) then
+			if v.action == "allow" then
+				return
+			elseif v.action == "log" then
+				Set_count_dict("useragent log count")
+				next_ctx.waf_log = next_ctx.waf_log or "[useragent] log No : "..i
+			else
+				Set_count_dict("useragent deny count")
+				next_ctx.waf_log = next_ctx.waf_log or "[useragent] deny No : "..i
+				action_deny()
+				break
 			end
-
 		end
 	end
 end
 
 --- STEP 10
 -- cookie (黑/白名单/log记录)
-if config_is_on("cookie_Mod") and cookie ~= "" and action_tag == "" then
+if config_is_on("cookie_Mod") and action_tag == "" then
 	local cookie_mod = getDict_Config("cookie_Mod")
 	for i, v in ipairs( cookie_mod ) do
-		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
-
-			if remath(cookie,v.cookie[1],v.cookie[2]) then
-				if v.action == "deny" then
-					Set_count_dict("cookie deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[cookie_Mod] deny _cookie : "..cookie.." No : "..i
-					action_deny()
-					break
-				elseif v.action =="log" then
-					Set_count_dict("cookie log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[cookie_Mod] log _cookie : "..cookie.." No : "..i
-				elseif v.action == "allow" then
-					return
-				end
+		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(cookie,v.cookie) then
+			if v.action == "deny" then
+				Set_count_dict("cookie deny count")
+				next_ctx.waf_log = next_ctx.waf_log or "[cookie] deny _cookie : "..cookie.." No : "..i
+				action_deny()
+				break
+			elseif v.action =="log" then
+				Set_count_dict("cookie log count")
+				next_ctx.waf_log = next_ctx.waf_log or "[cookie] log _cookie : "..cookie.." No : "..i
+			elseif v.action == "allow" then
+				return
 			end
-
 		end
 	end
 end
 
 --- STEP 11
--- args [query_string] (黑/白名单/log记录)
-if config_is_on("args_Mod") and query_string ~= "" and action_tag == "" then
+-- args [args_data] (黑/白名单/log记录)
+if config_is_on("args_Mod") and action_tag == "" then
 	local args_mod = getDict_Config("args_Mod")
 	for i,v in ipairs(args_mod) do
-		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then		
-			if remath(query_string,v.query_string[1],v.query_string[2]) then
-				if v.action == "deny" then
-					Set_count_dict("args deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[args_Mod] deny No : "..i
-					action_deny()
-					break
-				elseif v.action == "log" then
-					Set_count_dict("args log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[args_Mod] log No : "..i
-				elseif v.action == "allow" then
-					return	
-				end
+		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(args_data,v.args_data) then
+			if v.action == "deny" then
+				Set_count_dict("args_data deny count")
+				next_ctx.waf_log = next_ctx.waf_log or "[args_data] deny No : "..i
+				action_deny()
+				break
+			elseif v.action == "log" then
+				Set_count_dict("args_data log count")
+				next_ctx.waf_log = next_ctx.waf_log or "[args_Mod] log No : "..i
+			elseif v.action == "allow" then
+				return
 			end
 		end
 	end
@@ -529,24 +498,21 @@ end
 
 --- STEP 12
 -- post (黑/白名单)
-if config_is_on("post_Mod") and post_data ~= "" and action_tag == "" then
+if config_is_on("post_Mod") and action_tag == "" then
 	local post_mod = getDict_Config("post_Mod")
 	for i,v in ipairs(post_mod) do
-		if v.state == "on" and remath(host,v.hostname[1],v.hostname[2]) then
-
-			if remath(post_data,v.post_str[1],v.post_str[2]) then
-				if v.action == "deny" then
-					Set_count_dict("post deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[post_Mod] deny post : "..post_data.."No : "..i
-					action_deny()
-					break
-				elseif v.action == "log" then
-					Set_count_dict("post log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[post_Mod] deny post : "..post_data.."No : "..i
-				elseif v.action == "allow" then
-					return
-				end
-			end
+		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(posts_data,v.posts_data) then
+			if v.action == "deny" then
+				Set_count_dict("post deny count")
+				next_ctx.waf_log = next_ctx.waf_log or "[posts_data] deny post : "..posts_data.."No : "..i
+				action_deny()
+				break
+			elseif v.action == "log" then
+				Set_count_dict("post log count")
+				next_ctx.waf_log = next_ctx.waf_log or "[posts_data] deny post : "..posts_data.."No : "..i
+			elseif v.action == "allow" then
+				return
+			end			
 		end
 	end
 end
