@@ -94,11 +94,7 @@ local function push_count_dict()
 end
 
 -- 保存config_dict、host_dict到本机文件
-local function save_configFile()
-	local _debug = "no"
-	if config_base.debug_Mod then
-		_debug = "yes"
-	end
+local function save_configFile(_debug)
 	local http = require "resty.http"
 	local httpc = http.new()
 
@@ -134,7 +130,11 @@ handler_zero = function ()
 			push_Master()
 	elseif config_base.autoSync.state == "Slave" then
 		if pull_redisConfig() then
-			save_configFile()
+			local _debug = "no"
+			if config_base.debug_Mod then
+				_debug = "yes"
+			end
+			save_configFile(_debug)
 		end
 		--推送count_dict到redis
 		push_count_dict()

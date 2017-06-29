@@ -48,7 +48,7 @@ local function logformat(_basemsg,_log_conf)
         log_map["$"..k] = v
     end
     local re_log_tb = {}
-    for i,v in ipairs(_log_conf.tb_formart) do
+    for _,v in ipairs(_log_conf.tb_formart) do
         table.insert(re_log_tb,(log_map[v] or v))
     end
     return table.concat(re_log_tb,_log_conf.tb_concat)

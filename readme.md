@@ -280,7 +280,7 @@ args：`["*","","args_name",1]`
 
  4：host_Mod ==> 对应host执行的规则过滤（uri,referer,useragent等）
 
-    这里是产品中提供给独立用户使用的比较弱的过滤规则，后面会完全开放所有过滤规则。
+    这里是产品中提供给独立用户使用的过滤规则。目前支持自定义规则组（任意参数，任意组合）
  
  5：app_Mod ==> 用户自定义应用层过滤
  
@@ -339,7 +339,7 @@ args：`["*","","args_name",1]`
   #该参数是否启用IP黑、白名单，IP是用户真实IP（http头取出，如设置）
 
   "host_method_Mod" : "on",
-  #该参数是否启用host、method白名单
+  #该参数是否启用host、method白名单（仅允许）
 
   "rewrite_Mod" : "on",
   #该参数是配置跳转使用，如set-cookie。（目前仅有set-cookie，后续增加验证码跳转）
@@ -363,13 +363,13 @@ args：`["*","","args_name",1]`
   #该参数是否启用cookie过滤
 
   "args_Mod" : "on",
-  #该参数是否启用args过滤，准确的说是query_string过滤
+  #该参数是否启用args过滤，准确的说是args_data过滤
 
   "post_Mod" : "on",
-  #该参数是否启用post过滤，准确的说是post整体内容的过滤
+  #该参数是否启用post过滤，准确的说是posts_data过滤
 
   "post_form":12040,
-  #该参数表示post表单时，规则过滤时取文件内容的长度
+  #该参数表示post表单时，规则过滤时取文件内容的长度,目前还没有用上
 
   "network_Mod" : "on",
   #该参数是否启用network过滤频率规则
@@ -462,7 +462,8 @@ args：`["*","","args_name",1]`
 ```
     {
         "state": "on",
-        "action": ["set-cookie","asjldisdafpopliu8909jk34jk"],
+        "action": ["set-cookie"],
+		"set_cookie":["asjldisdafpopliu8909jk34jk","token_name"],
         "hostname": ["101.200.122.200",""],
         "uri": ["^/rewrite$","jio"]
     }
@@ -579,7 +580,7 @@ args：`["*","","args_name",1]`
 ## STEP 11：args_Mod（黑名单）
 
  - 说明：
- `{"state":"on","hostname":["*",""],"query_string":["\\:\\$","jio"],"action":"deny"}`
+ `{"state":"on","hostname":["*",""],"args_data":["\\:\\$","jio"],"action":"deny"}`
  
  上面例子表示，规则启用，匹配任意host，query_string参数组匹配正则，成功则执行拒绝访问动作
  state：表示规则是否启用
@@ -589,7 +590,7 @@ args：`["*","","args_name",1]`
  
 ## STEP 12：post_Mod（黑名单）
  - 说明：
- `{"state":"on","hostname":["*",""],"post_str":["\\$\\{","jio"],"action":"deny"}`
+ `{"state":"on","hostname":["*",""],"posts_data":["\\$\\{","jio"],"action":"deny"}`
 
   上面的例子表示，规则启用，匹配任意host,post_str参数组匹配正则，成功则拒绝访问
   state：表示是否启用规则

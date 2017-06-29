@@ -75,9 +75,9 @@
             "action": ["deny"],
             "uri": ["/api/.*","jio"],
             "app_ext":[
-            [false,"uri",["admin","in"],"or"],
-            [false,"cookie",["c_test","jio"],"and"],
-            [true,"ip",[["1.1.1.1","127.0.0.1"],"table"],"and"]
+            ["uri",["admin","in",false],"or"],
+            ["cookie",["c_test","jio"],"and"],
+            ["ip",[["1.1.1.1","127.0.0.1"],"table",true],"and"]
             ]
         }
     ],

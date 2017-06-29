@@ -36,12 +36,14 @@ ngx_ctx.next_ctx = next_ctx
 
 	local posts = {}
 	local posts_data = ""
-	local post_all
+	local posts_all
 	if method == "POST" then
 		-- 简易排除form表单
-		--local from,to = string.find(ngx_var.http_content_type,"boundary",1,true)
-		posts = ngx.req.get_post_args()
-		posts_data = optl.get_table(posts)
+		local from,to = string.find(ngx_var.http_content_type,"boundary",1,true)
+		if from == nil then
+			posts = ngx.req.get_post_args()
+			posts_data = optl.get_table(posts)
+		end
 	end
 
 local base_msg = {}
@@ -185,11 +187,11 @@ if config_is_on("ip_Mod") then
 end
 
 ---  STEP 2
--- host and method  访问控制
+-- host and method  仅允许 访问控制
 if config_is_on("host_method_Mod") and action_tag == "" then
 	local tb_mod = getDict_Config("host_method_Mod")
 	local check = "deny"
-	for i,v in ipairs(tb_mod) do
+	for _,v in ipairs(tb_mod) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(method,v.method) then
 			check = "next"
 			break
@@ -207,7 +209,7 @@ end
 -- 本来想着放到rewrite阶段使用的，方便统一都放到access阶段了。
 if config_is_on("rewrite_Mod") and action_tag == "" then
 	local tb_mod = getDict_Config("rewrite_Mod")
-	for i,v in ipairs(tb_mod) do
+	for _,v in ipairs(tb_mod) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 
 			if v.action == "set_cookie" then
@@ -244,27 +246,27 @@ if  host_Mod_state == "on" and action_tag == "" then
 				_action = v.action[1] or "deny"
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host] deny No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host] log No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
 				elseif _action == "allow" then
 					return
 				end
-				
+
 			elseif v.action[2] == "referer" and remath_ext(referer,v.referer) and remath_ext(uri,v.uri) then
 
 				_action = v.action[1] or "deny"
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host] deny No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host] log No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
 				elseif _action == "allow" then
 					return
 				end
@@ -274,12 +276,12 @@ if  host_Mod_state == "on" and action_tag == "" then
 				_action = v.action[1] or "deny"
 				if _action == "deny" then
 					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host] deny No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
 					action_deny()
 					break
 				elseif _action == "log" then
 					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host] log No: "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
 				elseif _action == "allow" then
 					return
 				end
@@ -296,7 +298,7 @@ if  host_Mod_state == "on" and action_tag == "" then
 					if ip_count >= maxReqs then
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
-						next_ctx.waf_log = next_ctx.waf_log or "[host] deny No : "..i
+						next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No : "..i
 						-- network 触发直接拦截
 						Set_count_dict(host.." deny count")
 						action_deny()
@@ -308,12 +310,12 @@ if  host_Mod_state == "on" and action_tag == "" then
 
 			end
 		end
-	end	
+	end
 end
 
 -- --- STEP 5
 -- -- app_Mod 访问控制 （自定义action）
--- -- 目前支持的 deny allow log next rehtml refile relua relua_str
+-- -- 目前支持的 deny allow log rehtml refile relua relua_str
 -- 支持 规则组 取反 or/and 连接符
 if config_is_on("app_Mod") and action_tag == "" then
 	local app_mod = getDict_Config("app_Mod")
@@ -335,8 +337,8 @@ if config_is_on("app_Mod") and action_tag == "" then
 
 				elseif v.action[1] == "log" then
 					if method == "POST" then
-						post_all = post_all or optl.get_post_all()
-						base_msg.post_all = post_all 
+						posts_all = posts_all or optl.get_post_all()
+						base_msg.posts_all = posts_all
 					end
 					optl.writefile(config_base.logPath.."app.log","log Msg : \n"..optl.tableTojson(base_msg))
 					-- app_Mod的action=log单独记录，用于debug调试
@@ -373,7 +375,7 @@ end
 
 -- --- STEP 6
 -- -- referer过滤模块
---  动作支持（allow deny log next）
+--  动作支持（allow deny log）
 if config_is_on("referer_Mod") and action_tag == "" then
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
@@ -566,7 +568,7 @@ end
 --- STEP 14
 if config_is_on("replace_Mod") and action_tag == "" then
 	local Replace_Mod = getDict_Config("replace_Mod")
-	for i,v in ipairs(Replace_Mod) do
+	for _,v in ipairs(Replace_Mod) do
 		if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
 			next_ctx.replace_Mod = v
 			--ngx_ctx.body_mod = v

@@ -12,7 +12,7 @@ local optl = require("optl")
 
 -- 返回内容的替换使用 ngx.re.gsub 后续会更新用户可指定替换函数(如 ngx.re.sub)
 local function ngx_2(reps,str_all)
-	for k,v in ipairs(reps) do
+	for _,v in ipairs(reps) do
 		local tmp3 = optl.ngx_find(v[3])
 		if v[2] == "" then
 			str_all = ngx.re.gsub(str_all,v[1],tmp3)
