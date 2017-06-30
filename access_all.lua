@@ -30,6 +30,7 @@ ngx_ctx.next_ctx = next_ctx
 
 	local headers = ngx.req.get_headers()
 	local headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
+	local http_content_type = ngx_var.http_content_type
 
 	local args = ngx.req.get_uri_args()
 	local args_data = optl.get_table(args)
@@ -39,7 +40,8 @@ ngx_ctx.next_ctx = next_ctx
 	local posts_all
 	if method == "POST" then
 		-- 简易排除form表单
-		local from,to = string.find(ngx_var.http_content_type,"boundary",1,true)
+		-- multipart/form-data; boundary=----WebKitForm...
+		local from,to = string.find(http_content_type,"boundary",1,true)
 		if from == nil then
 			posts = ngx.req.get_post_args()
 			posts_data = optl.get_table(posts)
@@ -145,6 +147,26 @@ local function action_deny()
 	end
 end
 
+-- 获取post_form表单数据
+local function get_post_form(_len)
+	if _len <= 0 then _len = nil end
+	posts_all = posts_all or optl.get_post_all()
+	base_msg.posts_all = posts_all
+    local parser = require "bodyparser"
+    local p, err = parser.new(posts_all, http_content_type,_len)
+    if p then
+		local tmp_tb = {}
+	    while true do
+	       local part_body, name, mime, filename = p:parse_part()
+	       if not part_body then
+	          break
+	       end
+	       table.insert(tmp_tb, {name,filename,mime,part_body})
+	    end
+	    base_msg.post_form = tmp_tb
+    end
+end
+
 ---  SETP 0
 -- 获取用户真实IP（如有CND情况下，从header头取）
 if config_is_on("realIpFrom_Mod") then
@@ -161,7 +183,7 @@ if config_is_on("ip_Mod") then
 		if _ip_v == "allow" then -- 跳出后续规则
 			return
 		elseif _ip_v == "log" then 
-			Set_count_dict("ip log count")
+			Set_count_dict(ip.." log count")
 	 		--next_ctx.waf_log = "[ip] log"
 		else
 			--next_ctx.waf_log = "[ip] deny"
@@ -505,12 +527,12 @@ if config_is_on("post_Mod") and action_tag == "" then
 	for i,v in ipairs(post_mod) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(posts_data,v.posts_data) then
 			if v.action == "deny" then
-				Set_count_dict("post deny count")
+				Set_count_dict("posts_data deny count")
 				next_ctx.waf_log = next_ctx.waf_log or "[posts_data] deny post : "..posts_data.."No : "..i
 				action_deny()
 				break
 			elseif v.action == "log" then
-				Set_count_dict("post log count")
+				Set_count_dict("posts_data log count")
 				next_ctx.waf_log = next_ctx.waf_log or "[posts_data] deny post : "..posts_data.."No : "..i
 			elseif v.action == "allow" then
 				return

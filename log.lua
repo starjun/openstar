@@ -49,7 +49,11 @@ local function logformat(_basemsg,_log_conf)
     end
     local re_log_tb = {}
     for _,v in ipairs(_log_conf.tb_formart) do
-        table.insert(re_log_tb,(log_map[v] or v))
+        local x = log_map[v] or v
+        if type(x) == "table" then
+            x = optl.tableTojson(x)
+        end
+        table.insert(re_log_tb,x)
     end
     return table.concat(re_log_tb,_log_conf.tb_concat)
 end

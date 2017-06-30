@@ -1,7 +1,6 @@
 [
     {
         "state":"on",
-        "action":"deny",
         "method":[
             {
                 "POST":true,

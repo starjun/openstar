@@ -15,7 +15,7 @@ local config_base
 -- dict 清空过期内存
 local function flush_expired_dict()
 	local dict_list = {"token_dict","count_dict","config_dict","host_dict","ip_dict","limit_ip_dict"}
-	for i,v in ipairs(dict_list) do
+	for _,v in ipairs(dict_list) do
 		ngx.shared[v]:flush_expired()
 	end
 end
@@ -29,7 +29,6 @@ local function pull_redisConfig()
 	httpc:connect("127.0.0.1", 5460)
 
 	-- And request using a path, rather than a full URI.
-	-- 调试阶段debug=yes 否则 应该是 no
 	local res, err = httpc:request{
 	  path = "/api/dict_redis?action=pull&key=all_dict",
 	  headers = {
@@ -95,7 +94,7 @@ end
 
 -- 保存config_dict、host_dict到本机文件
 local function save_configFile(_debug)
-	local http = require "resty.http"
+
 	local httpc = http.new()
 
 	-- The generic form gives us more control. We must connect manually.
