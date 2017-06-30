@@ -30,7 +30,7 @@ ngx_ctx.next_ctx = next_ctx
 
 	local headers = ngx.req.get_headers()
 	local headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
-	local http_content_type = ngx_var.http_content_type
+	local http_content_type = ngx_unescape_uri(ngx_var.http_content_type)
 
 	local args = ngx.req.get_uri_args()
 	local args_data = optl.get_table(args)
@@ -41,12 +41,10 @@ ngx_ctx.next_ctx = next_ctx
 	if method == "POST" then
 		-- 简易排除form表单
 		-- multipart/form-data; boundary=----WebKitForm...
-		if http_content_type then
 		local from,to = string.find(http_content_type,"boundary",1,true)
 		if from == nil then
 			posts = ngx.req.get_post_args()
 			posts_data = optl.get_table(posts)
-		end
 		end
 	end
 
