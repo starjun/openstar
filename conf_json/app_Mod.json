@@ -58,5 +58,25 @@
         ["cookie",["c_test","jio"],"and"],
         ["ip",[["1.1.1.1","127.0.0.1"],"table",true],"and"]
         ]
+    },
+    {
+        "state": "on",
+        "action": ["refile"],
+        "refile": ["js_debug.txt","text/html"],
+        "hostname": ["localhost5460",""],
+        "uri": ["/api/test/debug",""],
+        "app_ext":[
+        ["args",["true","@token@",["cctoken"],true]]
+        ]
+    },
+    {
+        "state": "on",
+        "action": ["refile"],
+        "refile": ["js_time.txt","text/html"],
+        "hostname": ["localhost5460",""],
+        "uri": ["/api/test/time",""],
+        "app_ext":[
+        ["args",["^[\\w]{6}$","jio",["cc",3],true]]
+        ]
     }
 ]

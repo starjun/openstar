@@ -250,11 +250,11 @@ ip：`[["127.0.0.1/32",""113.45.199.0/24""],"cidr"]`
 
 ==>表示匹配的ip在这两组ip段/ip中
 
-args：`["*","","args_name","all",false]` 
-args：`["*","","args_name","end"]` = `["*","","args_name","end",false]`
-args：`["*","","args_name",1]` 
+args：`["*","",["args_name","all"],false]` 
+args：`["*","",["args_name","end"]]` = `["*","",["args_name","end"],false]`
+args：`["*","",["args_name",1]]` 
 
-说明：第3个参数表示取args参数table的key名称，第4个参数表示取args[args_name]为table时，匹配所有(all)，匹配最后一个(end),匹配第几个(数字)，默认取第一个
+说明：第3个参数表示取args参数table的key名称，第3个参数[2]表示取args[args_name]为table时，匹配任意(all)，匹配最后一个(end),匹配第几个(数字)，默认取第一个
 
 ==>表示匹配的GET的args参数名为args_name,使用第4个参数模式进行匹配，匹配规则就是第一个和二个参数。其中第1、2参数支持前面描述的规则方式。
 

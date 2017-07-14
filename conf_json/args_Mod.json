@@ -20,12 +20,6 @@
     {
         "state": "on",
         "hostname": ["*",""],
-        "args_data": ["'*.*([ |/\\*\\*/]and|or[ |/\\*\\*/]).+=.+","jio"],
-        "action": "deny"
-    },
-    {
-        "state": "on",
-        "hostname": ["*",""],
         "args_data": ["select.+(from|limit)","jio"],
         "action": "deny"
     },

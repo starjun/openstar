@@ -16,4 +16,3 @@ if(re.test(url)){
 </script>
 </head>
 </html>
-

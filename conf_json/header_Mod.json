@@ -4,13 +4,13 @@
         "state": "on",
         "uri": ["*",""],
         "hostname": ["*",""],
-        "header": ["*","","Acunetix_Aspect","end"]        
+        "header": ["*","",["Acunetix_Aspect","end"]]
     },
     {
         "state": "on",
         "uri": ["*",""],
         "hostname": ["*",""],
-        "header": ["*","","X_Scan_Memo","all"]        
+        "header": ["*","",["X_Scan_Memo","all"]]
     }
 
 ]

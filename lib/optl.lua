@@ -17,7 +17,7 @@ local function readfile(_filepath)
     -- local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
     local fd,err = io.open(_filepath,"r")
     if fd == nil then 
-        ngx.log(ngx.ERR,"readfile error",err)
+        --ngx.log(ngx.ERR,"readfile error",err)
         return
     end
     local str = fd:read("*a") --- 全部内容读取
@@ -37,7 +37,7 @@ local function writefile(_filepath,_msg,_ty)
         ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg),err)
         return 
     end -- 文件读取错误返回
-    fd:write("\n"..tostring(_msg))
+    fd:write(tostring(_msg))
     fd:flush()
     fd:close()
     return true
@@ -100,7 +100,6 @@ local function guid(_num)
 end
 
 -- 设置token 并缓存3分钟
--- 可能会无限循环
 local function set_token(_token,_t,_len)
     _len = _len or 10
     local _lenNext = _len + 1
@@ -137,7 +136,7 @@ local function remath(_str,_re_str,_options)
                 return true
             end
         end
-    elseif _options == "in" then 
+    elseif _options == "in" then
         --- 用于包含 查找 string.find
         local from , to = string.find(_str, _re_str,1,true)
         --if from ~= nil or (from == 1 and to == 0 ) then
@@ -155,14 +154,14 @@ local function remath(_str,_re_str,_options)
     elseif _options == "@token@" then
         --- 服务端对token的合法性进行匹配
         local a = tostring(token_dict:get(_str))
-        if a == _re_str then 
+        if a == _re_str then
             token_dict:delete(_str) -- 使用一次就删除token
             return true
         end
     elseif _options == "cidr" then
         --- 基于cidr，用于匹配ip 是否在 ip段中
         if type(_re_str) ~= "table" then return false end
-        for i,v in ipairs(_re_str) do
+        for _,v in ipairs(_re_str) do
 
             local cidr = require "cidr"
             local first_address, last_address = cidr.parse_cidr(v)  
@@ -180,7 +179,8 @@ local function remath(_str,_re_str,_options)
         --- 正则匹配
         local from, to = ngx_re_find(_str, _re_str, _options)
         if from ~= nil then
-            return true,string.sub(_str, from, to)
+            --return true,string.sub(_str, from, to)
+            return true
         end
     end
 end
@@ -222,14 +222,18 @@ local function loc_getRealIp(_remoteIp,_ipfrom)
 end
 
 -- 增加 三阶匹配规则
+--  table 类型
+-- _modrule = ["^[\\w]{6}$","jio",["cc",3],true]
+-- _modrule = ["true","@token@",["cctoken"],true]
+-- _modrule = ["^[\\w]{6}$","jio",["sign"],true]
 local function remath3(_tbMod,_modrule)
     local _re_str = _modrule[1]
     local _options = _modrule[2]
-    local _str = _tbMod[_modrule[3]]
+    local _str = _tbMod[_modrule[3][1]]
 
-    -- 取 args/headers 中某一个key (_str可能是一个table)
-    local _ty = _modrule[4] or 1
-    local _Invert = _modrule[5]
+    -- 取 args/posts/headers 中某一个key (_str可能是一个table)
+    local _ty = _modrule[3][2] or 1
+    local _Invert = _modrule[4]
 
     if type(_str) == "table" then
         if _ty == "end" then
@@ -238,14 +242,14 @@ local function remath3(_tbMod,_modrule)
                 return true
             end
         elseif _ty == "all" then
-            for i,v in ipairs(_str) do
+            for _,v in ipairs(_str) do
                 if remath_Invert(v,_re_str,_options,_Invert) then
                     return true
                 end
             end
         else -- table 中的某一个
             -- 超出范围判断
-            if _ty > #_str then  
+            if _ty > #_str then
                 _ty = 1
             else
                 _ty = #_str
@@ -262,9 +266,14 @@ local function remath3(_tbMod,_modrule)
 end
 
 -- 基于modName 进行规则判断
--- _modName = uri host args cookie 等
--- _modRule = ["*",""] ["admin","in",true] ["\w{6}","jio",false] 
--- ["asd","in","args_name1"] ["asd","in","args_name1","all",true] ["asd","in","args_name1","end",false]
+-- [_modName,_modRule,"条件"]
+-- ["uri",["admin","in"],"and"]
+-- ["cookie",["\\w{5}","jio",true],"or"]
+-- ["referer",["baidu","in",true]]
+--  table 类型
+-- ["args",["^[\\w]{6}$","jio",["cc",3],true],"and"]
+-- ["args",["true","@token@",["cctoken"],true]]
+-- ["headers",["^[\\w]{6}$","jio",["sign"],true]]
 local function action_remath(_modName,_modRule,_base_Msg)
 
     if _modName == nil or type(_base_Msg) ~= "table" or type(_modRule) ~= "table" then
@@ -282,9 +291,11 @@ local function action_remath(_modName,_modRule,_base_Msg)
 end
 
 -- 对 or 规则list 进行判断
+-- _or_list = ["referer",["baidu","in",true]]
+-- _or_list = ["args",["^[\\w]{6}$","jio",["cc",3],true],"and"]
 local function or_remath(_or_list,_basemsg)
     -- or 匹配 任意一个为真 则为真
-    for i,v in ipairs(_or_list) do
+    for _,v in ipairs(_or_list) do
         if action_remath(v[1],v[2],_basemsg) then -- 真
             return true        
         end        
@@ -294,9 +305,14 @@ end
 
 -- 对自定义规则列表进行判断
 -- 传入一个规则列表 和 base_msg
--- ["uri",["admin","in"],"and"]
--- ["cookie",["\\w{5}","jio",true],"or"]
--- ["referer",["baidu","in",true]]
+-- _app_list = ["uri",["admin","in"],"and"]
+-- _app_list = ["cookie",["\\w{5}","jio",true],"or"]
+-- _app_list = ["referer",["baidu","in",true]]
+--  table 类型
+-- _app_list = ["args",["^[\\w]{6}$","jio",["cc",3],true],"and"]
+-- _app_list = ["args",["true","@token@",["cctoken"],true]]
+-- _app_list = ["headers",["^[\\w]{6}$","jio",["sign"],true]]
+--  post_form 表单
 local function re_app_ext(_app_list,_basemsg)
     if type(_app_list) ~= "table" then return false end
     local list_cnt = #_app_list
@@ -309,15 +325,15 @@ local function re_app_ext(_app_list,_basemsg)
             end
         else
             if #tmp_or == 0 then -- 前面没 or
-                if action_remath(v[2],v[3],_basemsg) then -- 真
-
+                if action_remath(v[1],v[2],_basemsg) then -- 真
+                    -- continue
                 else -- 假 跳出
                     return false
                 end
             else -- 一组 or 计算
                 table.insert(tmp_or, v)
                 if or_remath(tmp_or,_basemsg) then -- 真
-
+                    -- continue
                 else
                     return false
                 end
