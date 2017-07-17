@@ -75,13 +75,13 @@ end
 
 local function stringTotable(_str)
     if _str == nil then return end
-    local ret = loadstring("return ".._str)()  
+    local ret = loadstring("return ".._str)()
     return ret
 end
 
 -- table转成json字符串
 local function tableTojson(_obj)
-    local json_text = cjson_safe.encode(_obj)  
+    local json_text = cjson_safe.encode(_obj)
     return json_text
 end
 
@@ -99,7 +99,7 @@ local function guid(_num)
     )
 end
 
--- 设置token 并缓存3分钟
+-- 设置token 并缓存2分钟
 local function set_token(_token,_t,_len)
     _len = _len or 10
     local _lenNext = _len + 1
@@ -131,7 +131,7 @@ local function remath(_str,_re_str,_options)
     elseif _options == "table" then
         -- table 匹配，在table中 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
-        for i,v in ipairs(_re_str) do
+        for _,v in ipairs(_re_str) do
             if v == _str then
                 return true
             end
@@ -164,13 +164,13 @@ local function remath(_str,_re_str,_options)
         for _,v in ipairs(_re_str) do
 
             local cidr = require "cidr"
-            local first_address, last_address = cidr.parse_cidr(v)  
+            local first_address, last_address = cidr.parse_cidr(v)
             --ip_cidr formats like 192.168.10.10/24
 
-            local ip_num = cidr.ip_2_number(_str)  
+            local ip_num = cidr.ip_2_number(_str)
             --// get the ip to decimal.
 
-            if ip_num >= first_address and ip_num <= last_address then  
+            if ip_num >= first_address and ip_num <= last_address then
             --// judge if ip lies between the cidr.
                 return true
             end
@@ -266,14 +266,13 @@ local function remath3(_tbMod,_modrule)
 end
 
 -- 基于modName 进行规则判断
--- [_modName,_modRule,"条件"]
--- ["uri",["admin","in"],"and"]
--- ["cookie",["\\w{5}","jio",true],"or"]
--- ["referer",["baidu","in",true]]
+-- _modName = uri,cookie, args,posts...
+-- _modRule = ["admin","in"]
+-- _modRule = ["\\w{5}","jio",true]
 --  table 类型
--- ["args",["^[\\w]{6}$","jio",["cc",3],true],"and"]
--- ["args",["true","@token@",["cctoken"],true]]
--- ["headers",["^[\\w]{6}$","jio",["sign"],true]]
+-- _modRule = ["^[\\w]{6}$","jio",["cc",3],true]
+-- _modRule = ["true","@token@",["cctoken"],true]
+-- _modRule = ["^[\\w]{6}$","jio",["sign"]]
 local function action_remath(_modName,_modRule,_base_Msg)
 
     if _modName == nil or type(_base_Msg) ~= "table" or type(_modRule) ~= "table" then

@@ -39,10 +39,9 @@ ngx_ctx.next_ctx = next_ctx
 	local posts_data = ""
 	local posts_all
 	if method == "POST" then
-		-- 简易排除form表单
 		-- multipart/form-data; boundary=----WebKitForm...
-		local from,to = string.find(http_content_type,"boundary",1,true)
-		if from == nil then
+		local from,to = string.find(http_content_type,"x-www-form-urlencoded",1,true)
+		if from then
 			posts = ngx.req.get_post_args()
 			posts_data = optl.get_table(posts)
 		end
