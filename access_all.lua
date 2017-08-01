@@ -116,7 +116,6 @@ end
 local Set_count_dict = optl.set_count_dict
 
 local action_tag = ""
--- action_deny(code) 拒绝访问
 local function action_deny()
 	action_tag = "deny"
 	-- 2016年9月19日
@@ -146,6 +145,22 @@ local function action_deny()
 	end
 end
 
+-- action = {allow,deny,log}
+local function do_action(_action,_mod_name,_id,_obj)
+	_id = _id or tostring(_id)
+	if _action == "allow" then
+		return true
+	elseif _action == "deny" then
+		set_count_dict(_mod_name.." deny count")
+		next_tb.waf_log = next_tb.waf_log or "[".._mod_name.."] deny No: ".._id
+		action_deny()
+		return false
+	elseif _action == "log" then
+		set_count_dict(_mod_name.." log count")
+		next_tb.waf_log = next_tb.waf_log or "[".._mod_name.."] log No: ".._id
+	end
+end
+
 -- 获取post_form表单数据
 local function get_post_form(_len)
 	if _len <= 0 then _len = nil end
@@ -167,43 +182,43 @@ local function get_post_form(_len)
 end
 
 ---  SETP 0
--- 获取用户真实IP（如有CND情况下，从header头取）
+-- 获取用户真实IP（如有CDN情况下，从header头取）
 if config_is_on("realIpFrom_Mod") then
 	ip = optl.loc_getRealIp(remoteIp,getDict_Config("realIpFrom_Mod")[host])
 	base_msg.ip = ip
 end
 
----  STEP 1 
+---  STEP 1
 -- black/white ip 访问控制(黑/白名单/log记录) [ip类拦截数据太多未写日志，可自行取消next_ctx.waf_log赋值的注释]
 -- 2016年7月29日19:12:53 检查
 if config_is_on("ip_Mod") then
 	local _ip_v = ip_dict:get(ip) --- 全局IP 黑白名单
-	if _ip_v ~= nil then
-		if _ip_v == "allow" then -- 跳出后续规则
-			return
-		elseif _ip_v == "log" then 
-			Set_count_dict(ip.." log count")
-	 		--next_ctx.waf_log = "[ip] log"
-		else
-			--next_ctx.waf_log = "[ip] deny"
-			Set_count_dict(ip)
-			action_deny()
-		end
+	if _ip_v == nil then
+		-- nothing
+	elseif _ip_v == "allow" then -- 跳出后续规则
+		return
+	elseif _ip_v == "log" then 
+		Set_count_dict(ip.." log count")
+ 		--next_ctx.waf_log = "[ip_Mod] log"
+	else
+		--next_ctx.waf_log = "[ip_Mod] deny"
+		Set_count_dict(ip)
+		action_deny()
 	end
 	-- 基于host的ip黑白名单 eg:www.abc.com-101.111.112.113
 	local tmp_host_ip = host.."-"..ip
 	local host_ip = ip_dict:get(tmp_host_ip)
-	if host_ip ~= nil then
-		if host_ip == "allow" then -- 跳出后续规则
-			return
-		elseif host_ip == "log" then
-			Set_count_dict(tmp_host_ip.." log count")
-	 		--next_ctx.waf_log = "[host_ip] log"
-		else
-			--next_ctx.waf_log = "[host_ip] deny"
-			Set_count_dict(tmp_host_ip)
-			action_deny()
-		end
+	if host_ip == nil then
+		-- nothing
+	elseif host_ip == "allow" then -- 跳出后续规则
+		return
+	elseif host_ip == "log" then
+		Set_count_dict(tmp_host_ip.." log count")
+ 		--next_ctx.waf_log = "[host_ip_Mod] log"
+	else
+		--next_ctx.waf_log = "[host_ip_Mod] deny"
+		Set_count_dict(tmp_host_ip)
+		action_deny()
 	end
 end
 
@@ -219,8 +234,8 @@ if config_is_on("host_method_Mod") and action_tag == "" then
 		end
 	end
 	if check == "deny" then
-		Set_count_dict("host_method deny count")
-	 	next_ctx.waf_log = next_ctx.waf_log or "[host_method] deny"
+		Set_count_dict("host_method_Mod deny count")
+	 	next_ctx.waf_log = next_ctx.waf_log or "[host_method_Mod] deny"
 	 	action_deny()
 	end
 end
@@ -259,52 +274,54 @@ end
 -- 动作支持 （allow deny log）
 if  host_Mod_state == "on" and action_tag == "" then
 	local tb = optl.stringTojson(host_dict:get(host.."_HostMod"))
-	local _action
 	for i,v in ipairs(tb) do
 		if v.state == "on" then
+			local _action = v.action[1] or "deny"
 			if v.action[2] == "uri" and remath_ext(uri,v.uri) then
-
-				_action = v.action[1] or "deny"
-				if _action == "deny" then
-					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
-					action_deny()
-					break
-				elseif _action == "log" then
-					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
-				elseif _action == "allow" then
+				
+				if do_action(_action,"host_Mod",i) == true then
 					return
+				elseif do_action(_action,"host_Mod",i) == false then
+					break
+				elseif do_action(_action,"host_Mod",i) == nil then
+					-- continue
 				end
 
 			elseif v.action[2] == "referer" and remath_ext(referer,v.referer) and remath_ext(uri,v.uri) then
 
-				_action = v.action[1] or "deny"
-				if _action == "deny" then
-					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
-					action_deny()
-					break
-				elseif _action == "log" then
-					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
-				elseif _action == "allow" then
+				if do_action(_action,"host_Mod",i) == true then
 					return
+				elseif do_action(_action,"host_Mod",i) == false then
+					break
+				elseif do_action(_action,"host_Mod",i) == nil then
+					-- continue
 				end
 
 			elseif v.action[2] == "useragent" and remath_ext(useragent,v.useragent) then
-				
-				_action = v.action[1] or "deny"
-				if _action == "deny" then
-					Set_count_dict(host.." deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
-					action_deny()
-					break
-				elseif _action == "log" then
-					Set_count_dict(host.." log count")
-					next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] log No: "..i
-				elseif _action == "allow" then
+
+				if do_action(_action,"host_Mod",i) == true then
 					return
+				elseif do_action(_action,"host_Mod",i) == false then
+					break
+				elseif do_action(_action,"host_Mod",i) == nil then
+					-- continue
+				end
+
+			elseif v.action[2] == "app_ext" and remath_ext(uri,v.uri) then
+				if type(v.post_form) == "number" and method == "POST" and base_msg.post_form == nil then
+					local post_form_n = v.post_form
+					local base_post_from_n = tonumber(config_base.post_form) or 0
+					post_form_n = math.min(post_form_n,base_post_from_n)
+					get_post_form(post_form_n)
+				end
+				if optl.re_app_ext(v.app_ext,base_msg) then
+					if do_action(_action,"host_Mod",i) == true then
+						return
+					elseif do_action(_action,"host_Mod",i) == false then
+						break
+					elseif do_action(_action,"host_Mod",i) == nil then
+						-- continue
+					end
 				end
 
 			elseif v.action[2] == "network" and remath_ext(uri,v.uri) then
@@ -319,7 +336,7 @@ if  host_Mod_state == "on" and action_tag == "" then
 					if ip_count >= maxReqs then
 						local blacktime = v.network.blackTime or 10*60
 						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
-						next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No : "..i
+						next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
 						-- network 触发直接拦截
 						Set_count_dict(host.." deny count")
 						action_deny()
@@ -342,13 +359,18 @@ if config_is_on("app_Mod") and action_tag == "" then
 	local app_mod = getDict_Config("app_Mod")
 	for i,v in ipairs(app_mod) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
-			
+			if type(v.post_form) == "number" and method == "POST" and base_msg.post_form == nil then
+				local post_form_n = v.post_form
+				local base_post_from_n = tonumber(config_base.post_form) or 0
+				post_form_n = math.min(post_form_n,base_post_from_n)
+				get_post_form(post_form_n)
+			end
 			if v.app_ext == nil or optl.re_app_ext(v.app_ext,base_msg) then
 
 				if v.action[1] == "deny" then
-						
+
 					Set_count_dict("app deny count")
-					next_ctx.waf_log = next_ctx.waf_log or "[app] deny No : "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No: "..i
 					action_deny()
 					break
 
@@ -388,8 +410,8 @@ if config_is_on("app_Mod") and action_tag == "" then
 				elseif v.action[1] == "set" then -- 预留
 					
 				end 
-			
 			end
+
 		end
 	end
 end
@@ -401,17 +423,13 @@ if config_is_on("referer_Mod") and action_tag == "" then
 	local ref_mod = getDict_Config("referer_Mod")
 	for i, v in ipairs( ref_mod ) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) and remath_ext(referer,v.referer) then
-
-			if v.action == "allow" then
+			local _action = v.action or "deny"
+			if do_action(_action,"referer_Mod",i) == true then
 				return
-			elseif v.action == "log" then
-				Set_count_dict("referer log count")
-				next_ctx.waf_log = next_ctx.waf_log or "[referer] log  No : "..i
-			else
-				Set_count_dict("referer deny count")
-				next_ctx.waf_log = next_ctx.waf_log or "[referer] deny  No : "..i
-				action_deny()
+			elseif do_action(_action,"referer_Mod",i) == false then
 				break
+			elseif do_action(_action,"referer_Mod",i) == nil then
+				-- continue
 			end
 		end
 	end
@@ -423,19 +441,14 @@ if config_is_on("uri_Mod") and action_tag == "" then
 	local uri_mod = getDict_Config("uri_Mod")
 	for i, v in ipairs( uri_mod ) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
-
-			if v.action == "allow" then --- 跳出后续规则
+			local _action = v.action or "deny"
+			if do_action(_action,"uri_Mod",i) == true then
 				return
-			elseif v.action ==	"deny" then
-				Set_count_dict("uri deny count")
-				next_ctx.waf_log = next_ctx.waf_log or "[uri] deny No : "..i
-				action_deny()
+			elseif do_action(_action,"uri_Mod",i) == false then
 				break
-			elseif v.action == "log" then
-				Set_count_dict("uri log count")
-				next_ctx.waf_log = next_ctx.waf_log or "[uri] log No : "..i
+			elseif do_action(_action,"uri_Mod",i) == nil then
+				-- continue
 			end
-
 		end
 	end
 end
@@ -448,7 +461,7 @@ if config_is_on("header_Mod") and action_tag == "" then
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 			if optl.action_remath("headers",v.header,base_msg) then
 				Set_count_dict("header deny count")
-			 	next_ctx.waf_log = next_ctx.waf_log or "[header] deny No : "..i
+			 	next_ctx.waf_log = next_ctx.waf_log or "[header_Mod] deny No: "..i
 			 	action_deny()
 			 	break
 			end
@@ -462,16 +475,13 @@ if config_is_on("useragent_Mod") and action_tag == "" then
 	local uagent_mod = getDict_Config("useragent_Mod")
 	for i, v in ipairs( uagent_mod ) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(useragent,v.useragent) then
-			if v.action == "allow" then
+			local _action = v.action or "deny"
+			if do_action(_action,"useragent_Mod",i) == true then
 				return
-			elseif v.action == "log" then
-				Set_count_dict("useragent log count")
-				next_ctx.waf_log = next_ctx.waf_log or "[useragent] log No : "..i
-			else
-				Set_count_dict("useragent deny count")
-				next_ctx.waf_log = next_ctx.waf_log or "[useragent] deny No : "..i
-				action_deny()
+			elseif do_action(_action,"useragent_Mod",i) == false then
 				break
+			elseif do_action(_action,"useragent_Mod",i) == nil then
+				-- continue
 			end
 		end
 	end
@@ -483,16 +493,13 @@ if config_is_on("cookie_Mod") and action_tag == "" then
 	local cookie_mod = getDict_Config("cookie_Mod")
 	for i, v in ipairs( cookie_mod ) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(cookie,v.cookie) then
-			if v.action == "deny" then
-				Set_count_dict("cookie deny count")
-				next_ctx.waf_log = next_ctx.waf_log or "[cookie] deny _cookie : "..cookie.." No : "..i
-				action_deny()
-				break
-			elseif v.action =="log" then
-				Set_count_dict("cookie log count")
-				next_ctx.waf_log = next_ctx.waf_log or "[cookie] log _cookie : "..cookie.." No : "..i
-			elseif v.action == "allow" then
+			local _action = v.action or "deny"
+			if do_action(_action,"cookie_Mod",i) == true then
 				return
+			elseif do_action(_action,"cookie_Mod",i) == false then
+				break
+			elseif do_action(_action,"cookie_Mod",i) == nil then
+				-- continue
 			end
 		end
 	end
@@ -504,16 +511,13 @@ if config_is_on("args_Mod") and action_tag == "" then
 	local args_mod = getDict_Config("args_Mod")
 	for i,v in ipairs(args_mod) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(args_data,v.args_data) then
-			if v.action == "deny" then
-				Set_count_dict("args_data deny count")
-				next_ctx.waf_log = next_ctx.waf_log or "[args_data] deny No : "..i
-				action_deny()
-				break
-			elseif v.action == "log" then
-				Set_count_dict("args_data log count")
-				next_ctx.waf_log = next_ctx.waf_log or "[args_Mod] log No : "..i
-			elseif v.action == "allow" then
+			local _action = v.action or "deny"
+			if do_action(_action,"args_Mod",i) == true then
 				return
+			elseif do_action(_action,"args_Mod",i) == false then
+				break
+			elseif do_action(_action,"args_Mod",i) == nil then
+				-- continue
 			end
 		end
 	end
@@ -525,17 +529,14 @@ if config_is_on("post_Mod") and action_tag == "" then
 	local post_mod = getDict_Config("post_Mod")
 	for i,v in ipairs(post_mod) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(posts_data,v.posts_data) then
-			if v.action == "deny" then
-				Set_count_dict("posts_data deny count")
-				next_ctx.waf_log = next_ctx.waf_log or "[posts_data] deny post : "..posts_data.."No : "..i
-				action_deny()
-				break
-			elseif v.action == "log" then
-				Set_count_dict("posts_data log count")
-				next_ctx.waf_log = next_ctx.waf_log or "[posts_data] deny post : "..posts_data.."No : "..i
-			elseif v.action == "allow" then
+			local _action = v.action or "deny"
+			if do_action(_action,"post_Mod",i) == true then
 				return
-			end			
+			elseif do_action(_action,"post_Mod",i) == false then
+				break
+			elseif do_action(_action,"post_Mod",i) == nil then
+				-- continue
+			end
 		end
 	end
 end
@@ -573,7 +574,7 @@ if config_is_on("network_Mod") and action_tag == "" then
 					else
 						ip_dict:safe_set(host.."-"..ip,mod_ip,blacktime)
 					end
-					next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No : "..i
+					next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
 					action_deny()
 					--ngx.say("frist network deny")
 					break

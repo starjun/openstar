@@ -16,7 +16,7 @@ local config_version = 0
 local function readfile(_filepath)
     -- local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
     local fd,err = io.open(_filepath,"r")
-    if fd == nil then 
+    if fd == nil then
         --ngx.log(ngx.ERR,"readfile error",err)
         return
     end
@@ -35,7 +35,7 @@ local function writefile(_filepath,_msg,_ty)
     local fd,err = io.open(_filepath,_ty)
     if fd == nil then
         ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg),err)
-        return 
+        return
     end -- 文件读取错误返回
     fd:write(tostring(_msg))
     fd:flush()

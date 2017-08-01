@@ -23,6 +23,15 @@ end
 -- 拉取config_dict配置数据
 local function pull_redisConfig()
 
+	-- local httpc = http.new()
+	-- local _pull_url = "http://127.0.0.1:5460/api/dict_redis?action=pull&key=all_dict"
+	-- local res, err = httpc:request_uri(_push_url,{
+	--        method = "GET",
+	--        headers = {
+	--          ["Host"] = "127.0.0.1:5460",
+	--        }
+	--      })
+
 	local httpc = http.new()
 	-- The generic form gives us more control. We must connect manually.
 	httpc:set_timeout(500)

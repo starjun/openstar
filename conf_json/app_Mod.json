@@ -78,5 +78,16 @@
         "app_ext":[
         ["args",["^[\\w]{6}$","jio",["cc",3],true]]
         ]
+    },
+    {
+        "state": "on",
+        "action": ["deny"],
+        "post_form":1024,
+        "hostname": ["localhost5460",""],
+        "uri": ["/api/test/debug",""],
+        "app_ext":[
+        ["post_form",["\\.(jpg|jpeg|png|webp|gif)$","jio",["image0",2],true],"or"],
+        ["post_form",["(;|-|/)","jio",["image0",2],false],"or"]
+        ]
     }
 ]
