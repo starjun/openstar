@@ -152,12 +152,12 @@ local function do_action(_action,_mod_name,_id,_obj)
 		return true
 	elseif _action == "deny" then
 		set_count_dict(_mod_name.." deny count")
-		next_tb.waf_log = next_tb.waf_log or "[".._mod_name.."] deny No: ".._id
+		next_ctx.waf_log = next_ctx.waf_log or "[".._mod_name.."] deny No: ".._id
 		action_deny()
 		return false
 	elseif _action == "log" then
 		set_count_dict(_mod_name.." log count")
-		next_tb.waf_log = next_tb.waf_log or "[".._mod_name.."] log No: ".._id
+		next_ctx.waf_log = next_ctx.waf_log or "[".._mod_name.."] log No: ".._id
 	end
 end
 
