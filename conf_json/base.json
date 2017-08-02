@@ -39,7 +39,7 @@
 
 	"replace_Mod" : "off",
 
-	"debug_Mod" : true,
+	"debug_Mod" : false,
 
 	"baseDir" : "/opt/openresty/openstar/",
 

@@ -113,7 +113,7 @@ local function host_uri_remath(_host,_uri)
 end
 
 --- 拦截计数 2016年6月7日 21:52:52 up 从全局变成local
-local Set_count_dict = optl.set_count_dict
+local set_count_dict = optl.set_count_dict
 
 local action_tag = ""
 local function action_deny()
@@ -198,11 +198,11 @@ if config_is_on("ip_Mod") then
 	elseif _ip_v == "allow" then -- 跳出后续规则
 		return
 	elseif _ip_v == "log" then 
-		Set_count_dict(ip.." log count")
+		set_count_dict(ip.." log count")
  		--next_ctx.waf_log = "[ip_Mod] log"
 	else
 		--next_ctx.waf_log = "[ip_Mod] deny"
-		Set_count_dict(ip)
+		set_count_dict(ip)
 		action_deny()
 	end
 	-- 基于host的ip黑白名单 eg:www.abc.com-101.111.112.113
@@ -213,11 +213,11 @@ if config_is_on("ip_Mod") then
 	elseif host_ip == "allow" then -- 跳出后续规则
 		return
 	elseif host_ip == "log" then
-		Set_count_dict(tmp_host_ip.." log count")
+		set_count_dict(tmp_host_ip.." log count")
  		--next_ctx.waf_log = "[host_ip_Mod] log"
 	else
 		--next_ctx.waf_log = "[host_ip_Mod] deny"
-		Set_count_dict(tmp_host_ip)
+		set_count_dict(tmp_host_ip)
 		action_deny()
 	end
 end
@@ -234,7 +234,7 @@ if config_is_on("host_method_Mod") and action_tag == "" then
 		end
 	end
 	if check == "deny" then
-		Set_count_dict("host_method_Mod deny count")
+		set_count_dict("host_method_Mod deny count")
 	 	next_ctx.waf_log = next_ctx.waf_log or "[host_method_Mod] deny"
 	 	action_deny()
 	end
@@ -338,7 +338,7 @@ if  host_Mod_state == "on" and action_tag == "" then
 						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
 						next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
 						-- network 触发直接拦截
-						Set_count_dict(host.." deny count")
+						set_count_dict(host.." deny count")
 						action_deny()
 						break
 					else
@@ -369,7 +369,7 @@ if config_is_on("app_Mod") and action_tag == "" then
 
 				if v.action[1] == "deny" then
 
-					Set_count_dict("app deny count")
+					set_count_dict("app deny count")
 					next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No: "..i
 					action_deny()
 					break
@@ -460,7 +460,7 @@ if config_is_on("header_Mod") and action_tag == "" then
 	for i,v in ipairs(tb_mod) do
 		if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
 			if optl.action_remath("headers",v.header,base_msg) then
-				Set_count_dict("header deny count")
+				set_count_dict("header deny count")
 			 	next_ctx.waf_log = next_ctx.waf_log or "[header_Mod] deny No: "..i
 			 	action_deny()
 			 	break
