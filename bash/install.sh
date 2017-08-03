@@ -93,6 +93,7 @@ elif [ "$1" = "openstar" ]; then
 	######### 保持原来所有规则
 	alias cp='cp'
 	cp -Rf  ${install_path}/openstar.${newstar}/conf_json ${install_path}/openstar/
+	chown -R nobody:nobody ${install_path}/openstar/
 	alias cp='cp -i'
 	#########
 

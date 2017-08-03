@@ -265,6 +265,31 @@ local function remath3(_tbMod,_modrule)
     end
 end
 
+-- 增加 post_form的规则匹配
+-- _tbMod : [["form name","file name","file type","file msg"],...]
+-- _modrule : ["\\.(jpg|jpeg|png|webp|gif)$","jio",["image0",2],true/false/flase]
+local function remath_form(_tbMod,_modrule)
+    if type(_tbMod) ~= "table" or type(_modrule) ~= "table" then
+        return false
+    end
+    local _re_str = _modrule[1]
+    local _options = _modrule[2]
+    local _form_name = _modrule[3][1]
+    local _form_n = _modrule[3][2]
+    local _Invert = _modrule[4]
+    if type(_form_n) ~= "number" or _form_n < 1 or _form_n > 4 then
+        return false
+    end
+    for _,v in ipairs(_tbMod) do
+        if v[1] == _form_name then
+            local _str = v[_form_n]
+            if remath_Invert(_str,_re_str,_options,_Invert) then
+                return true
+            end
+        end
+    end
+end
+
 -- 基于modName 进行规则判断
 -- _modName = uri,cookie, args,posts...
 -- _modRule = ["admin","in"]
@@ -279,8 +304,14 @@ local function action_remath(_modName,_modRule,_base_Msg)
         return false
     end
     if type(_base_Msg[_modName]) == "table" then
-        if remath3(_base_Msg[_modName],_modRule) then
-            return true
+        if _modName == "post_form" then
+            if remath_form(_base_Msg[_modName],_modRule) then
+                return true
+            end
+        else
+            if remath3(_base_Msg[_modName],_modRule) then
+                return true
+            end
         end
     else
         if remath_Invert(_base_Msg[_modName],_modRule[1],_modRule[2],_modRule[3]) then
