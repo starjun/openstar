@@ -421,10 +421,13 @@ local function sayHtml_ext(_html,_find_type,_content_type)
 end
 
 --- ngx_find 无条件使用
-local function sayFile(_filename)
+local function sayFile(_filename,_header)
     --ngx.header.content_type = "text/html"
     --local str = readfile(Config.base.htmlPath..filename)
     local str = readfile(_filename) or "filename error"
+    if _header ~= nil then
+        ngx.header.content_type = _header
+    end
     -- 对读取的文件内容进行 ngx_find
     ngx.say(ngx_find(str))
     ngx.exit(200)

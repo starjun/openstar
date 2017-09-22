@@ -391,7 +391,7 @@ if config_is_on("app_Mod") and action_tag == "" then
 					break
 
 				elseif v.action[1] == "refile" then
-					optl.sayFile(config_base.htmlPath..v.refile)
+					optl.sayFile(config_base.htmlPath..v.refile[1],v.refile[2])
 					break
 
 				-- 2016年10月27日 新增 动态执行lua字符串
