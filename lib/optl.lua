@@ -480,6 +480,9 @@ end
     end
 
     local function get_table(_tb)
+        if _tb == nil then
+            return ""
+        end
         local tb_args = {}
         for k,v in pairs(_tb) do
             if type(v) == "table" then
