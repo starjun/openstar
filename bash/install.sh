@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # bash 版本
-version=0.1
+version=0.2
 
 build_path=/data/openresty
 install_path=/opt/openresty
 
-install_version=1.11.2.4
+install_version=1.11.2.5
 #1.11.2.2 nginx 1.11.2 , 1.11.2.1 nginx 1.11.2 , 1.9.15.1 nginx 1.9.15
 openresty_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
 openstar_uri=https://codeload.github.com/starjun/openstar/zip/master
@@ -25,7 +25,11 @@ function openstar(){
 	cd ${install_path}
 	wget -O openstar.zip ${openstar_uri}
 	unzip -o openstar.zip
+	
+	alias mv='mv'
 	mv -f openstar-master openstar
+	alias mv='mv -i'
+	
 	chown nobody:nobody -R openstar
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
@@ -86,8 +90,9 @@ if [ "$1" = "install" ];then
 elif [ "$1" = "openstar" ]; then
 	cd ${install_path}
 	newstar=`date "+%G-%m-%d-%H-%M-%S"`
+	alias mv='mv'
 	mv -f openstar/ openstar.${newstar}/
-
+	alias mv='mv -i'
 	openstar
 
 	######### 保持原来所有规则
