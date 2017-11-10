@@ -12,7 +12,7 @@ openresty_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
 openstar_uri=https://codeload.github.com/starjun/openstar/zip/master
 
 # centos 6 = remi-release-6.rpm ; centos 7 = remi-release-7.rpm
-rpm_uri=http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+rpm_uri=http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
 
 function YUM_start(){
 	yum install -y epel-release
@@ -73,6 +73,18 @@ function echo_ServerMsg(){
 	echo "##########################"
 	echo "getconf LONG_BIT  （Linux查看版本说明当前CPU运行在32bit模式下， 但不代表CPU不支持64bit）"
 	getconf LONG_BIT
+	echo "./install.sh install/openstar/openresty/check"
+}
+
+function check(){
+	mkdir -p ${install_path}/nginx/conf/conf.d
+	chown nobody:nobody -R ${install_path}
+	chown root:nobody ${install_path}/nginx/sbin/nginx
+	chmod 750 ${install_path}/nginx/sbin/nginx
+	chmod u+s ${install_path}/nginx/sbin/nginx
+	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
+	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
+	echo "check Done~!"
 }
 
 ##############################
@@ -105,7 +117,9 @@ elif [ "$1" = "openstar" ]; then
 elif [ "$1" = "openresty" ]; then
 
 	openresty
+elif [ "$1" = "check" ]; then
 
+	check
 else
 	echo_ServerMsg
 fi

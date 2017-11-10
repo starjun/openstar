@@ -38,7 +38,7 @@ ngx_ctx.next_ctx = next_ctx
 	local posts = {}
 	local posts_data = ""
 	local posts_all
-	if method == "POST" then
+	if method == "POST" and http_content_type then
 		-- multipart/form-data; boundary=----WebKitForm...
 		local from,to = string.find(http_content_type,"x-www-form-urlencoded",1,true)
 		if from then
