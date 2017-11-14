@@ -489,20 +489,22 @@ end
             return ""
         end
         local tb_args = {}
-        for k,v in pairs(_tb) do
-            if type(v) == "table" then
-                local tmp_v = {}
-                for i,vv in ipairs(v) do
-                    if vv == true then
-                        vv=""
+        if _tb then
+            for k,v in pairs(_tb) do
+                if type(v) == "table" then
+                    local tmp_v = {}
+                    for i,vv in ipairs(v) do
+                        if vv == true then
+                            vv=""
+                        end
+                        table.insert(tmp_v,vv)
                     end
-                    table.insert(tmp_v,vv)
+                    v = table.concat(tmp_v,",")
+                elseif v == true then
+                    v= ""
                 end
-                v = table.concat(tmp_v,",")
-            elseif v == true then
-                v= ""
+                table.insert(tb_args,v)
             end
-            table.insert(tb_args,v)
         end
         return table.concat(tb_args,",")
     end
