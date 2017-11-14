@@ -12,17 +12,22 @@ local config_dict = ngx.shared.config_dict
 local config = cjson_safe.decode(config_dict:get("config")) or {}
 local config_version = 0
 
---- 文件读写
-local function readfile(_filepath)
-    -- local fd = assert(io.open(_filepath,"r"),"readfile io.open error")
-    local fd,err = io.open(_filepath,"r")
-    if fd == nil then
-        --ngx.log(ngx.ERR,"readfile error",err)
-        return
+--- 读取文件（全部读取/按行读取）
+local function readfile(_filepath,_ty)
+    local fd = io.open(_filepath,"r")
+    if fd == nil then return end
+    if _ty == nil then
+        local str = fd:read("*a") --- 全部内容读取
+        fd:close()
+        return str
+    else
+        local line_s = {}
+        for line in fd:lines() do
+            table.insert(line_s, line)
+        end
+        fd:close()
+        return line_s
     end
-    local str = fd:read("*a") --- 全部内容读取
-    fd:close()
-    return str
 end
 
 -- 默认写文件错误时，会将错误信息和_msg数据使用ngx.log写到错误日志中。

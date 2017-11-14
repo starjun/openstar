@@ -10,14 +10,23 @@ local config_dict = ngx.shared.config_dict
 local host_dict = ngx.shared.host_dict
 local ip_dict = ngx.shared.ip_dict
 
---- 读取文件（全部读取）
+--- 读取文件（全部读取/按行读取）
 --- loadjson()调用
-local function readfile(_filepath)
-    local fd = io.open(_filepath,"r")
-    if fd == nil then return end
-    local str = fd:read("*a") --- 全部内容读取
-    fd:close()
-    return str
+local function readfile(_filepath,_ty)
+	local fd = io.open(_filepath,"r")
+	if fd == nil then return end
+	if _ty == nil then
+		local str = fd:read("*a") --- 全部内容读取
+		fd:close()
+		return str
+	else
+		local line_s = {}
+		for line in fd:lines() do
+			table.insert(line_s, line)
+		end
+		fd:close()
+		return line_s
+	end
 end
 
 --- 载入JSON文件

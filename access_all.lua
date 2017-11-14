@@ -29,7 +29,10 @@ ngx_ctx.next_ctx = next_ctx
 	local query_string = ngx_unescape_uri(ngx_var.query_string)
 
 	local headers = ngx.req.get_headers()
-	local headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
+	local headers_data
+	if pcall(ngx.req.raw_header,false) then
+		headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
+	end
 	local http_content_type = ngx_unescape_uri(ngx_var.http_content_type)
 
 	local args = ngx.req.get_uri_args()
