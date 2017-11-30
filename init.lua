@@ -1,19 +1,24 @@
 
 local config = {}
+local require = require
 local cjson_safe = require "cjson.safe"
+local ngx_shared = ngx.shared
+local io_open = io.open
+local table_insert = table.insert
+local ipairs = ipairs
 
 --- base.json 文件绝对路径 [需要自行根据自己服务器情况设置]
 local base_json = "/opt/openresty/openstar/conf_json/base.json"
 
 --- 将全局配置参数存放到共享内存（*_dict）中
-local config_dict = ngx.shared.config_dict
-local host_dict = ngx.shared.host_dict
-local ip_dict = ngx.shared.ip_dict
+local config_dict = ngx_shared.config_dict
+local host_dict = ngx_shared.host_dict
+local ip_dict = ngx_shared.ip_dict
 
 --- 读取文件（全部读取/按行读取）
 --- loadjson()调用
 local function readfile(_filepath,_ty)
-	local fd = io.open(_filepath,"r")
+	local fd = io_open(_filepath,"r")
 	if fd == nil then return end
 	if _ty == nil then
 		local str = fd:read("*a") --- 全部内容读取
@@ -22,7 +27,7 @@ local function readfile(_filepath,_ty)
 	else
 		local line_s = {}
 		for line in fd:lines() do
-			table.insert(line_s, line)
+			table_insert(line_s, line)
 		end
 		fd:close()
 		return line_s
@@ -102,4 +107,4 @@ function loadConfig()
 end
 
 loadConfig()
-G_filehandler = io.open(config.base.logPath..(config.base.log_conf.filename or "waf.log"),"a+")
+G_filehandler = io_open(config.base.logPath..(config.base.log_conf.filename or "waf.log"),"a+")

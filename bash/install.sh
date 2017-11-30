@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # bash 版本
-version=0.2
+version=0.3
 
 build_path=/data/openresty
 install_path=/opt/openresty
 
-install_version=1.11.2.5
+install_version=1.13.6.1
 #1.11.2.2 nginx 1.11.2 , 1.11.2.1 nginx 1.11.2 , 1.9.15.1 nginx 1.9.15
 openresty_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
 openstar_uri=https://codeload.github.com/starjun/openstar/zip/master
@@ -84,6 +84,7 @@ function check(){
 	chmod u+s ${install_path}/nginx/sbin/nginx
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
+	cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || wget https://www.nginx.org/favicon.ico)
 	echo "check Done~!"
 }
 
