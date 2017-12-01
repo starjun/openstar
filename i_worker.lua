@@ -1,7 +1,14 @@
 local _worker_count = ngx.worker.count()
 local _worker_id = ngx.worker.id()
 
-local config_dict = ngx.shared.config_dict
+local ngx_shared = ngx.shared
+local require = require
+local ipairs = ipairs
+local ngx_log = ngx.log
+local ngx_ERR = ngx.ERR
+local ngx_thread = ngx.thread
+local timer_at = ngx.timer.at
+local config_dict = ngx_shared.config_dict
 local cjson_safe = require "cjson.safe"
 local http = require "resty.http"
 
@@ -16,7 +23,7 @@ local config_base
 local function flush_expired_dict()
 	local dict_list = {"token_dict","count_dict","config_dict","host_dict","ip_dict","limit_ip_dict"}
 	for _,v in ipairs(dict_list) do
-		ngx.shared[v]:flush_expired()
+		ngx_shared[v]:flush_expired()
 	end
 end
 
@@ -39,14 +46,14 @@ local function pull_redisConfig()
 
 	-- And request using a path, rather than a full URI.
 	local res, err = httpc:request{
-	  path = "/api/dict_redis?action=pull&key=all_dict",
-	  headers = {
-	      ["Host"] = "127.0.0.1:5460",
-	  },
+		path = "/api/dict_redis?action=pull&key=all_dict",
+		headers = {
+			["Host"] = "127.0.0.1:5460",
+		},
 	}
 
 	if not res then
-		ngx.log(ngx.ERR, "failed to pull_redisConfig request: ", err)
+		ngx_log(ngx_ERR, "failed to pull_redisConfig request: ", err)
 		return
 	else
 		return true
@@ -62,14 +69,14 @@ local function push_Master()
 	httpc:connect("127.0.0.1", 5460)
 
 	local res, err = httpc:request{
-	  path = "/api/dict_redis?action=push&key=all_dict&slave=yes",
-	  headers = {
-	      ["Host"] = "127.0.0.1:5460",
-	  },
+		path = "/api/dict_redis?action=push&key=all_dict&slave=yes",
+		headers = {
+			["Host"] = "127.0.0.1:5460",
+		},
 	}
 
 	if not res then
-		ngx.log(ngx.ERR, "failed to push_Master request: ", err)
+		ngx_log(ngx_ERR, "failed to push_Master request: ", err)
 		return
 	else
 		return true
@@ -87,14 +94,14 @@ local function push_count_dict()
 	-- And request using a path, rather than a full URI.
 	-- 目前是调试阶段 denug=yes ,否则就是 no
 	local res, err = httpc:request{
-	  path = "/api/dict_redis?action=push&key=count_dict",
-	  headers = {
-	      ["Host"] = "127.0.0.1:5460",
-	  },
+		path = "/api/dict_redis?action=push&key=count_dict",
+		headers = {
+			["Host"] = "127.0.0.1:5460",
+		},
 	}
 
 	if not res then
-		ngx.log(ngx.ERR, "failed to push_count_dict request: ", err)
+		ngx_log(ngx_ERR, "failed to push_count_dict request: ", err)
 		return
 	else
 		return true
@@ -113,14 +120,14 @@ local function save_configFile(_debug)
 	-- And request using a path, rather than a full URI.
 	-- 调试阶段debug=yes 否则应该是 no
 	local res, err = httpc:request{
-	  path = "/api/config?action=save&mod=all_mod&debug=".._debug,
-	  headers = {
-	      ["Host"] = "127.0.0.1:5460",
-	  },
+		path = "/api/config?action=save&mod=all_mod&debug=".._debug,
+		headers = {
+			["Host"] = "127.0.0.1:5460",
+		},
 	}
 
 	if not res then
-		ngx.log(ngx.ERR, "failed to save_configFile request: ", err)
+		ngx_log(ngx_ERR, "failed to save_configFile request: ", err)
 		return
 	else
 		return true
@@ -135,7 +142,7 @@ handler_zero = function ()
 	local timeAt = config_base.autoSync.timeAt or 5
 	-- 如果 auto Sync 开启 就定时从redis 拉取配置并推送一些计数
 	if config_base.autoSync.state == "Master" then
-			push_Master()
+		push_Master()
 	elseif config_base.autoSync.state == "Slave" then
 		if pull_redisConfig() then
 			local _debug = "no"
@@ -151,12 +158,12 @@ handler_zero = function ()
 	end
 
 	--清空过期内存
-	ngx.thread.spawn(flush_expired_dict)
+	ngx_thread.spawn(flush_expired_dict)
 
 	--
-	local ok, err = ngx.timer.at(timeAt, handler_zero)
+	local ok, err = timer_at(timeAt, handler_zero)
 	if not ok then
-		ngx.log(ngx.ERR, "failed to startup handler_zero worker...", err)
+		ngx_log(ngx_ERR, "failed to startup handler_zero worker...", err)
 	end
 end
 
@@ -172,9 +179,9 @@ handler_all = function ()
 			optl.config_version = dict_config_version
 		end
 	end
-	local ok, err = ngx.timer.at(1, handler_all)
+	local ok, err = timer_at(1, handler_all)
 	if not ok then
-		ngx.log(ngx.ERR, "failed to startup handler_all worker...", err)
+		ngx_log(ngx_ERR, "failed to startup handler_all worker...", err)
 	end
 end
 
@@ -185,7 +192,7 @@ handler = function()
 	end
 end
 
-local ok, err = ngx.timer.at(0, handler)
+local ok, err = timer_at(0, handler)
 if not ok then
-	ngx.log(ngx.ERR, "failed to startup handler worker...", err)
+	ngx_log(ngx_ERR, "failed to startup handler worker...", err)
 end
