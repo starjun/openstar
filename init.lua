@@ -42,6 +42,17 @@ local function loadjson(_path_name)
 	return json
 end
 
+--- split 函数，暂时未使用  lua-resty-core
+local function split(inputstr, sep)
+	sep = sep or "%s"
+	local t={} ; i=1
+	for str in string_gmatch(inputstr, "([^"..sep.."]+)") do
+		t[i] = str
+		i = i + 1
+	end
+	return t
+end
+
 --- 载入config.json全局基础配置
 --- 唯一一个全局函数
 function loadConfig()
@@ -54,16 +65,17 @@ function loadConfig()
 
 	-- STEP 1
 	--- 将ip_mod放入 ip_dict 中
-	local tb_ip_mod = loadjson(_basedir.."ip_Mod.json")
-	for _,v in ipairs(tb_ip_mod) do
-		if v.action == "allow" then
-			ip_dict:safe_set(v.ip,"allow",0)
-			--- key 存在会覆盖 lru算法关闭
-		elseif v.action == "deny" then
-			ip_dict:safe_set(v.ip,"deny",0)
-		else
-			ip_dict:safe_set(v.ip,"log",0)
-		end
+	local allowIpList = readfile(_basedir.."ip/allow.ip",true)
+	local denyIpList = readfile(_basedir.."ip/deny.ip",true)
+	local logIpList = readfile(_basedir.."ip/log.ip",true)
+	for _,v in ipairs(allowIpList) do
+		ip_dict:safe_set(v,"allow",0)
+	end
+	for _,v in ipairs(denyIpList) do
+		ip_dict:safe_set(v,"deny",0)
+	end
+	for _,v in ipairs(logIpList) do
+		ip_dict:safe_set(v,"log",0)
 	end
 
 	-- STEP 2
