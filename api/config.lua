@@ -20,6 +20,7 @@ local _host = get_argsByName("host")
 
 local host_dict = ngx.shared.host_dict
 local config_dict = ngx.shared.config_dict
+local ip_dict = ngx.shared.ip_dict
 
 local config = cjson_safe.decode(config_dict:get("config")) or {}
 
@@ -85,33 +86,66 @@ local function  hostMod_save(_hostname)
 	return true
 end
 
+local function ip_dict_save()
+	local _tb_ip_name = ip_dict:get_keys(0)
+	local allowIp,denyIp,logIp = {},{},{}
+    for _,v in ipairs(_tb_ip_name) do
+        local ip_value = ip_dict:get(v)
+        --- init 中，永久ip只有这3个value
+        if ip_value == "allow" then
+			table.insert(allowIp,v)
+		elseif ip_value == "deny" then
+			table.insert(denyIp,v)
+		elseif ip_value == "log" then
+			table.insert(logIp,v)
+        end
+    end
+    local _str_ending = ".ip.bak"
+	if _debug == "no" then
+		_str_ending = ".ip"
+	end
+	-- 保存3个文件 暂时不检查每次的保存情况
+	local re
+	re = optl.writefile(config_base.jsonPath.."ip/allow".._str_ending,list_to_str(allowIp),"w+")
+	re = optl.writefile(config_base.jsonPath.."ip/deny".._str_ending,list_to_str(denyIp),"w+")
+	re = optl.writefile(config_base.jsonPath.."ip/log".._str_ending,list_to_str(logIp),"w+")
+	return re
+end
+
 if _action == "save" then
-	
+
 	if _mod == "all_mod" then
-		
+
 		local _code = "ok"
 		local _msg = "save ok"
 
 		local re = config_save()
-		if not re then  
+		if not re then
 			_code = "error" 
 			_msg = "config_dic save error"
 			sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 		end
 		
 		re = hostMod_save()
-		if not re then  
+		if not re then
 			_code = "error"
 			_msg = "host_dict save error"
 		end
+
+		re = ip_dict_save()
+		if not re then
+			_code = "error"
+			_msg = "ip_dict save error"
+		end
+
 		sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 
 	else
 		local _msg = config[_mod]
 		local re
 		local _code = "ok"
-		if not _msg and _mod ~= "host_Mod" then 
-			sayHtml_ext({code="error",msg="mod is Non-existent",debug=_debug}) 
+		if not _msg and _mod ~= "host_Mod" then
+			sayHtml_ext({code="error",msg="mod is Non-existent",debug=_debug})
 		end
 		if _mod == "host_Mod" then
 			re = hostMod_save(_host)
@@ -119,7 +153,14 @@ if _action == "save" then
 				_msg = "host_dict save ok"
 			else
 				_msg = "host_dict save error"
-			end			
+			end
+		elseif _mod == "ip_Mod" then
+			re = ip_dict_save()
+			if re then
+				_msg = "ip_dict save ok"
+			else
+				_msg = "ip_dict save error"
+			end
 		else
 			if _debug == "no" then
 				re = optl.writefile(config_base.jsonPath.._mod..".json",JSON:encode_pretty(_msg),"w+")
