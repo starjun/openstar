@@ -26,6 +26,14 @@ local config = cjson_safe.decode(config_dict:get("config")) or {}
 
 local config_base = config.base or {}
 
+local function list_to_str(_list)
+	local re = ""
+	for _,v in ipairs(_list) do
+		re = re..v.."\n"
+	end
+	return re
+end
+
 local function config_save()
 	local re
 	for k,v in pairs(config) do
@@ -89,18 +97,18 @@ end
 local function ip_dict_save()
 	local _tb_ip_name = ip_dict:get_keys(0)
 	local allowIp,denyIp,logIp = {},{},{}
-    for _,v in ipairs(_tb_ip_name) do
-        local ip_value = ip_dict:get(v)
-        --- init 中，永久ip只有这3个value
-        if ip_value == "allow" then
+	for _,v in ipairs(_tb_ip_name) do
+		local ip_value = ip_dict:get(v)
+		--- init 中，永久ip只有这3个value
+		if ip_value == "allow" then
 			table.insert(allowIp,v)
 		elseif ip_value == "deny" then
 			table.insert(denyIp,v)
 		elseif ip_value == "log" then
 			table.insert(logIp,v)
-        end
-    end
-    local _str_ending = ".ip.bak"
+		end
+	end
+	local _str_ending = ".ip.bak"
 	if _debug == "no" then
 		_str_ending = ".ip"
 	end
