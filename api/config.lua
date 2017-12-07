@@ -122,7 +122,7 @@ end
 
 if _action == "save" then
 
-	if _mod == "all_mod" then
+	if _mod == "all_Mod" then
 
 		local _code = "ok"
 		local _msg = "save ok"
@@ -148,34 +148,38 @@ if _action == "save" then
 
 		sayHtml_ext({code=_code,msg=_msg,debug=_debug})
 
+	elseif _mod == "host_Mod" then
+		local re = hostMod_save(_host)
+		if re then
+			sayHtml_ext({code="ok",msg="host_dict save ok",debug=_debug})
+		else
+			sayHtml_ext({code="error",msg="host_dict save error",debug=_debug})
+		end
+
+	elseif _mod == "ip_Mod" then
+		local  re = ip_dict_save()
+		if re then
+			local _msg = "ip_dict save ok"
+			optl.sayHtml_ext({code="ok",msg=_msg,debug=_debug})
+		else
+			local _msg = "ip_dict save error"
+			optl.sayHtml_ext({code="error",msg=_msg,debug=_debug})
+		end
+
 	else
 		local _msg = config[_mod]
 		local re
 		local _code = "ok"
-		if not _msg and _mod ~= "host_Mod" then
+		if not _msg then
 			sayHtml_ext({code="error",msg="mod is Non-existent",debug=_debug})
 		end
-		if _mod == "host_Mod" then
-			re = hostMod_save(_host)
-			if re then
-				_msg = "host_dict save ok"
-			else
-				_msg = "host_dict save error"
-			end
-		elseif _mod == "ip_Mod" then
-			re = ip_dict_save()
-			if re then
-				_msg = "ip_dict save ok"
-			else
-				_msg = "ip_dict save error"
-			end
+
+		if _debug == "no" then
+			re = optl.writefile(config_base.jsonPath.._mod..".json",JSON:encode_pretty(_msg),"w+")
 		else
-			if _debug == "no" then
-				re = optl.writefile(config_base.jsonPath.._mod..".json",JSON:encode_pretty(_msg),"w+")
-			else
-				re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",JSON:encode_pretty(_msg),"w+")
-			end
+			re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",JSON:encode_pretty(_msg),"w+")
 		end
+
 		if not re then
 			_code = "error"
 		end
