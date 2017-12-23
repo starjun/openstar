@@ -14,22 +14,39 @@ grammar_cjkRuby: true
 正在更新说明WIKI篇,已经更新了安装篇，请自行查阅。
 
 [安装篇][3]
+
 [基础配置说明][4] base.json
+
 [STEP 0：realIpFrom_Mod](#step0)
+
 [STEP 1：ip_Mod](#step1)
+
 [STEP 2：host_method_Mod](#step2)
+
 [STEP 3：rewrite_Mod](#step3)
+
 [STEP 4：host_Mod](#step4)
+
 [STEP 5：app_Mod](#step5)
+
 [STEP 6：referer_Mod](#step6)
+
 [STEP 7：uri_Mod](#step7)
+
 [STEP 8：header_Mod](#step8)
+
 [STEP 9：useragent_Mod](#step9)
+
 [STEP 10：cookie_Mod](#step10)
+
 [STEP 11：args_Mod](#step11)
+
 [STEP 12：post_Mod](#step12)
+
 [STEP 13：network_Mod](#step13)
+
 [STEP 14：replace_Mod](#step14)
+
 
 一些同学问的比较多的问题：
 
@@ -54,6 +71,7 @@ admin@17173.com邮箱已经没有在用了，请不要给这个发邮箱啦，18
   无
 
   商业版说明：
+  
   **支持域名管理，支持geoip（按国家，城市进行拦截等），支持SQL语义分析，更强大的api接口，默认规则更强大等等**
 
 ----------
