@@ -201,7 +201,7 @@ if config_is_on("ip_Mod") then
 		-- nothing
 	elseif _ip_v == "allow" then -- 跳出后续规则
 		return
-	elseif _ip_v == "log" then 
+	elseif _ip_v == "log" then
 		set_count_dict(ip.." log count")
  		--next_ctx.waf_log = "[ip_Mod] log"
 	else
@@ -266,7 +266,7 @@ if config_is_on("rewrite_Mod") and action_tag == "" then
 	            end
 			elseif v.action == "set_url" then
 			-- 备用 使用url尾巴跳转方式进行验证
-				
+
 			end
 
 		end
@@ -282,7 +282,7 @@ if  host_Mod_state == "on" and action_tag == "" then
 		if v.state == "on" then
 			local _action = v.action[1] or "deny"
 			if v.action[2] == "uri" and remath_ext(uri,v.uri) then
-				
+
 				if do_action(_action,"host_Mod",i) == true then
 					return
 				elseif do_action(_action,"host_Mod",i) == false then
@@ -402,7 +402,7 @@ if config_is_on("app_Mod") and action_tag == "" then
 				elseif v.action[1] == "relua_str" then
 					local re_lua_do = loadstring(v.relua_str)
 					if re_lua_do() == "break" then
-						ngx.exit(200)					
+						ngx.exit(200)
 					end
 
 				elseif v.action[1] == "relua" then
@@ -412,8 +412,8 @@ if config_is_on("app_Mod") and action_tag == "" then
 					end
 
 				elseif v.action[1] == "set" then -- 预留
-					
-				end 
+
+				end
 			end
 
 		end

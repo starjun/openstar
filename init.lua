@@ -18,103 +18,103 @@ local ip_dict = ngx_shared.ip_dict
 --- 读取文件（全部读取/按行读取）
 --- loadjson()调用
 local function readfile(_filepath,_ty)
-	local fd = io_open(_filepath,"r")
-	if fd == nil then return end
-	if _ty == nil then
-		local str = fd:read("*a") --- 全部内容读取
-		fd:close()
-		return str
-	else
-		local line_s = {}
-		for line in fd:lines() do
-			table_insert(line_s, line)
-		end
-		fd:close()
-		return line_s
-	end
+    local fd = io_open(_filepath,"r")
+    if fd == nil then return end
+    if _ty == nil then
+        local str = fd:read("*a") --- 全部内容读取
+        fd:close()
+        return str
+    else
+        local line_s = {}
+        for line in fd:lines() do
+            table_insert(line_s, line)
+        end
+        fd:close()
+        return line_s
+    end
 end
 
 --- 载入JSON文件
 --- loadConfig()调用
 local function loadjson(_path_name)
-	local x = readfile(_path_name)
-	local json = cjson_safe.decode(x) or {}
-	return json
+    local x = readfile(_path_name)
+    local json = cjson_safe.decode(x) or {}
+    return json
 end
 
 --- split 函数，暂时未使用  lua-resty-core
 local function split(inputstr, sep)
-	sep = sep or "%s"
-	local t={} ; i=1
-	for str in string_gmatch(inputstr, "([^"..sep.."]+)") do
-		t[i] = str
-		i = i + 1
-	end
-	return t
+    sep = sep or "%s"
+    local t={} ; i=1
+    for str in string_gmatch(inputstr, "([^"..sep.."]+)") do
+        t[i] = str
+        i = i + 1
+    end
+    return t
 end
 
 --- 载入config.json全局基础配置
 --- 唯一一个全局函数
 function loadConfig()
 
-	config.base = loadjson(base_json)
-	local _basedir = config.base.jsonPath or "/opt/openresty/openstar/conf_json/"
+    config.base = loadjson(base_json)
+    local _basedir = config.base.jsonPath or "/opt/openresty/openstar/conf_json/"
 
-	-- STEP 0
-	config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
+    -- STEP 0
+    config.realIpFrom_Mod = loadjson(_basedir.."realIpFrom_Mod.json")
 
-	-- STEP 1
-	--- 将ip_mod放入 ip_dict 中
-	local allowIpList = readfile(_basedir.."ip/allow.ip",true)
-	local denyIpList = readfile(_basedir.."ip/deny.ip",true)
-	local logIpList = readfile(_basedir.."ip/log.ip",true)
-	for _,v in ipairs(allowIpList) do
-		ip_dict:safe_set(v,"allow",0)
-	end
-	for _,v in ipairs(denyIpList) do
-		ip_dict:safe_set(v,"deny",0)
-	end
-	for _,v in ipairs(logIpList) do
-		ip_dict:safe_set(v,"log",0)
-	end
+    -- STEP 1
+    --- 将ip_mod放入 ip_dict 中
+    local allowIpList = readfile(_basedir.."ip/allow.ip",true)
+    local denyIpList = readfile(_basedir.."ip/deny.ip",true)
+    local logIpList = readfile(_basedir.."ip/log.ip",true)
+    for _,v in ipairs(allowIpList) do
+        ip_dict:safe_set(v,"allow",0)
+    end
+    for _,v in ipairs(denyIpList) do
+        ip_dict:safe_set(v,"deny",0)
+    end
+    for _,v in ipairs(logIpList) do
+        ip_dict:safe_set(v,"log",0)
+    end
 
-	-- STEP 2
-	config.host_method_Mod = loadjson(_basedir.."host_method_Mod.json")
+    -- STEP 2
+    config.host_method_Mod = loadjson(_basedir.."host_method_Mod.json")
 
-	-- STEP 3
-	config.rewrite_Mod = loadjson(_basedir.."rewrite_Mod.json")
+    -- STEP 3
+    config.rewrite_Mod = loadjson(_basedir.."rewrite_Mod.json")
 
-	-- STEP 4
-	--- 读取host规则json 到host_dict
-	local host_tb = loadjson(_basedir.."host_json/host_Mod.json")
-	for _,v in ipairs(host_tb) do
-		local host,state = v[1],v[2] or "off"
-		if host ~= nil then
-			host_dict:safe_set(host,state,0)
-			local tmp = loadjson(_basedir.."host_json/"..host..".json")
-			tmp = cjson_safe.encode(tmp)
-			host_dict:safe_set(host.."_HostMod",tmp,0)
-		end
-	end
+    -- STEP 4
+    --- 读取host规则json 到host_dict
+    local host_tb = loadjson(_basedir.."host_json/host_Mod.json")
+    for _,v in ipairs(host_tb) do
+        local host,state = v[1],v[2] or "off"
+        if host ~= nil then
+            host_dict:safe_set(host,state,0)
+            local tmp = loadjson(_basedir.."host_json/"..host..".json")
+            tmp = cjson_safe.encode(tmp)
+            host_dict:safe_set(host.."_HostMod",tmp,0)
+        end
+    end
 
-	-- STEP 5 - 14
-	config.app_Mod = loadjson(_basedir.."app_Mod.json")
-	config.referer_Mod = loadjson(_basedir.."referer_Mod.json")
-	config.uri_Mod = loadjson(_basedir.."uri_Mod.json")
-	config.header_Mod = loadjson(_basedir.."header_Mod.json")
-	config.useragent_Mod = loadjson(_basedir.."useragent_Mod.json")
-	config.cookie_Mod = loadjson(_basedir.."cookie_Mod.json")
-	config.args_Mod = loadjson(_basedir.."args_Mod.json")
-	config.post_Mod = loadjson(_basedir.."post_Mod.json")
-	config.network_Mod = loadjson(_basedir.."network_Mod.json")
-	config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
+    -- STEP 5 - 14
+    config.app_Mod = loadjson(_basedir.."app_Mod.json")
+    config.referer_Mod = loadjson(_basedir.."referer_Mod.json")
+    config.uri_Mod = loadjson(_basedir.."uri_Mod.json")
+    config.header_Mod = loadjson(_basedir.."header_Mod.json")
+    config.useragent_Mod = loadjson(_basedir.."useragent_Mod.json")
+    config.cookie_Mod = loadjson(_basedir.."cookie_Mod.json")
+    config.args_Mod = loadjson(_basedir.."args_Mod.json")
+    config.post_Mod = loadjson(_basedir.."post_Mod.json")
+    config.network_Mod = loadjson(_basedir.."network_Mod.json")
+    config.replace_Mod = loadjson(_basedir.."replace_Mod.json")
 
-	-- denyMsg list 
-	config.denyMsg = loadjson(_basedir.."denyMsg.json")
+    -- denyMsg list
+    config.denyMsg = loadjson(_basedir.."denyMsg.json")
 
-	-- 后续 整个config放到一个key中，不再分开，减少acc阶段序列化次数
-	config_dict:safe_set("config",cjson_safe.encode(config),0)
-	config_dict:safe_set("config_version",0,0)
+    -- 后续 整个config放到一个key中，不再分开，减少acc阶段序列化次数
+    config_dict:safe_set("config",cjson_safe.encode(config),0)
+    config_dict:safe_set("config_version",0,0)
 
 end
 
