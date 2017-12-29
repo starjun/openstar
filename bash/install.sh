@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # bash 版本
-version=0.3
+version=0.4
 
-build_path=/data/openresty
+build_path=/opt/down
 install_path=/opt/openresty
 
 install_version=1.13.6.1
@@ -46,7 +46,7 @@ function openresty(){
 	tar zxvf openresty-${install_version}.tar.gz
 
 	cd ${build_path}/openresty-${install_version}
-	./configure --prefix=${install_path} --with-luajit
+	./configure --prefix=${install_path} --with-luajit ----with-http_v2_module
 	gmake
 	gmake install
 
