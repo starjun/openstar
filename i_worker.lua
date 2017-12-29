@@ -120,7 +120,7 @@ local function save_configFile(_debug)
 	-- And request using a path, rather than a full URI.
 	-- 调试阶段debug=yes 否则应该是 no
 	local res, err = httpc:request{
-		path = "/api/config?action=save&mod=all_mod&debug=".._debug,
+		path = "/api/config?action=save&mod=all_Mod&debug=".._debug,
 		headers = {
 			["Host"] = "127.0.0.1:5460",
 		},

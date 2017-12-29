@@ -33,7 +33,7 @@ function openstar(){
 	chown nobody:nobody -R openstar
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
-	ln -sf ${install_path}/openstar/conf/http.conf ${install_path}/nginx/conf/http.conf
+	#ln -sf ${install_path}/openstar/conf/http.conf ${install_path}/nginx/conf/http.conf
 }
 
 function openresty(){
@@ -46,14 +46,14 @@ function openresty(){
 	tar zxvf openresty-${install_version}.tar.gz
 
 	cd ${build_path}/openresty-${install_version}
-	./configure --prefix=${install_path} --with-luajit ----with-http_v2_module
+	./configure --prefix=${install_path} --with-luajit --with-http_v2_module
 	gmake
 	gmake install
 
 	chown nobody:nobody -R ${install_path}
 	cd ${install_path}
 	chown root:nobody nginx/sbin/nginx
-	chmod 750 nginx/sbin/nginx
+	chmod 751 nginx/sbin/nginx
 	chmod u+s nginx/sbin/nginx
 }
 
@@ -80,7 +80,7 @@ function check(){
 	mkdir -p ${install_path}/nginx/conf/conf.d
 	chown nobody:nobody -R ${install_path}
 	chown root:nobody ${install_path}/nginx/sbin/nginx
-	chmod 750 ${install_path}/nginx/sbin/nginx
+	chmod 751 ${install_path}/nginx/sbin/nginx
 	chmod u+s ${install_path}/nginx/sbin/nginx
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
