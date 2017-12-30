@@ -371,7 +371,7 @@ args：`["*","",["args_name",1]]`
  上面的例子，表示ip为111.206.199.61（从http头获取，如设置）白名单
  action可以取值[allow、deny]，deny表示黑名单；第二个就表示对应host的ip黑/白名单，其他host不受影响。
 
- [返回](#TOP)
+ [返回](#top)
 
 ## <span id = "step2">STEP 2：host\_method\_Mod（白名单）</span>
 
@@ -391,7 +391,7 @@ args：`["*","",["args_name",1]]`
 
   > **后面的很多规则都是使用该方式匹配的**
 
-[返回](#TOP)
+[返回](#top)
 
 
 ## STEP 3: rewrite_Mod（跳转模块）
@@ -407,7 +407,7 @@ args：`["*","",["args_name",1]]`
 ```
 上面的例子表示规则启用，host为101.200.122.200,且url匹配成功的进行302/307跳转，同时设置一个无状态cookie，名称是token。action中第二个参数是用户ip+和改参数进行md5计算的。请自行使用一个无意义字符串。防止攻击者猜测出生成算法。
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 4：host_Mod
  - 说明：
@@ -454,7 +454,7 @@ args：`["*","",["args_name",1]]`
 
   > **各种高级功能基本就靠这个模块来实现了，需要你发挥想象**
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 6：referer_Mod（白名单）
 
@@ -472,7 +472,7 @@ args：`["*","",["args_name",1]]`
   > referer的匹配是白名单，注意一下即可
   > 这些匹配都是基于上面说过的二阶匹配法
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 7：uri_Mod（黑、白名单）
 
@@ -487,7 +487,7 @@ args：`["*","",["args_name",1]]`
 
   > 一般情况下，过滤完静态资源后，剩下的都是拒绝一下uri的访问如.svn等一些敏感目录或文件
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 8：header_Mod（黑名单）
 
@@ -500,7 +500,7 @@ args：`["*","",["args_name",1]]`
  hostname：匹配host
  header：匹配header头
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 9：useragent_Mod （黑名单）
   - 说明：
@@ -512,7 +512,7 @@ args：`["*","",["args_name",1]]`
   useragent：匹配agent
   action：匹配动作
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 10：cookie_Mod（黑名单）
  - 说明：
@@ -526,7 +526,7 @@ args：`["*","",["args_name",1]]`
 
   > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 11：args_Mod（黑名单）
 
@@ -539,7 +539,7 @@ args：`["*","",["args_name",1]]`
  query_string：表示匹配args参数组
  action：表示匹配成功拒绝访问
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 12：post_Mod（黑名单）
  - 说明：
@@ -551,7 +551,7 @@ args：`["*","",["args_name",1]]`
   post_str：匹配post参数组
   action：匹配成功后拒绝访问
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 13：network_Mod（频率黑名单）
  - 说明：
@@ -565,7 +565,7 @@ args：`["*","",["args_name",1]]`
 
   > 一般情况下，cc攻击的点一个网站只有为数不多的地方是容易被攻击的点，所以设计时，考虑增加通过url细化匹配。
 
- [返回](#TOP)
+ [返回](#top)
 
 ## STEP 14：replace_Mod（内容替换）
  - 说明：
