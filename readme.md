@@ -13,6 +13,8 @@ grammar_cjkRuby: true
 
 正在更新说明WIKI篇,已经更新了安装篇，请自行查阅。
 
+# TOP
+
 [安装篇][3]
 
 [基础配置说明][4] base.json
@@ -360,7 +362,7 @@ args：`["*","",["args_name",1]]`
 
  通过上面的例子，表示域名id.game.com,从ips来的直连ip，用户真实ip在x-for-f中，ips是支持二阶匹配，可以参考例子进行设置，ips为\*时，表示不区分直连ip了。
 
-## <span id = "step1">STEP 1：ip_Mod（黑/白名单、log记录）</span>
+## STEP 1：ip_Mod（黑/白名单、log记录）
 
  - 说明：
  `{"ip":"111.206.199.61","action":"allow"}`
@@ -368,6 +370,8 @@ args：`["*","",["args_name",1]]`
 
  上面的例子，表示ip为111.206.199.61（从http头获取，如设置）白名单
  action可以取值[allow、deny]，deny表示黑名单；第二个就表示对应host的ip黑/白名单，其他host不受影响。
+
+ [返回](#TOP)
 
 ## <span id = "step2">STEP 2：host\_method\_Mod（白名单）</span>
 
@@ -387,7 +391,10 @@ args：`["*","",["args_name",1]]`
 
   > **后面的很多规则都是使用该方式匹配的**
 
-## <span id = "step3">STEP 3: rewrite_Mod（跳转模块）</span>
+[返回](#TOP)
+
+
+## STEP 3: rewrite_Mod（跳转模块）
 - 说明：
 ```
     {
@@ -400,7 +407,9 @@ args：`["*","",["args_name",1]]`
 ```
 上面的例子表示规则启用，host为101.200.122.200,且url匹配成功的进行302/307跳转，同时设置一个无状态cookie，名称是token。action中第二个参数是用户ip+和改参数进行md5计算的。请自行使用一个无意义字符串。防止攻击者猜测出生成算法。
 
-## <span id = "step4">STEP 4：host_Mod </span>
+ [返回](#TOP)
+
+## STEP 4：host_Mod
  - 说明：
  该模块是匹配对应host进行规则匹配，在conf_json/host_json/目录下，本地的基于host的匹配规则
  支持host.state状态支持[on log off],log即表示原匹配被拦截将失效，off表示不做任何规则的过滤
@@ -445,7 +454,9 @@ args：`["*","",["args_name",1]]`
 
   > **各种高级功能基本就靠这个模块来实现了，需要你发挥想象**
 
-## <span id = "step6">STEP 6：referer_Mod（白名单）</span>
+ [返回](#TOP)
+
+## STEP 6：referer_Mod（白名单）
 
  - 说明：
  `{"state":"on","uri":["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],"hostname":["127.0.0.1",""],"referer":["*",""],"action":"allow"}`
@@ -461,7 +472,9 @@ args：`["*","",["args_name",1]]`
   > referer的匹配是白名单，注意一下即可
   > 这些匹配都是基于上面说过的二阶匹配法
 
-## <span id = "step7">STEP 7：uri_Mod（黑、白名单）</span>
+ [返回](#TOP)
+
+## STEP 7：uri_Mod（黑、白名单）
 
  - 说明：
  `{"state":"on","hostname":["\*",""],"uri":["\\.(css|js|flv|swf|zip|txt)$","jio"],"action":"allow"}`
@@ -474,7 +487,9 @@ args：`["*","",["args_name",1]]`
 
   > 一般情况下，过滤完静态资源后，剩下的都是拒绝一下uri的访问如.svn等一些敏感目录或文件
 
-## <span id = "step8">STEP 8：header_Mod（黑名单）</span>
+ [返回](#TOP)
+
+## STEP 8：header_Mod（黑名单）
 
  - 说明：
  `{"state":"on","uri":["\*",""],"hostname":["\*",""],"header":["Acunetix_Aspect","\*",""]}`
@@ -485,7 +500,9 @@ args：`["*","",["args_name",1]]`
  hostname：匹配host
  header：匹配header头
 
-## <span id = "step9">STEP 9：useragent_Mod （黑名单）</span>
+ [返回](#TOP)
+
+## STEP 9：useragent_Mod （黑名单）
   - 说明：
   `{"state":"off","action":"deny","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
 
@@ -495,7 +512,9 @@ args：`["*","",["args_name",1]]`
   useragent：匹配agent
   action：匹配动作
 
-## <span id = "step10">STEP 10：cookie_Mod（黑名单）</span>
+ [返回](#TOP)
+
+## STEP 10：cookie_Mod（黑名单）
  - 说明：
  `{"state":"on","cookie":["\\.\\./","jio"],"hostname":["*",""],"action":"deny"}`
 
@@ -507,7 +526,9 @@ args：`["*","",["args_name",1]]`
 
   > action后续可以能增加其他action，所以预留在这，否则黑名单根本不需要action参数
 
-## <span id = "step11">STEP 11：args_Mod（黑名单）</span>
+ [返回](#TOP)
+
+## STEP 11：args_Mod（黑名单）
 
  - 说明：
  `{"state":"on","hostname":["*",""],"args_data":["\\:\\$","jio"],"action":"deny"}`
@@ -518,7 +539,9 @@ args：`["*","",["args_name",1]]`
  query_string：表示匹配args参数组
  action：表示匹配成功拒绝访问
 
-## <span id = "step12">STEP 12：post_Mod（黑名单）</span>
+ [返回](#TOP)
+
+## STEP 12：post_Mod（黑名单）
  - 说明：
  `{"state":"on","hostname":["*",""],"posts_data":["\\$\\{","jio"],"action":"deny"}`
 
@@ -528,8 +551,9 @@ args：`["*","",["args_name",1]]`
   post_str：匹配post参数组
   action：匹配成功后拒绝访问
 
+ [返回](#TOP)
 
-## <span id = "step13">STEP 13：network_Mod（频率黑名单）</span>
+## STEP 13：network_Mod（频率黑名单）
  - 说明：
  `{"state":"on","network":{"maxReqs":20,"pTime":10,"blackTime":600},"hostname":["id.game.com",""],"uri":["^/2.html$","jio"]}`
 
@@ -541,7 +565,9 @@ args：`["*","",["args_name",1]]`
 
   > 一般情况下，cc攻击的点一个网站只有为数不多的地方是容易被攻击的点，所以设计时，考虑增加通过url细化匹配。
 
-## <span id = "step14">STEP 14：replace_Mod（内容替换）</span>
+ [返回](#TOP)
+
+## STEP 14：replace_Mod（内容替换）
  - 说明：
  `{"state":"on","uri":["^/$","jio"],"hostname":["passport.game.com",""],"replace_list":[["联合","","联合FUCK"],["登录","","登录POSS"],["lzcaptcha\\?key='\\s\*\\+ key","jio","lzcaptcha?keY='+key+'&keytoken=@token@'"]]}`
 
