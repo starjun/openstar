@@ -660,7 +660,7 @@ Copyright (C) 2011-2016, by zj
   [1]: https://github.com/agentzh
   [2]: http://openresty.org/cn/
   [3]: https://github.com/starjun/openstar/wiki/%E5%AE%89%E8%A3%85%E7%AF%87
-  [4]: https://github.com/starjun/openstar/wiki/base.json%E9%85%8D%E7%BD%AE
+  [4]: https://github.com/starjun/openstar/wiki/base.json
   [5]: http://openresty.org/cn/
   [6]: http://openresty.org/cn/
   [7]: ./doc/Openstar.jpg "OpenStar.jpg"
