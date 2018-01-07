@@ -19,35 +19,35 @@ grammar_cjkRuby: true
 
 [基础配置说明][4] base.json
 
-[STEP 0：realIpFrom_Mod](#step-0--realipfrom_mod-)
+[STEP 0：realIpFrom_Mod][10]
 
-[STEP 1：ip_Mod](#step-1ip_mod黑白名单log记录)
+[STEP 1：ip_Mod][11]
 
-[STEP 2：host_method_Mod](#step-2host_method_mod白名单)
+[STEP 2：host_method_Mod][12]
 
-[STEP 3：rewrite_Mod](#step-3-rewrite_mod跳转模块)
+[STEP 3：rewrite_Mod][13]
 
-[STEP 4：host_Mod](#step-4host_mod-)
+[STEP 4：host_Mod][14]
 
-[STEP 5：app_Mod](#step-5app_mod自定义action)
+[STEP 5：app_Mod][15]
 
-[STEP 6：referer_Mod](#step-6referer_mod白名单)
+[STEP 6：referer_Mod][16]
 
-[STEP 7：uri_Mod](#step-7uri_mod黑白名单)
+[STEP 7：uri_Mod][17]
 
-[STEP 8：header_Mod](#step-8header_mod黑名单)
+[STEP 8：header_Mod][18]
 
-[STEP 9：useragent_Mod](#step-9useragent_mod-黑名单)
+[STEP 9：useragent_Mod][19]
 
-[STEP 10：cookie_Mod](#step-10cookie_mod黑名单)
+[STEP 10：cookie_Mod][20]
 
-[STEP 11：args_Mod](#step-11args_mod黑名单)
+[STEP 11：args_Mod][21]
 
-[STEP 12：post_Mod](#step-12post_mod黑名单)
+[STEP 12：post_Mod][22]
 
-[STEP 13：network_Mod](#step-13network_mod频率黑名单)
+[STEP 13：network_Mod][23]
 
-[STEP 14：replace_Mod](#step-14replace_mod内容替换)
+[STEP 14：replace_Mod][24]
 
 
 一些同学问的比较多的问题：
@@ -145,7 +145,7 @@ iii：增加POST参数，其value值合法性由控件和web服务器双向约�
 ----------
 
 
-**OpenStar**是一个基于[OpenResty][5]的，高性能WAF，还相应增加了其他灵活、友好、实用的功能，是增强的WAF。
+**OpenStar**是一个基于[OpenResty][2]的，高性能WAF，还相应增加了其他灵活、友好、实用的功能，是增强的WAF。
 **app_Mod 支持规则组 连接符支持 or , 参考doc/demo.md文档**
 # WAF防护
 
@@ -257,7 +257,7 @@ git clone
 
 # 安装
  - 安装OpenResty
- 这里不做过多重复描述，直接看链接[OpenResty][6]
+ 这里不做过多重复描述，直接看链接[OpenResty][2]
  - 配置nginx.conf
  在http节点，引用waf.conf。注：原ngx相关配置基本不用修改，该优化优化、该做CPU亲缘绑定继续、该动静分离还继续、该IO、TIME等优化继续不要停。
  - 配置waf.conf
@@ -313,7 +313,7 @@ args：`["*","",["args_name",1]]`
 
 ## 执行流程
 
-![enter description here][7]
+![enter description here][5]
 
  - init阶段
 
@@ -614,7 +614,7 @@ OpenStar测试服务器：
  ab -c 1000 -n 100000 "http://10.0.0.4/test/a?a=b&c=d"
 ```
 测试结果：
-![enter description here][8]
+![enter description here][6]
  通过图片可以看到，关闭所有规则，做了2组测试，取最高的`8542`；
 
  启用规则（排除app，network，replace），测试结果`8388`，性能下降`1.81%`；
@@ -651,7 +651,7 @@ OpenStar测试服务器：
 网站的某个目录进行IP白名单的访问控制（后台、phpmyadmin等）
 
 ## 0.9 - 1.0 修改了大量全局函数
-在学习完[OpenResty最佳实践][9]后，代码太不专业，修改了大量全局变量、函数
+在学习完[OpenResty最佳实践][7]后，代码太不专业，修改了大量全局变量、函数
 
 ## 0.8 优化一下算法
 原来args是遍历每个参数在连接起来，感觉性能有时有点瓶颈，就使用新api取出url中的所有参数，经过测试效果要比原来好很多。
@@ -666,7 +666,7 @@ OpenStar测试服务器：
 刚开始都是写在lua代码中，随着功能增加，决定通过配置文件进行操作，所有就使用json方式进行定义配置文件。
 
 ## 0.3 增加waf防护模块
-随着cc防护成功后，我陆续增加了waf相关的功能，规则参考了[modsecurity][10]、[loveshell][11]防护模块、以及互联网搜集的一些过滤点
+随着cc防护成功后，我陆续增加了waf相关的功能，规则参考了[modsecurity][8]、[loveshell][9]防护模块、以及互联网搜集的一些过滤点
 
 ## 0.2 CC防护应用层版
 通过网络层+应用层的防护后，我后续增加了应用层的安全防护，如应用层set cookie、url跳转、js跳转等这样应用层的防护模块
@@ -676,7 +676,7 @@ OpenStar测试服务器：
 
 # 关于
 
-- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥，[loveshell][11]！！！
+- 关于该项目前面其实已经说了不少，从无到有基本都说了，强调下，感谢春哥，[loveshell][9]！！！
 - 关于我：从事安全、架构相关工作。
 - Copyright and License
 GPL（GNU General Public License）
@@ -687,10 +687,23 @@ Copyright (C) 2011-2016, by zj
   [2]: http://openresty.org/cn/
   [3]: https://github.com/starjun/openstar/wiki/%E5%AE%89%E8%A3%85%E7%AF%87
   [4]: https://github.com/starjun/openstar/wiki/base.json
-  [5]: http://openresty.org/cn/
-  [6]: http://openresty.org/cn/
-  [7]: ./doc/Openstar.jpg "OpenStar.jpg"
-  [8]: ./doc/test.png "test.png"
-  [9]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
-  [10]: http://www.modsecurity.org/
-  [11]: https://github.com/loveshell/ngx_lua_waf
+  [5]: ./doc/Openstar.jpg "OpenStar.jpg"
+  [6]: ./doc/test.png "test.png"
+  [7]: https://moonbingbing.gitbooks.io/openresty-best-practices/content/index.html
+  [8]: http://www.modsecurity.org/
+  [9]: https://github.com/loveshell/ngx_lua_waf
+  [10]: https://github.com/starjun/openstar/wiki/0-realIpFrom_Mod
+  [11]: https://github.com/starjun/openstar/wiki/1-ip_Mod
+  [12]: https://github.com/starjun/openstar/wiki/2-host_method_Mod
+  [13]: https://github.com/starjun/openstar/wiki/3-rewrite_Mod
+  [14]: https://github.com/starjun/openstar/wiki/4-host_Mod
+  [15]: https://github.com/starjun/openstar/wiki/5-app_Mod
+  [16]: https://github.com/starjun/openstar/wiki/6-referer_Mod
+  [17]: https://github.com/starjun/openstar/wiki/7-uri_Mod
+  [18]: https://github.com/starjun/openstar/wiki/8-header_Mod
+  [19]: https://github.com/starjun/openstar/wiki/9-useragent_Mod
+  [20]: https://github.com/starjun/openstar/wiki/10-cookie_Mod
+  [21]: https://github.com/starjun/openstar/wiki/11-args_Mod
+  [22]: https://github.com/starjun/openstar/wiki/12-post_Mod
+  [23]: https://github.com/starjun/openstar/wiki/13-network_Mod
+  [24]: https://github.com/starjun/openstar/wiki/14-replace_Mod
