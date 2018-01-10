@@ -47,7 +47,7 @@ local function config_save()
 	return re
 end
 
-local function  hostMod_save(_hostname)
+local function hostMod_save(_hostname)
 	_hostname = _hostname or ""
 	local tb_host_mod ={}
 	local _hostDict_all,_host_Mod = host_dict:get_keys(0),{}
@@ -74,7 +74,8 @@ local function  hostMod_save(_hostname)
 			return false
 		end
 		for k,v in pairs(tb_host_mod) do
-			re = optl.writefile(config_base.jsonPath.."host_json/"..k..".json",JSON:encode_pretty(v),"w+")
+			local tmp_v = optl.stringTojson(v)
+			re = optl.writefile(config_base.jsonPath.."host_json/"..k..".json",JSON:encode_pretty(tmp_v),"w+")
 			if not re then
 				return false
 			end
@@ -85,7 +86,8 @@ local function  hostMod_save(_hostname)
 			return false
 		end
 		for k,v in pairs(tb_host_mod) do
-			re = optl.writefile(config_base.jsonPath.."host_json/"..k.."_bak.json",JSON:encode_pretty(v),"w+")
+			local tmp_v = optl.stringTojson(v)
+			re = optl.writefile(config_base.jsonPath.."host_json/"..k.."_bak.json",JSON:encode_pretty(tmp_v),"w+")
 			if not re then
 				return false
 			end
