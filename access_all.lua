@@ -209,8 +209,8 @@ if config_is_on("ip_Mod") then
 		set_count_dict(ip)
 		action_deny()
 	end
-	-- 基于host的ip黑白名单 eg:www.abc.com-101.111.112.113
-	local tmp_host_ip = host.."-"..ip
+	-- 基于host的ip黑白名单 eg:www.abc.com_101.111.112.113
+	local tmp_host_ip = host.."_"..ip
 	local host_ip = ip_dict:get(tmp_host_ip)
 	if host_ip == nil then
 		-- nothing

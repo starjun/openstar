@@ -2,7 +2,7 @@
 ---- 对ip_dict 操作 增 删 改 查
 ---- ip_dict 是全局ip 黑白名单 和 基于host的ip黑白名单 内存存放处
 -- 全局 ip 添加  ip=%ip%  不支持cidr
--- 基于host 的ip 规则添加  %host%-ip 不支持cidr
+-- 基于host 的ip 规则添加  %host%_ip 不支持cidr
 
 
 local optl = require("optl")
