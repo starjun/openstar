@@ -8,6 +8,7 @@ local ngx_log = ngx.log
 local ngx_ERR = ngx.ERR
 local ngx_thread = ngx.thread
 local timer_at = ngx.timer.at
+local timer_every = ngx.timer.every
 local config_dict = ngx_shared.config_dict
 local cjson_safe = require "cjson.safe"
 local http = require "resty.http"
@@ -179,17 +180,13 @@ handler_all = function ()
 			optl.config_version = dict_config_version
 		end
 	end
-	local ok, err = timer_at(1, handler_all)
-	if not ok then
-		ngx_log(ngx_ERR, "failed to startup handler_all worker...", err)
-	end
 end
 
 handler = function()
-	handler_all()
 	if _worker_id == 0 then
 		handler_zero()
 	end
+	timer_every(1,handler_all)
 end
 
 local ok, err = timer_at(0, handler)

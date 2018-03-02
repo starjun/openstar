@@ -67,6 +67,8 @@ ngxVar.time_local = ngx_var.time_local
 
 -- local cjson_safe = require "cjson.safe"
 local optl = require("optl")
+local ini = require "resty.ini"
+
 local config_base = optl.config.base or {}
 
 if jit then
@@ -74,8 +76,9 @@ if jit then
 else
     lua_version = _VERSION
 end
+local dist = ini.parse_file(config_base.baseDir.."dist.ini")
 local debug_tb = {
-    _Openstar_version = optl.readfile(config_base.baseDir.."dist.ini"),
+    _Openstar_version = dist.default,
     _pid = ngx.worker.pid(),
     _worker_count =ngx.worker.count(),
     _worker_id = ngx.worker.id(),

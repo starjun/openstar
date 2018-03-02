@@ -1,38 +1,42 @@
 #!/bin/bash
 
-# bash 版本
-version=0.2
+# 脚本版本号
+version=0.4
 
 down_path_redis=/opt/redis
-down_url=http://download.redis.io/releases/redis-3.2.1.tar.gz
+redis_version=3.2.1
+down_url=http://download.redis.io/releases/redis-${redis_version}.tar.gz
 
-install_path_redis=/opt/redis/redis-3.2.1
-psd=yesorno123!@#qawe
+install_path_redis=/opt/redis/redis-${redis_version}
+redis_cli=${install_path_redis}/src/redis-cli
+redis_server=${install_path_redis}/src/redis-server
 ip=127.0.0.1
+psd=yesorno
+port=6379
 
 if [ "$1" = "start" ];then
 
-     ${install_path_redis}/src/redis-server ${install_path_redis}/redis.conf &
+    ${redis_server} ${install_path_redis}/redis.conf &
 
 elif [ "$1" = "stop" ]; then
-	 if ["$2" = ""];then
-	     ${install_path_redis}/src/redis-cli -h ${ip} -a ${psd} shutdown &
-	 else
-	     ${install_path_redis}/src/redis-cli -h ${ip} -p $2 -a ${psd} shutdown &
-	 fi
+
+    ${redis_cli} -h ${ip} -p ${port} -a ${psd} shutdown &
+
 
 elif [ "$1" = "install" ]; then
-	#yum install redis -y
-	mkdir -p ${down_path_redis}
-	cd ${down_path_redis}
-	wget ${down_url}
-	tar zxvf redis-3.2.1.tar.gz
-	cd redis-3.2.1
-	make	
+    mkdir -p ${down_path_redis}
+    cd ${down_path_redis}
+    wget ${down_url}
+    tar zxvf redis-${redis_version}.tar.gz
+    cd redis-${redis_version}
+    make
 
-	#echo "requirepass ${psd}" >> ${install_path_redis}/redis.conf
+elif [ "$1" = "h" ]; then
+
+    echo "./rds.sh start/stop/install/null"
+
 else
 
-     ${install_path_redis}/src/redis-cli -h ${ip} -a ${psd}
-     
+    ${redis_cli} -h ${ip} -a ${psd} -p ${port}
+
 fi
