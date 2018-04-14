@@ -125,7 +125,7 @@ end
 --- 基础 常用二阶匹配规则
 -- 说明：[_restr,_options]  _str 就是被匹配的内容
 -- eg "ip":["*",""]
--- eg "hostname":[["www.abc.com","127.0.0.1"],"table"]
+-- eg "hostname":[["www.abc.com","127.0.0.1"],"list"]
 local function remath(_str,_re_str,_options)
     if _str == nil or _re_str == nil or _options == nil then return false end
     if _options == "" then
@@ -133,8 +133,8 @@ local function remath(_str,_re_str,_options)
         if _str == _re_str or _re_str == "*" then
             return true
         end
-    elseif _options == "table" then
-        -- table 匹配，在table中 字符串完全匹配
+    elseif _options == "list" then
+        -- 序列 匹配，在序列(list)中 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
         for _,v in ipairs(_re_str) do
             if v == _str then
@@ -149,8 +149,8 @@ local function remath(_str,_re_str,_options)
         if from ~= nil and to ~= 0 then
             return true
         end
-    elseif _options == "list" then
-        --- list 匹配，o(1) 比table要好些， 字符串完全匹配
+    elseif _options == "dict" then
+        --- 字典(dict) 匹配，o(1) 比序列(list)要好些， 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
         local re = _re_str[_str]
         if re == true then -- 需要判断一下 有可能是值类型的值

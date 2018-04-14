@@ -10,7 +10,7 @@
 ---
 	{
 	    "state": "on",
-	    "method": [["GET","POST"],"table"],
+	    "method": [["GET","POST"],"list"],
 	    "hostname": ["*\\.test\\.com","jio"]	
 	}
 	或者：    
@@ -40,7 +40,7 @@
 	        "192.168.10.8",
 	        "192.168.10.7",
 	        "192.168.10.6"
-	    ],"table"],
+	    ],"list"],
 	    "realipset": "my-ip-real"
 	}
 	}
@@ -51,9 +51,9 @@
 	    "realipset": "my-ip-real"
 	}
 	}
-	#使用list匹配ips
+	#使用字典(dict)匹配ips
 	{
-	"id.test.com":{"ips":[{"1.1.1.1":true,"2.2.2.2:5460":true},"list"],
+	"id.test.com":{"ips":[{"1.1.1.1":true,"2.2.2.2:5460":true},"dict"],
 	"realipset":"x-for-f"}
 	}
 	
@@ -64,7 +64,7 @@
 	"realipset":"x-for-f"}
 	}
 
-说明一下，目前host为节点，目前不支持通过正则或者list来匹配host。
+说明一下，目前host为节点，目前不支持通过正则或者字典(dict)来匹配host。
 
 ## 配置自定义规则
 
@@ -136,10 +136,10 @@
     {
         "state": "on",
         "action": ["deny"],
-        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"list"],
         "uri": ["/api/.*","jio"],
         "app_ext":[
-		["ip",[["106.37.236.170","1.1.1.1"],"table",true]]
+		["ip",[["106.37.236.170","1.1.1.1"],"list",true]]
         ]
     }
 
@@ -151,16 +151,16 @@
     {
         "state": "on",
         "action": ["deny"],
-        "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+        "hostname": [["101.200.122.200","127.0.0.1"],"list"],
         "uri": ["/api/.*","jio"],
         "app_ext":[
         ["uri",["admin","in"],"or"],
         ["cookie",["c_test","jio"],"and"],
-        ["ip",[["1.1.1.1","127.0.0.1"],"table",true],"and"]
+        ["ip",[["1.1.1.1","127.0.0.1"],"list",true],"and"]
         ]
     }
 
-理解一下就是 hostname and uri and (app\_ext),app\_ext = (uri 包含 admin or cookie 正则匹配 c\_test) and ip not 不在table中。hostname 和 uri 是基础的条件，满足后再匹配app_ext 中的规则列表。
+理解一下就是 hostname and uri and (app\_ext),app\_ext = (uri 包含 admin or cookie 正则匹配 c\_test) and ip not 不在列表(list)中。hostname 和 uri 是基础的条件，满足后再匹配app_ext 中的规则列表。
 说明：[是否取反,匹配规则名称,规则明细,and/or连接符]
 规则名称支持：remoteIp host method uri request\_uri useragent referer cookie query\_string ip 以及 args headers
 
@@ -340,14 +340,14 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 	{
 	    "state": "on",
 	    "network":{"maxReqs":10,"pTime":10,"blackTime":600},
-	    "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+	    "hostname": [["101.200.122.200","127.0.0.1"],"list"],
 	    "uri": ["/api/time",""]
 	}
 	-- 限制整个网站的（范围大的一定要放下面）
 	{
 	    "state": "on",
 	    "network":{"maxReqs":30,"pTime":10,"blackTime":600},
-	    "hostname": [["101.200.122.200","127.0.0.1"],"table"],
+	    "hostname": [["101.200.122.200","127.0.0.1"],"list"],
 	    "uri": ["*",""]
 	}
 	-- 限制ip的不区分host和url

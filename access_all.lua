@@ -567,11 +567,11 @@ if config_is_on("network_Mod") and action_tag == "" then
 						else
 							ip_dict:safe_set(host.."-"..ip,mod_ip,blacktime)
 						end
-					elseif v.hostname[2] == "table" then
+					elseif v.hostname[2] == "list" then
 						for j,vj in ipairs(v.hostname[1]) do
 							ip_dict:safe_set(vj.."-"..ip,mod_ip,blacktime)
 						end
-					elseif v.hostname[2] == "list" then
+					elseif v.hostname[2] == "dict" then
 						for j,vj in pairs(v.hostname[1]) do
 							ip_dict:safe_set(j.."-"..ip,mod_ip,blacktime)
 						end

@@ -7,7 +7,7 @@
     },
     {
         "state": "on",
-        "hostname": [["127.0.0.1","passport.game.com"],"table"],
+        "hostname": [["127.0.0.1","passport.game.com"],"list"],
         "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
         "action": "allow"
     },

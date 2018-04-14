@@ -13,6 +13,24 @@ grammar_cjkRuby: true
 
 正在更新说明WIKI篇,已经更新了安装篇，请自行查阅。
 
+版本：1.7.0.24 需要注意，原规则匹配变更：table-->list;list-->dict
+方便理解list表示序列，dict表示字典。
+EG：
+```
+"method":[
+            {
+                "POST":true,
+                "GET":true
+            },
+            "dict" --- 原 list
+        ]
+"ips": [[
+            "101.254.241.149",
+            "106.37.236.170"],
+            "list" --- 原 table
+        ]
+```
+
 # TOP
 
 [安装篇][3]
@@ -285,13 +303,13 @@ hostname：`["*\\.game\\.com","jio"]`
 
 ==>表示使用正则匹配host（**ngx.re.find($host,参数1，参数2)**）
 
-hostname：`[["127.0.0.1","127.0.0.1:8080"],"table"]`
+hostname：`[["127.0.0.1","127.0.0.1:8080"],"list"]`
 
-==>表示匹配参数1列表中所有host
+==>表示匹配参数1 列表 中所有host
 
-hostname：`[{"127.0.0.1":true,"127.0.0.1:5460":true},"list"]`
+hostname：`[{"127.0.0.1":true,"127.0.0.1:5460":true},"dict"]`
 
-==>表示匹配list中host为true的host
+==>表示匹配 字典 中host为true的host
 
 uri：`["/admin","in"]`
 
@@ -376,14 +394,14 @@ args：`["*","",["args_name",1]]`
 ## <span id = "step2">STEP 2：host\_method\_Mod（白名单）</span>
 
  - 说明：
- `{"state":"on","method":[["GET","POST"],"table"],"hostname":[["id.game.com","127.0.0.1"],"table"]}`
+ `{"state":"on","method":[["GET","POST"],"list"],"hostname":[["id.game.com","127.0.0.1"],"list"]}`
 
   上面的例子表示，规则开启，host为id\.game\.com、127.0.0.1允许的method是GET和POST
   state：表示规则是否开启
-  method：表示允许的method，参数2标识参数1是字符串、list、正则
+  method：表示允许的method，参数2标识参数1是字符串、列表(list)、正则、字典(dict)
   hostname：表示匹配的host，规则同上
 
-  > **`"method": [["GET","POST"],"table"]`==> 表示匹配的method是GET和POST**
+  > **`"method": [["GET","POST"],"list"]`==> 表示匹配的method是GET和POST**
 
   > **`"method": ["^(get|post)$","jio"]` ==> 表示匹配method是正则匹配**
 
@@ -504,9 +522,9 @@ args：`["*","",["args_name",1]]`
 
 ## STEP 9：useragent_Mod （黑名单）
   - 说明：
-  `{"state":"off","action":"deny","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"table"]}`
+  `{"state":"off","action":"deny","useragent":["HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench","jio"],"hostname":[["127.0.0.1:8080","127.0.0.1"],"list"]}`
 
-  上面的例子表示，规则关闭，匹配host为127.0.0.1 和 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问，一般host设置为：`"hostname":["*",""]`表示所有（字符串匹配，非常快）
+  上面的例子表示，规则关闭，匹配host为127.0.0.1 或者 127.0.0.1:8080 ，useragent正则匹配，匹配成功则拒绝访问，一般host设置为：`"hostname":["*",""]`表示所有（字符串匹配，非常快）
   state：规则是否启用
   hostname：匹配host
   useragent：匹配agent
