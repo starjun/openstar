@@ -565,18 +565,18 @@ if config_is_on("network_Mod") and action_tag == "" then
 						if v.hostname[1] == "*" then
 							ip_dict:safe_set(ip,mod_ip,blacktime)
 						else
-							ip_dict:safe_set(host.."-"..ip,mod_ip,blacktime)
+							ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
 						end
 					elseif v.hostname[2] == "list" then
 						for j,vj in ipairs(v.hostname[1]) do
-							ip_dict:safe_set(vj.."-"..ip,mod_ip,blacktime)
+							ip_dict:safe_set(vj.."_"..ip,mod_ip,blacktime)
 						end
 					elseif v.hostname[2] == "dict" then
 						for j,vj in pairs(v.hostname[1]) do
-							ip_dict:safe_set(j.."-"..ip,mod_ip,blacktime)
+							ip_dict:safe_set(j.."_"..ip,mod_ip,blacktime)
 						end
 					else
-						ip_dict:safe_set(host.."-"..ip,mod_ip,blacktime)
+						ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
 					end
 					next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
 					action_deny()
