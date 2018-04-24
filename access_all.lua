@@ -339,7 +339,7 @@ if  host_Mod_state == "on" and action_tag == "" then
 					local maxReqs = v.network.maxReqs or 50
 					if ip_count >= maxReqs then
 						local blacktime = v.network.blackTime or 10*60
-						ip_dict:safe_set(host.."-"..ip,mod_host_ip,blacktime)
+						ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
 						next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
 						-- network 触发直接拦截
 						set_count_dict(host.." deny count")
