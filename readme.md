@@ -13,6 +13,22 @@ grammar_cjkRuby: true
 
 正在更新说明WIKI篇,已经更新了安装篇，请自行查阅。
 
+更新：规则支持方式
+```
+现有：等于("") 包含("in") 列表("list") 字典("dict") 正则("jio|jo|***")
+增加：开头列表("start_list") -- 以什么什么开头列表
+      结尾列表("end_list")  -- 以什么什么结尾列表
+      包含列表("in_list")   -- 包含的列表形式
+      【json 同 list 一样】
+EG：
+"host":[[
+          "www.baidu.",
+          "img.baidu."
+        ],
+            "start_list" --- 原 list
+        ]
+```
+
 版本：1.7.0.24 需要注意，原规则匹配变更：table-->list;list-->dict
 方便理解list表示序列，dict表示字典。
 EG：
