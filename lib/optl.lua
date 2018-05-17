@@ -1,6 +1,7 @@
 
 -- 用于生成唯一随机字符串
 local random = require "resty-random"
+local stool = require "stool"
 local cjson_safe = require "cjson.safe"
 local ngx_re_find = ngx.re.find
 local ngx_re_gsub = ngx.re.gsub
@@ -134,20 +135,30 @@ local function remath(_str,_re_str,_options)
             return true
         end
     elseif _options == "list" then
-        -- 序列 匹配，在序列(list)中 字符串完全匹配
+        return stool.isInArrayTb(_str,_re_str)
+    elseif _options == "in" then
+        return stool.stringIn(_str,_re_str)
+    -- add new type
+    elseif _options == "start_list" then
         if type(_re_str) ~= "table" then return false end
         for _,v in ipairs(_re_str) do
-            if v == _str then
+            if stool.stringStarts(_str,v) then
                 return true
             end
         end
-    elseif _options == "in" then
-        --- 用于包含 查找 string.find
-        local from , to = string.find(_str, _re_str,1,true)
-        --if from ~= nil or (from == 1 and to == 0 ) then
-        --当_re_str=""时的情况 已处理
-        if from ~= nil and to ~= 0 then
-            return true
+    elseif _options == "end_list" then
+        if type(_re_str) ~= "table" then return false end
+        for _,v in ipairs(_re_str) do
+            if stool.stringEnds(_str,v) then
+                return true
+            end
+        end
+    elseif _options == "in_list" then
+        if type(_re_str) ~= "table" then return false end
+        for _,v in ipairs(_re_str) do
+            if stool.stringIn(_str,v) then
+                return true
+            end
         end
     elseif _options == "dict" then
         --- 字典(dict) 匹配，o(1) 比序列(list)要好些， 字符串完全匹配
