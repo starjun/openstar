@@ -5,6 +5,7 @@ local cjson_safe = require "cjson.safe"
 local ngx_shared = ngx.shared
 local io_open = io.open
 local table_insert = table.insert
+local string_gsub = string.gsub
 local ipairs = ipairs
 
 --- base.json 文件绝对路径 [需要自行根据自己服务器情况设置]
@@ -69,12 +70,21 @@ function loadConfig()
     local denyIpList = readfile(_basedir.."ip/deny.ip",true)
     local logIpList = readfile(_basedir.."ip/log.ip",true)
     for _,v in ipairs(allowIpList) do
+        v = string_gsub(v,"\r","")
+        v = string_gsub(v,"\n","")
+        v = string_gsub(v,"\r\n","")
         ip_dict:safe_set(v,"allow",0)
     end
     for _,v in ipairs(denyIpList) do
+        v = string_gsub(v,"\r","")
+        v = string_gsub(v,"\n","")
+        v = string_gsub(v,"\r\n","")
         ip_dict:safe_set(v,"deny",0)
     end
     for _,v in ipairs(logIpList) do
+        v = string_gsub(v,"\r","")
+        v = string_gsub(v,"\n","")
+        v = string_gsub(v,"\r\n","")
         ip_dict:safe_set(v,"log",0)
     end
 

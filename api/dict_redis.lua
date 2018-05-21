@@ -8,7 +8,7 @@
 --    redis DB 0 存放 config_dict 、 host_dict 、 count_dict
 --    config_dict 的key = config
 --    redis 对应：base realIpFrom_Mod deny_Msg uri_Mod header_Mod
---                useragent_Mod cookie_Mod args_Mod post_Mod network_Mod 
+--                useragent_Mod cookie_Mod args_Mod post_Mod network_Mod
 --                replace_Mod host_method_Mod rewrite_Mod app_Mod referer_Mod
 --    host_dict 的  key = host_Mod %host%_HostMod
 
@@ -81,7 +81,7 @@ end
 -- isexit == true 需要 ngx.exit()
 local function push_config(_isexit)
 
-    -- 切换ip_dict 数据库 DB 0     
+    -- 切换ip_dict 数据库 DB 0
     local ok, err = red:select(0)
     if not ok then
         local _msg = "failed to select : "..tostring(err)
@@ -161,14 +161,14 @@ local function pull_config(_isexit)
             _msg[_tb[i]] = "pull error"
         end
     end
-    
+
     local _code = "ok"
     local re = config_dict:replace("config",cjson_safe.encode(config))
     if re ~= true then
        _code = "error"
     else
         config_dict:incr("config_version",1)
-    end  
+    end
 
     -- 执行结果都在res_tb中
     if _isexit then
@@ -204,7 +204,7 @@ local function push_host_Mod(_isexit)
             table.insert(tb_host_name, tmp_tb)
             tb_host_all[v.."_HostMod"] = host_dict:get(v.."_HostMod")
         end
-    end    
+    end
     tb_host_all["host_Mod"] = optl.tableTojson(tb_host_name)
 
     tb_host_name = {}
@@ -287,7 +287,7 @@ local function pull_host_Mod(_isexit)
     local _msg = {}
     local _code = "ok"
     -- ? 清空本地 host_dict
-    host_dict:flush_all()    
+    host_dict:flush_all()
     _msg.flush_expired = host_dict:flush_expired(0)
 
     for i,v in ipairs(tb_host_Mod) do
@@ -302,7 +302,7 @@ local function pull_host_Mod(_isexit)
         end
         _msg[v[1].."_HostMod"] = re
     end
-    
+
     if _isexit then
         sayHtml_ext({code = _code,msg=_msg})
     else
@@ -319,12 +319,12 @@ local function push_ip_Mod(_isexit)
     for i,v in ipairs(_tb_ip_name) do
         local ip_value = ip_dict:get(v)
         --- init 中，永久ip只有这3个value
-        if ip_value == "allow" or ip_value == "deny" or ip_value == "log" then            
+        if ip_value == "allow" or ip_value == "deny" or ip_value == "log" then
             tb_ip_all[v] = ip_value
-        end        
+        end
     end
-    
-    -- 切换ip_dict 数据库 1 
+
+    -- 切换ip_dict 数据库 1
     local ok, err = red:select(1)
     if not ok then
         local _msg = "failed to select : "..tostring(err)
@@ -355,7 +355,7 @@ local function push_ip_Mod(_isexit)
         end
         res_tb[_tb[i]] = res
     end
-    
+
     if _isexit then
         sayHtml_ext({code = _code ,msg = res_tb})
     else
@@ -421,13 +421,16 @@ local function pull_ip_Mod(_isexit)
     for i, res in ipairs(results) do
         res_tb[ok[i]].time = res
     end
-    
+
     -- 将redis中的数据添加
     local _msg = {}
     local _code = "ok"
-    for k,v in pairs(res_tb) do        
+    for k,v in pairs(res_tb) do
         if v.time ~= 0 then
             if v.time == -1 then v.time = 0 end
+            k = ngx.re.gsub(k,"\r","")
+            k = ngx.re.gsub(k,"\n","")
+            k = ngx.re.gsub(k,"\r\n","")
             local re = ip_dict:safe_set(k,v.value,v.time)
             if re ~= true then
                 _code = "error"
@@ -435,7 +438,7 @@ local function pull_ip_Mod(_isexit)
             _msg[k] = re
         end
     end
-    
+
     if _isexit then
         sayHtml_ext({code = _code,msg=_msg})
     else
@@ -479,7 +482,7 @@ local function push_count_dict(_isexit)
     end
 
     if _isexit then
-        if _code == "error" then            
+        if _code == "error" then
             _msg = error_tb
         end
         sayHtml_ext({code=_code,msg=_msg})
@@ -573,7 +576,7 @@ elseif _action == "push" then
         push_host_Mod(true)
 
     elseif _key == "ip_dict" then
-       
+
         push_ip_Mod(true)
 
     elseif _key == "all_dict" then
