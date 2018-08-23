@@ -29,9 +29,15 @@
 
 	"cookie_Mod" : "on",
 
-	"args_Mod" : "on",
+	"args_Mod" : {
+					"state":"on",
+					"HPP_state":"on"
+				},
 
-	"post_Mod" : "on",
+	"post_Mod" : {
+					"state":"on",
+					"HPP_state":"on"
+				},
 
 	"post_form":10240,
 

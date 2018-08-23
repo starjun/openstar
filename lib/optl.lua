@@ -343,8 +343,8 @@ local function or_remath(_or_list,_basemsg)
     -- or 匹配 任意一个为真 则为真
     for _,v in ipairs(_or_list) do
         if action_remath(v[1],v[2],_basemsg) then -- 真
-            return true        
-        end        
+            return true
+        end
     end
     return false
 end
@@ -409,9 +409,9 @@ local function ngx_find(_str)
 
     -- string.find 字符串 会走jit,所以就没有用ngx模块
     -- 当前情况下，对token仅是全局替换一次，请注意
-    if string.find(_str,"@token@") ~= nil then       
+    if string.find(_str,"@token@") ~= nil then
         _str = ngx_re_gsub(_str,"@token@",tostring(set_token()))
-    end 
+    end
     return _str
 end
 
@@ -481,7 +481,7 @@ end
     local function get_post_all()
         --ngx.req.read_body()
         local data = ngx.req.get_body_data() -- ngx.req.get_post_args()
-        if not data then 
+        if not data then
             local datafile = ngx.req.get_body_file()
             if datafile then
                 local fh, err = io.open(datafile, "r")

@@ -87,10 +87,16 @@ end
 
 --- 判断config_dict中模块开关是否开启
 local function config_is_on(_config_arg)
-    if config_base[_config_arg] == "on" then
-        return true
-    end
-    -- return config_base[_config_arg] == "on"
+	if _config_arg == "args_Mod" then
+		return config_base[_config_arg]["state"] == "on"
+	elseif _config_arg == "post_Mod" then
+		return config_base[_config_arg]["state"] == "on"
+	else
+	    -- if config_base[_config_arg] == "on" then
+	    --     return true
+	    -- end
+		return config_base[_config_arg] == "on"
+	end
 end
 
 --- 取config_dict中的json数据
@@ -512,6 +518,13 @@ end
 --- STEP 11
 -- args [args_data] (黑/白名单/log记录)
 if config_is_on("args_Mod") and action_tag == "" then
+	if config_base.args_Mod["HPP_state"] == "on" then
+		for k,v in pairs(args) do
+			if type(v) == "table" then
+				do_action("deny","args_HPP","0")
+			end
+		end
+	end
 	local args_mod = getDict_Config("args_Mod")
 	for i,v in ipairs(args_mod) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(args_data,v.args_data) then
@@ -529,7 +542,14 @@ end
 
 --- STEP 12
 -- post (黑/白名单)
-if config_is_on("post_Mod") and action_tag == "" then
+if config_is_on("post_Mod") and action_tag == "" and method == "POST" then
+	if config_base.post_Mod["HPP_state"] == "on" then
+		for k,v in pairs(posts) do
+			if type(v) == "table" then
+				do_action("deny","posts_HPP","0")
+			end
+		end
+	end
 	local post_mod = getDict_Config("post_Mod")
 	for i,v in ipairs(post_mod) do
 		if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(posts_data,v.posts_data) then
