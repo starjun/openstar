@@ -25,11 +25,11 @@ function openstar(){
 	cd ${install_path}
 	wget -O openstar.zip ${openstar_uri}
 	unzip -o openstar.zip
-	
+
 	alias mv='mv'
 	mv -f openstar-master openstar
 	alias mv='mv -i'
-	
+
 	chown nobody:nobody -R openstar
 	ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
 	ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf

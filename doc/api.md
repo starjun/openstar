@@ -64,7 +64,7 @@ API相关介绍：
 ----
     /api/config?action=reload
 
-    成功返回: 
+    成功返回:
     {
     code: "ok",
     msg: "reload ok"
@@ -72,14 +72,14 @@ API相关介绍：
 
 ---
 
-- 保存当前配置（将当前内存中的配置保存到配置文件） 
+- 保存当前配置（将当前内存中的配置保存到配置文件）
 ---
     /api/config?action=save&mod=[参数1]&debug=[参数2]&host=[参数3]
     mod=all_mod --- 表示保存所有配置模块,以及针对host的过滤规则
     mod=[base/realIpFrom_Mod/host_method_Mod/rewrite_Mod/host_Mod/app_Mod/referer_Mod/uri_Mod/header_Mod/useragent_Mod/cookie_Mod/args_Mod/post_Mod/network_Mod/replace_Mod/denyMsg]
 
     debug=no --- 表示关闭调试，即会覆盖模块对应的配置文件，默认是在对应目录中新建一个对应bak文件
-    
+
     host=127.0.0.1 --- 当mod=host_Mod时，给出host值时，表示只对该host进行保存，默认是所有
 
     EG：保存cookie_Mod到对应json文件中
