@@ -502,15 +502,15 @@ if _action == "set" then
         return
     end
 
-	local ok, err = red:set(_key, _value)
-	if not ok then
+    local ok, err = red:set(_key, _value)
+    if not ok then
         local _msg = "failed to set key : "..tostring(err)
         sayHtml_ext({code="error",msg=_msg})
-	    --ngx.say("failed to set ".._key..": ", err)
-	    return
-	end
+        --ngx.say("failed to set ".._key..": ", err)
+        return
+    end
 
-	--ngx.say("set result: ", ok)
+    --ngx.say("set result: ", ok)
     sayHtml_ext({code="ok",msg=ok})
 
 -- elseif _action == "ttl" then
@@ -549,7 +549,7 @@ elseif _action == "get" then
         return
     end
 
-	local res, err = red:get(_key)
+    local res, err = red:get(_key)
     if not res then
         local _msg = "failed to get key: "..tostring(err)
         sayHtml_ext({code="error",msg=_msg})

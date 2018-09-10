@@ -19,6 +19,7 @@ grammar_cjkRuby: true
 增加：开头列表("start_list") -- 以什么什么开头列表
       结尾列表("end_list")  -- 以什么什么结尾列表
       包含列表("in_list")   -- 包含的列表形式
+      不区分大小写包含列表("rein_list")  --in_list扩展(不区分大小写)
       【json 同 list 一样】
 EG：
 "host":[[

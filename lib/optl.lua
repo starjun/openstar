@@ -160,6 +160,13 @@ local function remath(_str,_re_str,_options)
                 return true
             end
         end
+    elseif _options == "rein_list" then
+        if type(_re_str) ~= "table" then return false end
+        for _,v in ipairs(_re_str) do
+            if stool.stringIn(_str,string.upper(v)) then
+                return true
+            end
+        end
     elseif _options == "dict" then
         --- 字典(dict) 匹配，o(1) 比序列(list)要好些， 字符串完全匹配
         if type(_re_str) ~= "table" then return false end
