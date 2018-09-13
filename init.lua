@@ -43,17 +43,6 @@ local function loadjson(_path_name)
     return json
 end
 
---- split 函数，暂时未使用  lua-resty-core
-local function split(inputstr, sep)
-    sep = sep or "%s"
-    local t={} ; i=1
-    for str in string_gmatch(inputstr, "([^"..sep.."]+)") do
-        t[i] = str
-        i = i + 1
-    end
-    return t
-end
-
 --- 载入config.json全局基础配置
 --- 唯一一个全局函数
 function loadConfig()
