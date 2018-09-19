@@ -1,25 +1,8 @@
 
 [
-
     {
         "state": "on",
-        "action": ["allow","uri"],
-        "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
-    },
-    {
-        "state": "on",
-        "action":["log","referer"],
-        "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
-        "referer": ["hao123","in",true]
-    },
-    {
-        "state": "on",
-        "action":["deny","useragent"],
-        "useragent": ["baidu","in"]
-    },
-    {
-        "state": "on",
-        "action":["deny","app_ext"],
+        "action":"deny",
         "uri": ["/post.html",""],
         "post_form":1024,
         "app_ext":[
@@ -29,7 +12,7 @@
     },
     {
         "state": "on",
-        "action":["deny","network"],
+        "action":"deny",
         "network":{"maxReqs":30,"pTime":10,"blackTime":600},
         "uri": ["/index.html",""]
     }

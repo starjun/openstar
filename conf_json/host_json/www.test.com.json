@@ -1,11 +1,11 @@
-
+//// 测试 json 无用
 {
     "realipFrom":{
         "ips": ["*",""],
-        "realipset": "x-for-f"
+        "h_name": "x-for-f"
     },
 
-    "realopSet":"star-ip",
+    "realipSet":"star-ip",
 
     "denyMsg":403,
 

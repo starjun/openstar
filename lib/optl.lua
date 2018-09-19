@@ -431,7 +431,7 @@ local function sayHtml_ext(_html,_find_type,_content_type)
         _html = tableTojson(_html)
     end
 
-    if _find_type ~= nil then
+    if _find_type then
         _html = ngx_find(_html)
     end
 

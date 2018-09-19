@@ -386,23 +386,15 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 
 ---
     [
-
         {
             "state": "on",
-            "action": ["allow","uri"],
-            "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"]
-        },
-        {
-            "state": "on",
-            "action":["log","referer"],
-            "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
-            "referer": ["hao123","in"]
-
-        },
-        {
-            "state": "on",
-            "action":["deny","useragent"],
-            "useragent": ["baidu","in"]
+            "action":"deny",
+            "uri": ["/post.html",""],
+            "post_form":1024,
+            "app_ext":[
+            ["post_form",["\\.(jpg|jpeg|png|webp|gif)$","jio",["image0",2],true],"or"],
+            ["post_form",["(;|-|/)","jio",["image0",2]]]
+            ]
         },
         {
             "state": "on",

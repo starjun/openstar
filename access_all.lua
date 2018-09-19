@@ -114,6 +114,27 @@ local function remath_ext(str,remath_rule)
     end
 end
 
+--- 访问频率检查 并且计数
+-- _tb_network 频率规则  _uid 唯一标识
+-- true:触发 频率限制  false:未触发 计数++
+local function network_ck(_tb_network,_uid)
+    if type(_tb_network) ~= "table" then return end
+    local pTime = _tb_network.pTime or 10
+    local maxReqs = _tb_network.maxReqs or 50
+    local ip_count = limit_ip_dict:get(_uid)
+    if ip_count == nil then
+        limit_ip_dict:set(_uid,1,pTime)
+        return
+    else
+        if ip_count >= maxReqs then
+            return true
+        else
+            limit_ip_dict:incr(_uid,1)
+            return
+        end
+    end
+end
+
 --- 匹配 host 和 uri
 local function host_uri_remath(_host,_uri)
     if remath_ext(host,_host) and remath_ext(uri,_uri) then
@@ -281,41 +302,11 @@ end
 -- host_Mod 规则过滤
 -- 动作支持 （allow deny log）
 if  host_Mod_state == "on" and action_tag == "" then
+    -- 后续 可能缓存起来，不用每次都进行 序列化操作
     local tb = optl.stringTojson(host_dict:get(host.."_HostMod"))
     for i,v in ipairs(tb) do
-        if v.state == "on" then
-            local _action = v.action[1] or "deny"
-            if v.action[2] == "uri" and remath_ext(uri,v.uri) then
-
-                if do_action(_action,"host_Mod",i) == true then
-                    return
-                elseif do_action(_action,"host_Mod",i) == false then
-                    break
-                elseif do_action(_action,"host_Mod",i) == nil then
-                    -- continue
-                end
-
-            elseif v.action[2] == "referer" and remath_ext(referer,v.referer) and remath_ext(uri,v.uri) then
-
-                if do_action(_action,"host_Mod",i) == true then
-                    return
-                elseif do_action(_action,"host_Mod",i) == false then
-                    break
-                elseif do_action(_action,"host_Mod",i) == nil then
-                    -- continue
-                end
-
-            elseif v.action[2] == "useragent" and remath_ext(useragent,v.useragent) then
-
-                if do_action(_action,"host_Mod",i) == true then
-                    return
-                elseif do_action(_action,"host_Mod",i) == false then
-                    break
-                elseif do_action(_action,"host_Mod",i) == nil then
-                    -- continue
-                end
-
-            elseif v.action[2] == "app_ext" and remath_ext(uri,v.uri) then
+        if v.state == "on" and remath_ext(uri,v.uri) then
+            if v.app_ext then
                 if type(v.post_form) == "number" and method == "POST" and base_msg.post_form == nil then
                     local post_form_n = v.post_form
                     local base_post_from_n = tonumber(config_base.post_form) or 0
@@ -323,37 +314,24 @@ if  host_Mod_state == "on" and action_tag == "" then
                     get_post_form(post_form_n)
                 end
                 if optl.re_app_ext(v.app_ext,base_msg) then
-                    if do_action(_action,"host_Mod",i) == true then
+                    if do_action(v.action,"host_Mod",i) == true then
                         return
-                    elseif do_action(_action,"host_Mod",i) == false then
+                    elseif do_action(v.action,"host_Mod",i) == false then
                         break
-                    elseif do_action(_action,"host_Mod",i) == nil then
+                    elseif do_action(v.action,"host_Mod",i) == nil then
                         -- continue
                     end
                 end
-
-            elseif v.action[2] == "network" and remath_ext(uri,v.uri) then
-
+            elseif v.network then
                 local mod_host_ip = ip..host.." host_network No "..i
-                local ip_count = limit_ip_dict:get(mod_host_ip)
-                if ip_count == nil then
-                    local pTime =  v.network.pTime or 10
-                    limit_ip_dict:set(mod_host_ip,1,pTime)
-                else
-                    local maxReqs = v.network.maxReqs or 50
-                    if ip_count >= maxReqs then
-                        local blacktime = v.network.blackTime or 10*60
-                        ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
-                        next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
-                        -- network 触发直接拦截
-                        set_count_dict(host.." deny count")
-                        action_deny()
-                        break
-                    else
-                        limit_ip_dict:incr(mod_host_ip,1)
-                    end
+                if network_ck(v.network,mod_host_ip) then
+                    ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
+                    next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
+                    -- network 触发直接拦截
+                    set_count_dict(host.." deny count")
+                    action_deny()
+                    break
                 end
-
             end
         end
     end
@@ -571,40 +549,30 @@ if config_is_on("network_Mod") and action_tag == "" then
         if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
 
             local mod_ip = ip.." network_Mod No "..i
-            local ip_count = limit_ip_dict:get(mod_ip)
-            if ip_count == nil then
-                local pTime =  v.network.pTime or 10
-                limit_ip_dict:set(mod_ip,1,pTime)
-            else
-                local maxReqs = v.network.maxReqs or 50
-                if ip_count >= maxReqs then
-                    local blacktime = v.network.blackTime or 10*60
-                    if v.hostname[2] == "" then
-                        if v.hostname[1] == "*" then
-                            ip_dict:safe_set(ip,mod_ip,blacktime)
-                        else
-                            ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
-                        end
-                    elseif v.hostname[2] == "list" then
-                        for j,vj in ipairs(v.hostname[1]) do
-                            ip_dict:safe_set(vj.."_"..ip,mod_ip,blacktime)
-                        end
-                    elseif v.hostname[2] == "dict" then
-                        for j,vj in pairs(v.hostname[1]) do
-                            ip_dict:safe_set(j.."_"..ip,mod_ip,blacktime)
-                        end
+            if network_ck(v.network,mod_ip) then
+                local blacktime = v.network.blackTime or 10*60
+                if v.hostname[2] == "" then
+                    if v.hostname[1] == "*" then
+                        ip_dict:safe_set(ip,mod_ip,blacktime)
                     else
                         ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
                     end
-                    next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
-                    action_deny()
-                    --ngx.say("frist network deny")
-                    break
+                elseif v.hostname[2] == "list" then
+                    for j,vj in ipairs(v.hostname[1]) do
+                        ip_dict:safe_set(vj.."_"..ip,mod_ip,blacktime)
+                    end
+                elseif v.hostname[2] == "dict" then
+                    for j,vj in pairs(v.hostname[1]) do
+                        ip_dict:safe_set(j.."_"..ip,mod_ip,blacktime)
+                    end
                 else
-                    limit_ip_dict:incr(mod_ip,1)
+                    ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
                 end
+                next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
+                action_deny()
+                --ngx.say("frist network deny")
+                break
             end
-
         end
     end
 end
