@@ -25,76 +25,76 @@ local config_base = config.base or {}
 -- 用于ip_dict操作接口  对ip列表进行增 删 改 查 操作
 
 local _code = "ok"
---- add 
+--- add
 if _action == "add" then
 
-	if _ip == "" then
-		optl.sayHtml_ext({code="error",msg="ip is nil"})
-	else		
-		local re = ip_dict:safe_add(_ip,_value,_time)
-		-- 非重复插入(lru不启用)
-		if re ~= true then
-			optl.sayHtml_ext({code="error",msg="ip safe_add error"})
-		else
-			optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
-		end
-		
-	end
+    if _ip == "" then
+        optl.sayHtml_ext({code="error",msg="ip is nil"})
+    else
+        local re = ip_dict:safe_add(_ip,_value,_time)
+        -- 非重复插入(lru不启用)
+        if re ~= true then
+            optl.sayHtml_ext({code="error",msg="ip safe_add error"})
+        else
+            optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
+        end
+
+    end
 --- del
 elseif _action == "del" then
 
-	if _ip == "" then
-		optl.sayHtml_ext({code="error",msg="ip is nil"})
-	elseif _ip == "all_ip" then
-	    ip_dict:flush_all()
-		ip_dict:flush_expired(0)
-		optl.sayHtml_ext({code=_code,ip="all_ip"})
-	else
-		local re = ip_dict:delete(_ip)
-		ip_dict:flush_expired(0)
-		if re ~= true then
-			optl.sayHtml_ext({code="error",msg="ip delete error"})
-		else
-			optl.sayHtml_ext({code=_code,ip=_ip})
-		end
-		
-	end
---- set 
+    if _ip == "" then
+        optl.sayHtml_ext({code="error",msg="ip is nil"})
+    elseif _ip == "all_ip" then
+        ip_dict:flush_all()
+        ip_dict:flush_expired(0)
+        optl.sayHtml_ext({code=_code,ip="all_ip"})
+    else
+        local re = ip_dict:delete(_ip)
+        ip_dict:flush_expired(0)
+        if re ~= true then
+            optl.sayHtml_ext({code="error",msg="ip delete error"})
+        else
+            optl.sayHtml_ext({code=_code,ip=_ip})
+        end
+
+    end
+--- set
 elseif _action == "set" then
-	if _ip == "" then
-		optl.sayHtml_ext({code="error",msg="ip is nil"})
-	else		
-		local re = ip_dict:replace(_ip,_value,_time)
-		if re ~= true then
-			optl.sayHtml_ext({code="error",msg="ip replace error"})
-		else
-			optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
-		end
-		
-	end
---- get 
+    if _ip == "" then
+        optl.sayHtml_ext({code="error",msg="ip is nil"})
+    else
+        local re = ip_dict:replace(_ip,_value,_time)
+        if re ~= true then
+            optl.sayHtml_ext({code="error",msg="ip replace error"})
+        else
+            optl.sayHtml_ext({code=_code,ip=_ip,value=_value})
+        end
+
+    end
+--- get
 elseif _action == "get" then
 
-	if _ip == "count_ip" then
-		local _tb = ip_dict:get_keys(0)
-		optl.sayHtml_ext({code="ok",count=table.getn(_tb)})
-	elseif _ip == "all_ip" then
-		local _tb,tb_all = ip_dict:get_keys(0),{}
-		for i,v in ipairs(_tb) do
-			tb_all[v] = ip_dict:get(v)
-		end
-		tb_all.state = config_base["ip_Mod"]
-		tb_all.code = "ok"
-		optl.sayHtml_ext(tb_all)
-	elseif _ip == "" then
-		local _tb = ip_dict:get_keys(1024)
-		_tb.code = "ok"
-		optl.sayHtml_ext(_tb)
-	else
-		optl.sayHtml_ext({code="ok",ip=_ip,value=ip_dict:get(_ip)})
-	end
+    if _ip == "count_ip" then
+        local _tb = ip_dict:get_keys(0)
+        optl.sayHtml_ext({code="ok",count=table.getn(_tb)})
+    elseif _ip == "all_ip" then
+        local _tb,tb_all = ip_dict:get_keys(0),{}
+        for i,v in ipairs(_tb) do
+            tb_all[v] = ip_dict:get(v)
+        end
+        tb_all.state = config_base["ip_Mod"]
+        tb_all.code = "ok"
+        optl.sayHtml_ext(tb_all)
+    elseif _ip == "" then
+        local _tb = ip_dict:get_keys(1024)
+        _tb.code = "ok"
+        optl.sayHtml_ext(_tb)
+    else
+        optl.sayHtml_ext({code="ok",ip=_ip,value=ip_dict:get(_ip)})
+    end
 
 else
-	optl.sayHtml_ext({code="error",msg="action is error"})
+    optl.sayHtml_ext({code="error",msg="action is error"})
 end
 

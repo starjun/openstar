@@ -52,7 +52,7 @@
             "action": ["next","ip"],
             "ip":[["106.37.236.170","1.1.1.1"],"table"],
             "uri": ["/api/.*","jio"]
-        },    
+        },
         {
             "state": "on",
             "action": ["relua"],
@@ -64,7 +64,7 @@
             "action": ["relua_str"],
             "relua_str":"local a = 1 if a<1 then ngx.say(1) end return 2",
             "uri": ["/relua",""]
-        },    
+        },
         {
             "state": "on",
             "action": ["log"],
@@ -125,12 +125,12 @@
         {
             "state": "on",
             "uri": ["*",""],
-            "header": ["*","","Acunetix_Aspect","end"]        
+            "header": ["*","","Acunetix_Aspect","end"]
         },
         {
             "state": "on",
             "uri": ["*",""],
-            "header": ["*","","X_Scan_Memo","all"]        
+            "header": ["*","","X_Scan_Memo","all"]
         }
     ],
 

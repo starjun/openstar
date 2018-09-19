@@ -14,7 +14,7 @@ httpdata[10] = "ngx.null : "..ngx_null
 
 
 local cjson_safe = require "cjson.safe"
-local json_text = cjson_safe.encode(httpdata)  
+local json_text = cjson_safe.encode(httpdata)
 
 ngx.say(json_text)
 ngx.exit(200)

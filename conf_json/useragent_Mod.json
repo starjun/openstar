@@ -1,9 +1,15 @@
 [
     {
         "state": "on",
+        "id":"1-scan",
         "useragent": [
-            "HTTrack|harvest|audit|dirbuster|pangolin|nmap|sqln|-scan|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|PycURL|zmeu|BabyKrokodil|netsparker|httperf|bench",
-            "jio"
+            ["HTTrack","harvest","audit","dirbuster",
+             "pangolin","nmap","sqln","-scan","hydra",
+             "Parser","libwww","BBBike","sqlmap","w3af",
+             "owasp","Nikto","fimap","havij","PycURL","zmeu",
+             "BabyKrokodil","netsparker","httperf","bench"
+            ],
+            "rein_list"
         ],
         "hostname": ["*",""]
     }

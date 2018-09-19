@@ -10,7 +10,7 @@
         "state": "on",
         "action":["log","referer"],
         "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
-        "referer": ["hao123","in",true]        
+        "referer": ["hao123","in",true]
     },
     {
         "state": "on",
