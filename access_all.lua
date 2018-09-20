@@ -323,7 +323,8 @@ if  host_Mod_state == "on" and action_tag == "" then
                     end
                 end
             elseif v.network then
-                local mod_host_ip = ip..host.." host_network No "..i
+                local mod_host_ip = host.."_"..ip.." host_network No "..i
+                local blacktime = v.network["blacktime"] or 600
                 if network_ck(v.network,mod_host_ip) then
                     ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
                     next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
@@ -556,14 +557,6 @@ if config_is_on("network_Mod") and action_tag == "" then
                         ip_dict:safe_set(ip,mod_ip,blacktime)
                     else
                         ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
-                    end
-                elseif v.hostname[2] == "list" then
-                    for j,vj in ipairs(v.hostname[1]) do
-                        ip_dict:safe_set(vj.."_"..ip,mod_ip,blacktime)
-                    end
-                elseif v.hostname[2] == "dict" then
-                    for j,vj in pairs(v.hostname[1]) do
-                        ip_dict:safe_set(j.."_"..ip,mod_ip,blacktime)
                     end
                 else
                     ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
