@@ -6,7 +6,7 @@ version=0.4
 build_path=/opt/down
 install_path=/opt/openresty
 
-install_version=1.13.6.1
+install_version=1.13.6.2
 #1.11.2.2 nginx 1.11.2 , 1.11.2.1 nginx 1.11.2 , 1.9.15.1 nginx 1.9.15
 openresty_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
 openstar_uri=https://codeload.github.com/starjun/openstar/zip/master

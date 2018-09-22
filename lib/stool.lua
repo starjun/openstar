@@ -25,7 +25,6 @@ local function isArrayTable(t)
         if type(i) ~= "number" then
             return false
         end
-
         if math_floor(i)<i or i < 0 or i >n then
             return false
         end
@@ -62,7 +61,11 @@ _M.split = split
 -- ["false","true"] 转 boolean
 -- 只有 _str == 'true' 为 真，其余都为 假
 local function strToBoolean(_str)
-    return _str == "true"
+    if string.lower(_str) == "true" then
+        return true
+    else
+        return false
+    end
 end
 _M.strToBoolean = strToBoolean
 
@@ -80,10 +83,21 @@ end
 _M.isIp = isIp
 
 -- 判断传入的 str 是否是一个合法的 域名
-local function is_host(_str_host)
-    return true
+local function isHost(_str_host)
+    if isIp(_str_host) then
+        return true
+    end
+    local tmp = {"localhost5460","localhost"}
+    if isInArrayTb(_str_host,tmp) then
+        return true
+    end
+    local re_host = "^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$"
+    local from, to = ngx_re_find(_str_host, re_host, "jios")
+    if from ~= nil and to ~= 0 then
+        return true
+    end
 end
-_M.is_host = is_host
+_M.isHost = isHost
 
 -- 计算传入的 table 的count
 local function getTableCount(t)

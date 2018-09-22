@@ -382,7 +382,7 @@ url的过滤当然就是一些敏感文件目录啥的过滤了，看个例子�
 
 ## host_Mod 配置
 其对应文件在`conf_json/host_json/host_Mod.json` 和 `conf_json/host_json/$host.json`
-先看几个列子,比较好理解
+先看2个列子,比较好理解
 
 ---
     [

@@ -4,6 +4,7 @@ local _worker_id = ngx.worker.id()
 local ngx_shared = ngx.shared
 local require = require
 local ipairs = ipairs
+local stool = require("stool")
 local ngx_log = ngx.log
 local ngx_ERR = ngx.ERR
 local ngx_thread = ngx.thread
@@ -174,11 +175,11 @@ handler_all = function ()
     local optl_config_version = optl.config_version
     if dict_config_version ~= optl_config_version then
         local config = cjson_safe.decode(config_dict:get("config"))
-        -- 简单判断config,最好是内容规则的判断
-        if config ~= nil then
+        if config and not stool.table_compare(config,optl.config) then
+            -- 后续 对 整个规则进行 合法性判断
             optl.config = config
-            optl.config_version = dict_config_version
         end
+        optl.config_version = dict_config_version
     end
 end
 

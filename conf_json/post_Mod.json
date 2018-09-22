@@ -76,7 +76,7 @@
         "hostname": ["*",""],
         "posts_data": ["group\\s+by.+\\(","jio"],
         "action": "deny"
-    },    
+    },
     {
         "state": "on",
         "hostname": ["*",""],
