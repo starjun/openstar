@@ -123,11 +123,7 @@ local function get_keyInTable(_tb,_k,_tag)
     local listKey = split(_k,_tag)
     if #listKey == 1 then
         local tmp_k = tonumber(_k) or _k
-        if not _tb[tmp_k] then
-            return false,"value of ".._k.." not in table"
-        else
-            return _tb[tmp_k]
-        end
+        return _tb[tmp_k]
     else
         local tmp_k = tonumber(listKey[1]) or listKey[1]
         local _tmp = _tb[tmp_k]
@@ -136,8 +132,6 @@ local function get_keyInTable(_tb,_k,_tag)
             table_remove(listKey,1)
             local newKey = table_concat(listKey,_tag)
             return get_keyInTable(_tmp,newKey)
-        elseif type(_tmp) == "nil" then
-            return false,"value of "..listKey[1].." not in table"
         else
             return _tmp
         end
