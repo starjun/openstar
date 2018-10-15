@@ -31,10 +31,13 @@ ngx_ctx.next_ctx = next_ctx
 
     local headers = ngx.req.get_headers()
     local headers_data
-    local function tmp_pcall()
+    -- local function tmp_pcall()
+    --     headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
+    -- end
+    -- pcall(tmp_pcall)
+    if ngx_var.server_protocol ~= "HTTP/2.0" then
         headers_data = ngx_unescape_uri(ngx.req.raw_header(false))
     end
-    pcall(tmp_pcall)
     local http_content_type = ngx_unescape_uri(ngx_var.http_content_type)
 
     local args = ngx.req.get_uri_args()
@@ -145,6 +148,7 @@ end
 --- 拦截计数 2016年6月7日 21:52:52 up 从全局变成local
 local set_count_dict = optl.set_count_dict
 
+-- 执行拦截（deny）操作
 local function action_deny()
     action_tag = "deny"
     -- 2016年9月19日
@@ -156,25 +160,19 @@ local function action_deny()
     if config_base.denyMsg.state == "on" then
         local tb = getDict_Config("denyMsg")
         local host_deny_msg = tb[host] or {}
-        local tp_denymsg = type(host_deny_msg.deny_msg)
-        if tp_denymsg == "number" then
-            ngx.exit(host_deny_msg.deny_msg)
-        elseif tp_denymsg == "string" then
-            ngx.header.content_type = "text/html"
-            ngx.say(host_deny_msg.deny_msg)
-            ngx.exit(200)
-        end
-    end
-    if type(config_base.denyMsg.msg) == "number" then
-        ngx.exit(config_base.denyMsg.msg)
-    else
-        ngx.header.content_type = "text/html"
-        ngx.say(tostring(config_base.denyMsg.msg))
+        next_tb.http_code = host_deny_msg.http_code or 403
+        --ngx.header.content_type = "text/html"
+        ngx.say(tostring(host_deny_msg.deny_msg))
         ngx.exit(200)
     end
+    next_tb.http_code = config_base.denyMsg.http_code or 403
+    --ngx.header.content_type = "text/html"
+    ngx.say(tostring(config_base.denyMsg.msg))
+    ngx.exit(200)
 end
 
 -- action = {allow,deny,log}
+-- 执行 动作时 的 log/计数（拦截操作） 操作
 local function do_action(_action,_mod_name,_id,_obj)
     _id = _id or tostring(_id)
     if _action == "allow" then
@@ -183,11 +181,11 @@ local function do_action(_action,_mod_name,_id,_obj)
         set_count_dict(_mod_name.." deny count")
         next_ctx.waf_log = next_ctx.waf_log or "[".._mod_name.."] deny No: ".._id
         action_deny()
-        return false
     elseif _action == "log" then
         set_count_dict(_mod_name.." log count")
         next_ctx.waf_log = next_ctx.waf_log or "[".._mod_name.."] log No: ".._id
     end
+    return false
 end
 
 -- 获取post_form表单数据
@@ -314,12 +312,10 @@ if  host_Mod_state == "on" and action_tag == "" then
                     get_post_form(post_form_n)
                 end
                 if optl.re_app_ext(v.app_ext,base_msg) then
-                    if do_action(v.action,"host_Mod",i) == true then
+                    if do_action(v.action,"host_Mod",i) then
                         return
-                    elseif do_action(v.action,"host_Mod",i) == false then
+                    else
                         break
-                    elseif do_action(v.action,"host_Mod",i) == nil then
-                        -- continue
                     end
                 end
             elseif v.network then
@@ -385,13 +381,21 @@ if config_is_on("app_Mod") and action_tag == "" then
                 elseif v.action[1] == "relua_str" then
                     local re_lua_do = loadstring(v.relua_str)
                     if re_lua_do() == "break" then
-                        ngx.exit(200)
+                        --ngx.exit(200)
+                        set_count_dict("app deny count")
+                        next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No: "..i
+                        action_deny()
+                        break
                     end
 
                 elseif v.action[1] == "relua" then
                     local re_saylua = optl.sayLua(config_base.htmlPath..v.relua)
                     if re_saylua == "break" then
-                        ngx.exit(200)
+                        --ngx.exit(200)
+                        set_count_dict("app deny count")
+                        next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No: "..i
+                        action_deny()
+                        break
                     end
 
                 elseif v.action[1] == "set" then -- 预留
@@ -411,12 +415,10 @@ if config_is_on("referer_Mod") and action_tag == "" then
     for i, v in ipairs( ref_mod ) do
         if v.state == "on" and host_uri_remath(v.hostname,v.uri) and remath_ext(referer,v.referer) then
             local _action = v.action or "deny"
-            if do_action(_action,"referer_Mod",i) == true then
+            if do_action(_action,"uri_Mod",i) then
                 return
-            elseif do_action(_action,"referer_Mod",i) == false then
+            else
                 break
-            elseif do_action(_action,"referer_Mod",i) == nil then
-                -- continue
             end
         end
     end
@@ -429,12 +431,10 @@ if config_is_on("uri_Mod") and action_tag == "" then
     for i, v in ipairs( uri_mod ) do
         if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
             local _action = v.action or "deny"
-            if do_action(_action,"uri_Mod",i) == true then
+            if do_action(_action,"uri_Mod",i) then
                 return
-            elseif do_action(_action,"uri_Mod",i) == false then
+            else
                 break
-            elseif do_action(_action,"uri_Mod",i) == nil then
-                -- continue
             end
         end
     end
@@ -463,12 +463,10 @@ if config_is_on("useragent_Mod") and action_tag == "" then
     for i, v in ipairs( uagent_mod ) do
         if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(useragent,v.useragent) then
             local _action = v.action or "deny"
-            if do_action(_action,"useragent_Mod",i) == true then
+            if do_action(_action,"useragent_Mod",i) then
                 return
-            elseif do_action(_action,"useragent_Mod",i) == false then
+            else
                 break
-            elseif do_action(_action,"useragent_Mod",i) == nil then
-                -- continue
             end
         end
     end
@@ -481,12 +479,10 @@ if config_is_on("cookie_Mod") and action_tag == "" then
     for i, v in ipairs( cookie_mod ) do
         if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(cookie,v.cookie) then
             local _action = v.action or "deny"
-            if do_action(_action,"cookie_Mod",i) == true then
+            if do_action(_action,"cookie_Mod",i) then
                 return
-            elseif do_action(_action,"cookie_Mod",i) == false then
+            else
                 break
-            elseif do_action(_action,"cookie_Mod",i) == nil then
-                -- continue
             end
         end
     end
@@ -498,20 +494,21 @@ if config_is_on("args_Mod") and action_tag == "" then
     if config_base.args_Mod["HPP_state"] == "on" then
         for k,v in pairs(args) do
             if type(v) == "table" then
-                do_action("deny","args_HPP","0")
+                do_action("deny","args_HPP","0") then
+                break
             end
         end
     end
-    local args_mod = getDict_Config("args_Mod")
-    for i,v in ipairs(args_mod) do
-        if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(args_data,v.args_data) then
-            local _action = v.action or "deny"
-            if do_action(_action,"args_Mod",i) == true then
-                return
-            elseif do_action(_action,"args_Mod",i) == false then
-                break
-            elseif do_action(_action,"args_Mod",i) == nil then
-                -- continue
+    if action_tag == "" then
+        local args_mod = getDict_Config("args_Mod")
+        for i,v in ipairs(args_mod) do
+            if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(args_data,v.args_data) then
+                local _action = v.action or "deny"
+                if do_action(_action,"args_Mod",i) then
+                    return
+                else
+                    break
+                end
             end
         end
     end
@@ -524,19 +521,20 @@ if config_is_on("post_Mod") and action_tag == "" and method == "POST" then
         for k,v in pairs(posts) do
             if type(v) == "table" then
                 do_action("deny","posts_HPP","0")
+                break
             end
         end
     end
-    local post_mod = getDict_Config("post_Mod")
-    for i,v in ipairs(post_mod) do
-        if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(posts_data,v.posts_data) then
-            local _action = v.action or "deny"
-            if do_action(_action,"post_Mod",i) == true then
-                return
-            elseif do_action(_action,"post_Mod",i) == false then
-                break
-            elseif do_action(_action,"post_Mod",i) == nil then
-                -- continue
+    if action_tag == "" then
+        local post_mod = getDict_Config("post_Mod")
+        for i,v in ipairs(post_mod) do
+            if v.state == "on" and remath_ext(host,v.hostname) and remath_ext(posts_data,v.posts_data) then
+                local _action = v.action or "deny"
+                if do_action(_action,"post_Mod",i) then
+                    return
+                else
+                    break
+                end
             end
         end
     end

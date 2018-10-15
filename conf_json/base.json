@@ -55,7 +55,7 @@
 
     "htmlPath" : "/opt/openresty/openstar/index/",
 
-    "denyMsg" : {"state":"on","msg":"openstar deny"},
+    "denyMsg" : {"state":"on","msg":"openstar deny","http_code":403},
 
     "log_conf": {
         "state":"on",
