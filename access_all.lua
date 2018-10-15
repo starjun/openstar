@@ -494,7 +494,7 @@ if config_is_on("args_Mod") and action_tag == "" then
     if config_base.args_Mod["HPP_state"] == "on" then
         for k,v in pairs(args) do
             if type(v) == "table" then
-                do_action("deny","args_HPP","0") then
+                do_action("deny","args_HPP","0")
                 break
             end
         end
