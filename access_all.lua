@@ -157,17 +157,17 @@ local function action_deny()
     if config_base.Mod_state == "log" or host_Mod_state == "log" then
         return
     end
+    local denyhtml = tostring(config_base.denyMsg.msg)
     if config_base.denyMsg.state == "on" then
         local tb = getDict_Config("denyMsg")
         local host_deny_msg = tb[host] or {}
         next_tb.http_code = host_deny_msg.http_code or 403
-        --ngx.header.content_type = "text/html"
-        ngx.say(tostring(host_deny_msg.deny_msg))
-        ngx.exit(200)
+        denyhtml = host_deny_msg.deny_msg or denyhtml
+    else
+        next_tb.http_code = config_base.denyMsg.http_code or 403
     end
-    next_tb.http_code = config_base.denyMsg.http_code or 403
     --ngx.header.content_type = "text/html"
-    ngx.say(tostring(config_base.denyMsg.msg))
+    ngx.say(denyhtml)
     ngx.exit(200)
 end
 
