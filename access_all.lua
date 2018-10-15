@@ -381,21 +381,13 @@ if config_is_on("app_Mod") and action_tag == "" then
                 elseif v.action[1] == "relua_str" then
                     local re_lua_do = loadstring(v.relua_str)
                     if re_lua_do() == "break" then
-                        --ngx.exit(200)
-                        set_count_dict("app deny count")
-                        next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No: "..i
-                        action_deny()
-                        break
+                        ngx.exit(200)
                     end
 
                 elseif v.action[1] == "relua" then
                     local re_saylua = optl.sayLua(config_base.htmlPath..v.relua)
                     if re_saylua == "break" then
-                        --ngx.exit(200)
-                        set_count_dict("app deny count")
-                        next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No: "..i
-                        action_deny()
-                        break
+                        ngx.exit(200)
                     end
 
                 elseif v.action[1] == "set" then -- 预留
