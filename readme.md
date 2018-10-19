@@ -20,6 +20,7 @@ grammar_cjkRuby: true
       包含列表("in_list")   -- 包含的列表形式
       不区分大小写包含列表("rein_list")  --in_list扩展(不区分大小写)
       【json 同 list 一样】
+增加：长度("len") [Min,Max] 表示大于等于 Min,且小于等于 Max
 EG：
 "host":[[
           "www.baidu.",
@@ -27,6 +28,7 @@ EG：
         ],
             "start_list"
         ]
+"referer":[[0,150],"len"]   --- referer 长度 在 0~150 之间
 ```
 
 

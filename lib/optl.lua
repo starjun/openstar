@@ -139,6 +139,12 @@ local function remath(_str,_re_str,_options)
     elseif _options == "in" then
         return stool.stringIn(_str,_re_str)
     -- add new type
+    elseif _options == "len" then
+        if type(_re_str) ~= "table" then return false end
+        local len_str = #_str
+        if len_str >= _re_str[1] and len_str <= _re_str[2] then
+            return true
+        end
     elseif _options == "start_list" then
         if type(_re_str) ~= "table" then return false end
         for _,v in ipairs(_re_str) do

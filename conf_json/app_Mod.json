@@ -82,6 +82,15 @@
     {
         "state": "on",
         "action": ["deny"],
+        "hostname": ["localhost5460",""],
+        "uri": ["/len",""],
+        "app_ext":[
+        ["args",[[5,15],"len",["arg_len"],true]]
+        ]
+    },
+    {
+        "state": "on",
+        "action": ["deny"],
         "post_form":1024,
         "hostname": ["localhost5460",""],
         "uri": ["/api/test/debug",""],
