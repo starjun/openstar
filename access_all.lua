@@ -161,10 +161,10 @@ local function action_deny()
     if config_base.denyMsg.state == "on" then
         local tb = getDict_Config("denyMsg")
         local host_deny_msg = tb[host] or {}
-        next_tb.http_code = host_deny_msg.http_code or 403
+        next_ctx.http_code = host_deny_msg.http_code or 403
         denyhtml = host_deny_msg.deny_msg or denyhtml
     else
-        next_tb.http_code = config_base.denyMsg.http_code or 403
+        next_ctx.http_code = config_base.denyMsg.http_code or 403
     end
     --ngx.header.content_type = "text/html"
     ngx.say(denyhtml)
