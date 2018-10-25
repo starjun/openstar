@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # bash 版本
-version=0.4
+version=0.5
 
 build_path=/opt/down
 install_path=/opt/openresty
@@ -110,6 +110,7 @@ elif [ "$1" = "openstar" ]; then
 
     ######### 保持原来所有规则
     alias cp='cp'
+    cp -Rf  ${install_path}/openstar/conf_json ${install_path}/openstar/conf_json_bak
     cp -Rf  ${install_path}/openstar.${newstar}/conf_json ${install_path}/openstar/
     chown -R nobody:nobody ${install_path}/openstar/
     alias cp='cp -i'

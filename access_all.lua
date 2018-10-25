@@ -566,6 +566,7 @@ if config_is_on("replace_Mod") and action_tag == "" then
     local Replace_Mod = getDict_Config("replace_Mod")
     for _,v in ipairs(Replace_Mod) do
         if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
+            ngx.req.clear_header("Accept-Encoding")-- 取消浏览器要求gzip操作)
             next_ctx.replace_Mod = v
             --ngx_ctx.body_mod = v
             break
