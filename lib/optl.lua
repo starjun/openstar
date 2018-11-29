@@ -215,7 +215,7 @@ local function remath(_str,_re_str,_options)
                 start_num = from - 5
             end
             local end_num = to
-            if (#str - to) > 5 then
+            if (#_str - to) > 5 then
                 end_num = to + 5
             end
             return true,string.sub(_str, start_num, end_num)

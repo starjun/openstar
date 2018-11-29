@@ -501,3 +501,16 @@ API相关介绍：
     id=count_id -- 返回对应host规则，规则个数
     id=[number] -- 返回对应host规则中，指定id
 
+# /api/read_dict
+  对应 dict 查询操作 waf.conf 所有dict 重要 dict 查询 [ip_dict,limit_ip_dict]
+
+- 查 action=get
+---
+    api/read_dict?action=get&dict=ip_dict
+    查询ip黑白名单列表，包括动态添加的黑名单IP
+
+    dict=limit_ip_dict
+    查询 实时 network_Mod模块和host_Mod频率限制规则对应的 实时计数信息
+
+---
+

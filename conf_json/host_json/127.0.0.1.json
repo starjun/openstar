@@ -1,0 +1,19 @@
+
+[
+    {
+        "state": "on",
+        "action":"deny",
+        "uri": ["/post.html",""],
+        "post_form":1024,
+        "app_ext":[
+        ["post_form",["\\.(jpg|jpeg|png|webp|gif)$","jio",["image0",2],true],"or"],
+        ["post_form",["(;|-|/)","jio",["image0",2]]]
+        ]
+    },
+    {
+        "state": "on",
+        "action":"deny",
+        "network":{"maxReqs":5,"pTime":10,"blackTime":600,"guid":"cookie_userguid"},
+        "uri": ["/index.html",""]
+    }
+]
