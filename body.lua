@@ -2,6 +2,7 @@
 local ngx_var = ngx.var
 local ngx_unescape_uri = ngx.unescape_uri
 local next_ctx = ngx.ctx.next_ctx or {}
+local type = type
 
 if type(next_ctx.replace_Mod) ~= "table" then
     return

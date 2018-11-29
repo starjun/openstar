@@ -13,7 +13,7 @@ local table_remove = table.remove
 local table_concat = table.concat
 local math_floor = math.floor
 
-local _M = {}
+local _M = {_VERSION = 0.1}
 
 -- 快速判断 table 类型 （数组字典）
 local function isArrayTable(t)

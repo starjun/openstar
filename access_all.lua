@@ -539,18 +539,22 @@ if config_is_on("network_Mod") and action_tag == "" then
     local tb_networkMod = getDict_Config("network_Mod")
     for i, v in ipairs( tb_networkMod ) do
         if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
-
-            local mod_ip = ip.." network_Mod No "..i
-            if network_ck(v.network,mod_ip) then
+            local rule_guid = v.network.guid
+            local tmp_guid = ip
+            if rule_guid then
+                tmp_guid = ngx_var[rule_guid] or ip
+            end
+            local deny_guid = tmp_guid.." network_Mod No "..i
+            if network_ck(v.network,deny_guid) then
                 local blacktime = v.network.blackTime or 10*60
                 if v.hostname[2] == "" then
                     if v.hostname[1] == "*" then
-                        ip_dict:safe_set(ip,mod_ip,blacktime)
+                        ip_dict:safe_set(ip,deny_guid,blacktime)
                     else
-                        ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
+                        ip_dict:safe_set(host.."_"..ip,deny_guid,blacktime)
                     end
                 else
-                    ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
+                    ip_dict:safe_set(host.."_"..ip,deny_guid,blacktime)
                 end
                 next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
                 action_deny()

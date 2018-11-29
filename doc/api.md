@@ -283,7 +283,7 @@ API相关介绍：
 
     错误:{"code":"error","msg":"error info"}
 
-# /api/redis
+# /api/dict_redis
   redis相关操作
 
 - set key action=set

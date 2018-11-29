@@ -208,8 +208,18 @@ local function remath(_str,_re_str,_options)
         --- 正则匹配
         local from, to = ngx_re_find(_str, _re_str, _options)
         if from ~= nil then
-            --return true,string.sub(_str, from, to)
-            return true
+            -- payload
+            -- start_num,end_num
+            local start_num = from
+            if from > 5 then
+                start_num = from - 5
+            end
+            local end_num = to
+            if (#str - to) > 5 then
+                end_num = to + 5
+            end
+            return true,string.sub(_str, start_num, end_num)
+            --return true
         end
     end
 end

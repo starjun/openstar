@@ -1,6 +1,5 @@
 
 local config = {}
-local require = require
 local cjson_safe = require "cjson.safe"
 local ngx_shared = ngx.shared
 local io_open = io.open
@@ -21,8 +20,9 @@ local ip_dict = ngx_shared.ip_dict
 local function readfile(_filepath,_ty)
     local fd = io_open(_filepath,"r")
     if fd == nil then return end
-    if _ty == nil then
-        local str = fd:read("*a") --- 全部内容读取
+    if not _ty then
+        --- 全部内容读取
+        local str = fd:read("*a")
         fd:close()
         return str
     else
@@ -59,21 +59,21 @@ function loadConfig()
     local denyIpList = readfile(_basedir.."ip/deny.ip",true)
     local logIpList = readfile(_basedir.."ip/log.ip",true)
     for _,v in ipairs(allowIpList) do
+        v = string_gsub(v,"\r\n","")
         v = string_gsub(v,"\r","")
         v = string_gsub(v,"\n","")
-        v = string_gsub(v,"\r\n","")
         ip_dict:safe_set(v,"allow",0)
     end
     for _,v in ipairs(denyIpList) do
+        v = string_gsub(v,"\r\n","")
         v = string_gsub(v,"\r","")
         v = string_gsub(v,"\n","")
-        v = string_gsub(v,"\r\n","")
         ip_dict:safe_set(v,"deny",0)
     end
     for _,v in ipairs(logIpList) do
+        v = string_gsub(v,"\r\n","")
         v = string_gsub(v,"\r","")
         v = string_gsub(v,"\n","")
-        v = string_gsub(v,"\r\n","")
         ip_dict:safe_set(v,"log",0)
     end
 
