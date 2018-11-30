@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # bash 版本
-version=0.5
+version=0.6
 
 build_path=/opt/down
 install_path=/opt/openresty
@@ -15,7 +15,7 @@ openstar_uri=https://codeload.github.com/starjun/openstar/zip/master
 rpm_uri=http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
 
 function YUM_start(){
-    yum install -y epel-release
+    yum install -y htop goaccess epel-release
     rpm -Uvh ${rpm_uri}
     yum groupinstall -y "Development tools"
     yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip
@@ -85,6 +85,7 @@ function check(){
     ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
     ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
     cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || wget https://www.nginx.org/favicon.ico)
+    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile)
     echo "check Done~!"
 }
 
@@ -119,6 +120,7 @@ elif [ "$1" = "openstar" ]; then
 elif [ "$1" = "openresty" ]; then
 
     openresty
+    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile)
 elif [ "$1" = "check" ]; then
 
     check

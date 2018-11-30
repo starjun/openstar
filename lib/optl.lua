@@ -17,7 +17,7 @@ local config_version = 0
 local function readfile(_filepath,_ty)
     local fd = io.open(_filepath,"r")
     if fd == nil then return end
-    if _ty == nil then
+    if not _ty then
         local str = fd:read("*a") --- 全部内容读取
         fd:close()
         return str
@@ -129,7 +129,7 @@ end
 -- eg "hostname":[["www.abc.com","127.0.0.1"],"list"]
 local function remath(_str,_re_str,_options)
     if _str == nil or _re_str == nil or _options == nil then return false end
-    if _options == "" then
+    if _options == "" or _options == "=" then
         -- 纯字符串匹配 * 表示任意
         if _str == _re_str or _re_str == "*" then
             return true
@@ -432,7 +432,8 @@ local function ngx_find(_str)
 
     -- string.find 字符串 会走jit,所以就没有用ngx模块
     -- 当前情况下，对token仅是全局替换一次，请注意
-    if string.find(_str,"@token@") ~= nil then
+    -- string.find(_str,"@token@") ~= nil
+    if stool.stringIn(_str,"@token@")  then
         _str = ngx_re_gsub(_str,"@token@",tostring(set_token()))
     end
     return _str
@@ -451,7 +452,7 @@ local function sayHtml_ext(_html,_find_type,_content_type)
         _html = ngx_find(_html)
     end
 
-    if _content_type ~= nil then
+    if _content_type then
         ngx.header.content_type = _content_type
     end
 
@@ -464,7 +465,7 @@ local function sayFile(_filename,_header)
     --ngx.header.content_type = "text/html"
     --local str = readfile(Config.base.htmlPath..filename)
     local str = readfile(_filename) or "filename error"
-    if _header ~= nil then
+    if _header then
         ngx.header.content_type = _header
     end
     -- 对读取的文件内容进行 ngx_find
