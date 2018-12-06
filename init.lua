@@ -19,7 +19,7 @@ local ip_dict = ngx_shared.ip_dict
 --- loadjson()调用
 local function readfile(_filepath,_ty)
     local fd = io_open(_filepath,"r")
-    if fd == nil then return end
+    if not fd then return end
     if not _ty then
         --- 全部内容读取
         local str = fd:read("*a")

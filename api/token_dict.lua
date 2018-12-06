@@ -4,7 +4,13 @@
 
 local optl = require("optl")
 
-local get_argsByName = optl.get_argsByName
+local get_argsByName
+if ngx.var.request_method == "POST" then
+    get_argsByName = optl.get_postByName
+elseif ngx.var.request_method == "GET" then
+    get_argsByName = optl.get_argsByName
+end
+
 local _action = get_argsByName("action")
 local _token = get_argsByName("token")
 local token_dict = ngx.shared.token_dict
