@@ -579,8 +579,6 @@ if config_is_on("network_Mod") and action_tag == "" then
                     host_dict:safe_set(host.."_guid",v.network.guid,blacktime)
                     ip_dict:safe_set(host.."_"..guid_value,mod_host_guid,blacktime)
                     next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny No: "..i
-                    -- network 触发直接拦截
-                    set_count_dict(host.." deny count")
                     action_deny()
                     break
                 end
