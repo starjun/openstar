@@ -35,6 +35,9 @@ EG：
 
 # 变更历史
 
+## 1.7.1.10 更新支持基于业务属性进行限速的功能
+network_Mod: `"network":{"maxReqs":30,"pTime":10,"blackTime":600,"guid":"cookie_userguid"}`，业务代码ngx.var[%guid%]，实际上是从ngx.var中去值进行限速操作，所以一定要配置正常；这里表示从cookie中名称为userguid的值进行频率统计来限速。默认则是用ip限速
+
 ## 1.7 更新二阶匹配规则支持取反，动作取消next等
 原二阶规则：["baidu","in"],支持取反后：["baidu","in",true];最后的默认是nil也就是false,不取反的意思，所以规则基本可以之间复用，动作为next的需要修改一下即可
 

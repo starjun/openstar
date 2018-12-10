@@ -248,6 +248,21 @@ if config_is_on("ip_Mod") then
         set_count_dict(tmp_host_ip)
         action_deny()
     end
+    -- 基于 业务属性 进行拦截
+    local host_guid_name = host_dict:get(host.."_guid")
+    if host_guid_name then
+        -- 基于业务属性 拦截
+        -- 获取当前请求的业务属性 ngx.var[%guid%]
+        -- %host%..ngx.var[%guid_name%]
+        local tmp_gd = ngx_var[host_guid_name]
+        if tmp_gd then
+            local ip_dict_get_guid = ip_dict:get(host.."_"..tmp_gd)
+            if ip_dict_get_guid then
+                -- next_ctx.waf_log = "[ip_Mod：业务属性] deny"
+                action_deny()
+            end
+        end
+    end
 end
 
 ---  STEP 2
@@ -320,15 +335,31 @@ if  host_Mod_state == "on" and action_tag == "" then
                     end
                 end
             elseif v.network then
-                local mod_host_ip = host.."_"..ip.." host_network No "..i
                 local blacktime = v.network["blacktime"] or 600
-                if network_ck(v.network,mod_host_ip) then
-                    ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
-                    next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
-                    -- network 触发直接拦截
-                    set_count_dict(host.." deny count")
-                    action_deny()
-                    break
+                if v.network.guid and ngx_var[v.network.guid] then
+                    -- 业务属性 计数
+                    local guid_value = ngx_var[v.network.guid]
+                    local mod_host_guid = host..guid_value.." host_network No "..i
+                    if network_ck(v.network,mod_host_guid) then
+                        host_dict:safe_set(host.."_guid",v.network.guid,blacktime)
+                        ip_dict:safe_set(host.."_"..guid_value,mod_host_guid,blacktime)
+                        next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
+                        -- network 触发直接拦截
+                        set_count_dict(host.." deny count")
+                        action_deny()
+                        break
+                    end
+                else
+                    -- ip 计数
+                    local mod_host_ip = host.."_"..ip.." host_network No "..i
+                    if network_ck(v.network,mod_host_ip) then
+                        ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
+                        next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
+                        -- network 触发直接拦截
+                        set_count_dict(host.." deny count")
+                        action_deny()
+                        break
+                    end
                 end
             end
         end
@@ -539,23 +570,38 @@ if config_is_on("network_Mod") and action_tag == "" then
     local tb_networkMod = getDict_Config("network_Mod")
     for i, v in ipairs( tb_networkMod ) do
         if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
-
-            local mod_ip = ip.." network_Mod No "..i
-            if network_ck(v.network,mod_ip) then
-                local blacktime = v.network.blackTime or 10*60
-                if v.hostname[2] == "" then
-                    if v.hostname[1] == "*" then
-                        ip_dict:safe_set(ip,mod_ip,blacktime)
-                    else
-                        ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
-                    end
-                else
-                    ip_dict:safe_set(host.."_"..ip,mod_ip,blacktime)
+            local blacktime = v.network.blackTime or 10*60
+            -- 业务属性 计数
+            if v.network.guid and ngx_var[v.network.guid] then
+                local guid_value = ngx_var[v.network.guid]
+                local mod_host_guid = host..guid_value.." network_Mod No "..i
+                if network_ck(v.network,mod_host_guid) then
+                    host_dict:safe_set(host.."_guid",v.network.guid,blacktime)
+                    ip_dict:safe_set(host.."_"..guid_value,mod_host_guid,blacktime)
+                    next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny No: "..i
+                    -- network 触发直接拦截
+                    set_count_dict(host.." deny count")
+                    action_deny()
+                    break
                 end
-                next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
-                action_deny()
-                --ngx.say("frist network deny")
-                break
+            else
+                -- ip 属性 计数
+                local deny_guid = ip.." network_Mod No "..i
+                if network_ck(v.network,deny_guid) then
+                    if v.hostname[2] == "" then
+                        if v.hostname[1] == "*" then
+                            ip_dict:safe_set(ip,deny_guid,blacktime)
+                        else
+                            ip_dict:safe_set(host.."_"..ip,deny_guid,blacktime)
+                        end
+                    else
+                        ip_dict:safe_set(host.."_"..ip,deny_guid,blacktime)
+                    end
+                    next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
+                    action_deny()
+                    --ngx.say("frist network deny")
+                    break
+                end
             end
         end
     end
