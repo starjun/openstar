@@ -16,7 +16,7 @@ local config_version = 0
 --- 读取文件（全部读取/按行读取）
 local function readfile(_filepath,_ty)
     local fd = io.open(_filepath,"r")
-    if fd == nil then return end
+    if not fd then return end
     if not _ty then
         local str = fd:read("*a") --- 全部内容读取
         fd:close()
@@ -80,7 +80,7 @@ local function tableTostring(_obj)
 end
 
 local function stringTotable(_str)
-    if _str == nil then return end
+    if not _str then return end
     local ret = loadstring("return ".._str)()
     return ret
 end
@@ -138,7 +138,7 @@ local function remath(_str,_re_str,_options)
         return stool.isInArrayTb(_str,_re_str)
     elseif _options == "in" then
         return stool.stringIn(_str,_re_str)
-    -- add new type
+        -- add new type
     elseif _options == "len" then
         if type(_re_str) ~= "table" then return false end
         local len_str = #_str
@@ -320,7 +320,7 @@ local function remath_form(_tbMod,_modrule)
         return false
     end
     for _,v in ipairs(_tbMod) do
-        if v[1] == _form_name then
+        if v[1] == _form_name or _form_name == "*" then
             local _str = v[_form_n]
             if remath_Invert(_str,_re_str,_options,_Invert) then
                 return true

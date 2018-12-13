@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # bash 版本
-version=0.6
+version=0.7
 
 build_path=/opt/down
 install_path=/opt/openresty
@@ -85,7 +85,7 @@ function check(){
     ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
     ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
     cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || wget https://www.nginx.org/favicon.ico)
-    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile)
+    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile && export PATH)
     echo "check Done~!"
 }
 
@@ -98,8 +98,7 @@ if [ "$1" = "install" ];then
     openstar
 
     ##############################
-    echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile
-    export PATH
+    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile && export PATH)
 
 elif [ "$1" = "openstar" ]; then
     cd ${install_path}
@@ -120,10 +119,11 @@ elif [ "$1" = "openstar" ]; then
 elif [ "$1" = "openresty" ]; then
 
     openresty
-    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile)
+    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile && export PATH)
 elif [ "$1" = "check" ]; then
 
     check
+    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile && export PATH)
 else
     echo_ServerMsg
 fi
