@@ -130,6 +130,7 @@ local function network_ck(_tb_network,_uid)
         return
     else
         if ip_count >= maxReqs then
+            limit_ip_dict:delete(_uid)
             return true
         else
             limit_ip_dict:incr(_uid,1)
