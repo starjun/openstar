@@ -20,15 +20,14 @@ local _id = get_argsByName("id")
 --- 用于给 limit_ip_dict,count_dict 等查询数据使用
 
 local tmpdict = ngx.shared[_dict]
-if tmpdict == nil then
+if not tmpdict then
     optl.sayHtml_ext({code="error",msg="dict is nil"})
 end
 
 if _action == "get" then
-
     if _id == "count_id" then
         local _tb = tmpdict:get_keys(0)
-        optl.sayHtml_ext({code="ok",count_id=table.getn(_tb)})
+        optl.sayHtml_ext({code="ok",count_id=#_tb})
     elseif _id == "all_id" then
         local _tb,tb_all = tmpdict:get_keys(0),{}
         for i,v in ipairs(_tb) do
@@ -42,9 +41,7 @@ if _action == "get" then
         optl.sayHtml_ext(_tb)
     else
         optl.sayHtml_ext({code="ok",id=_id,value=tmpdict:get(_id)})
-        --ngx.say(tmpdict:get(_id))
     end
-
 else
     optl.sayHtml_ext({code="error",msg="action is error"})
 end

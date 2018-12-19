@@ -7,6 +7,17 @@ local config = optl.config
 local config_base = config.base or {}
 local action_tag = ""
 
+local string_find = string.find
+local string_upper = string.upper
+local type = type
+local tostring = tostring
+local table_insert = table.insert
+local ipairs = ipairs
+local pairs = pairs
+local loadstring = loadstring
+local tonumber = tonumber
+local math_min = math.min
+
 local limit_ip_dict = ngx.shared.limit_ip_dict
 local ip_dict = ngx.shared.ip_dict
 local host_dict = ngx.shared.host_dict
@@ -48,7 +59,7 @@ ngx_ctx.next_ctx = next_ctx
     local posts_all
     if method == "POST" and http_content_type then
         -- multipart/form-data; boundary=----WebKitForm...
-        local from,to = string.find(http_content_type,"x-www-form-urlencoded",1,true)
+        local from,to = string_find(http_content_type,"x-www-form-urlencoded",1,true)
         if from then
             posts = ngx.req.get_post_args()
             posts_data = optl.get_table(posts)
@@ -111,7 +122,7 @@ end
 local function remath_ext(str,remath_rule)
     if type(remath_rule) ~= "table" then return false end
     if remath_rule[2] == "rein_list" then
-        return optl.remath_Invert(string.upper(str),remath_rule[1],remath_rule[2],remath_rule[3])
+        return optl.remath_Invert(string_upper(str),remath_rule[1],remath_rule[2],remath_rule[3])
     else
         return optl.remath_Invert(str,remath_rule[1],remath_rule[2],remath_rule[3])
     end
@@ -204,7 +215,7 @@ local function get_post_form(_len)
            if not part_body then
               break
            end
-           table.insert(tmp_tb, {name,filename,mime,part_body})
+           table_insert(tmp_tb, {name,filename,mime,part_body})
         end
         base_msg.post_form = tmp_tb
     end
@@ -325,7 +336,7 @@ if  host_Mod_state == "on" and action_tag == "" then
                 if type(v.post_form) == "number" and method == "POST" and base_msg.post_form == nil then
                     local post_form_n = v.post_form
                     local base_post_from_n = tonumber(config_base.post_form) or 0
-                    post_form_n = math.min(post_form_n,base_post_from_n)
+                    post_form_n = math_min(post_form_n,base_post_from_n)
                     get_post_form(post_form_n)
                 end
                 if optl.re_app_ext(v.app_ext,base_msg) then
@@ -378,7 +389,7 @@ if config_is_on("app_Mod") and action_tag == "" then
             if type(v.post_form) == "number" and method == "POST" and base_msg.post_form == nil then
                 local post_form_n = v.post_form
                 local base_post_from_n = tonumber(config_base.post_form) or 0
-                post_form_n = math.min(post_form_n,base_post_from_n)
+                post_form_n = math_min(post_form_n,base_post_from_n)
                 get_post_form(post_form_n)
             end
             if v.app_ext == nil or optl.re_app_ext(v.app_ext,base_msg) then
