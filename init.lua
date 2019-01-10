@@ -111,7 +111,6 @@ function loadConfig()
     -- denyMsg list
     config.denyMsg = loadjson(_basedir.."denyMsg.json")
 
-    -- 后续 整个config放到一个key中，不再分开，减少acc阶段序列化次数
     config_dict:safe_set("config",cjson_safe.encode(config),0)
     config_dict:safe_set("config_version",0,0)
 

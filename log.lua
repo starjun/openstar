@@ -8,6 +8,9 @@ local type = type
 local pairs = pairs
 local ipairs = ipairs
 local tostring = tostring
+local table_insert = table.insert
+local table_concat = table.concat
+local io_open = io.open
 
 if type(base_msg) == "table" then
     -- 时间
@@ -58,15 +61,15 @@ local function logformat(_basemsg,_log_conf)
         if type(x) == "table" then
             x = optl.tableTojson(x)
         end
-        table.insert(re_log_tb,x)
+        table_insert(re_log_tb,x)
     end
-    return table.concat(re_log_tb,_log_conf.tb_concat)
+    return table_concat(re_log_tb,_log_conf.tb_concat)
 end
 
 local function writefile_handler(_filepath,_msg,_ty)
     _ty = _ty or "a+"
     if not fd then
-        fd = io.open(_filepath,_ty)
+        fd = io_open(_filepath,_ty)
         if not fd then
             ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg))
             return

@@ -8,7 +8,6 @@ local stool = require("stool")
 local ngx_log = ngx.log
 local ngx_ERR = ngx.ERR
 local ngx_thread = ngx.thread
-local timer_at = ngx.timer.at
 local timer_every = ngx.timer.every
 local config_dict = ngx_shared.config_dict
 local cjson_safe = require "cjson.safe"
@@ -27,28 +26,14 @@ end
 -- 拉取config_dict配置数据
 local function pull_redisConfig()
 
-    -- local httpc = http.new()
-    -- local _pull_url = "http://127.0.0.1:5460/api/dict_redis?action=pull&key=all_dict"
-    -- local res, err = httpc:request_uri(_push_url,{
-    --        method = "GET",
-    --        headers = {
-    --          ["Host"] = "127.0.0.1:5460",
-    --        }
-    --      })
-
     local httpc = http.new()
-    -- The generic form gives us more control. We must connect manually.
-    httpc:set_timeout(500)
-    httpc:connect("127.0.0.1", 5460)
-
-    -- And request using a path, rather than a full URI.
-    local res, err = httpc:request{
-        path = "/api/dict_redis?action=pull&key=all_dict",
-        headers = {
-            ["Host"] = "127.0.0.1:5460",
-        },
-    }
-
+    local _url = "http://127.0.0.1:5460/api/dict_redis?action=pull&key=all_dict"
+    local res, err = httpc:request_uri(_url,{
+           method = "GET",
+           headers = {
+             ["Host"] = "127.0.0.1:5460",
+           }
+         })
     if not res then
         ngx_log(ngx_ERR, "failed to pull_redisConfig request: ", err)
         return
@@ -61,17 +46,13 @@ end
 local function push_Master()
 
     local httpc = http.new()
-    -- The generic form gives us more control. We must connect manually.
-    httpc:set_timeout(500)
-    httpc:connect("127.0.0.1", 5460)
-
-    local res, err = httpc:request{
-        path = "/api/dict_redis?action=push&key=all_dict&slave=yes",
-        headers = {
-            ["Host"] = "127.0.0.1:5460",
-        },
-    }
-
+    local _url = "http://127.0.0.1:5460/api/dict_redis?action=push&key=all_dict&slave=yes"
+    local res, err = httpc:request_uri(_url,{
+           method = "GET",
+           headers = {
+             ["Host"] = "127.0.0.1:5460",
+           }
+         })
     if not res then
         ngx_log(ngx_ERR, "failed to push_Master request: ", err)
         return
@@ -84,19 +65,13 @@ end
 local function push_count_dict()
 
     local httpc = http.new()
-    -- The generic form gives us more control. We must connect manually.
-    httpc:set_timeout(500)
-    httpc:connect("127.0.0.1", 5460)
-
-    -- And request using a path, rather than a full URI.
-    -- 目前是调试阶段 denug=yes ,否则就是 no
-    local res, err = httpc:request{
-        path = "/api/dict_redis?action=push&key=count_dict",
-        headers = {
-            ["Host"] = "127.0.0.1:5460",
-        },
-    }
-
+    local _url = "http://127.0.0.1:5460/api/dict_redis?action=push&key=count_dict"
+    local res, err = httpc:request_uri(_url,{
+           method = "GET",
+           headers = {
+             ["Host"] = "127.0.0.1:5460",
+           }
+         })
     if not res then
         ngx_log(ngx_ERR, "failed to push_count_dict request: ", err)
         return
@@ -109,20 +84,13 @@ end
 local function save_configFile(_debug)
 
     local httpc = http.new()
-
-    -- The generic form gives us more control. We must connect manually.
-    httpc:set_timeout(500)
-    httpc:connect("127.0.0.1", 5460)
-
-    -- And request using a path, rather than a full URI.
-    -- 调试阶段debug=yes 否则应该是 no
-    local res, err = httpc:request{
-        path = "/api/config?action=save&mod=all_Mod&debug=".._debug,
-        headers = {
-            ["Host"] = "127.0.0.1:5460",
-        },
-    }
-
+    local _url = "http://127.0.0.1:5460/api/config?action=save&mod=all_Mod&debug=".._debug
+    local res, err = httpc:request_uri(_url,{
+           method = "GET",
+           headers = {
+             ["Host"] = "127.0.0.1:5460",
+           }
+         })
     if not res then
         ngx_log(ngx_ERR, "failed to save_configFile request: ", err)
         return
