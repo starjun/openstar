@@ -13,7 +13,7 @@ local JSON = require("JSON")
 local get_argsByName
 if ngx.var.request_method == "POST" then
     get_argsByName = optl.get_postByName
-elseif ngx.var.request_method == "GET" then
+else
     get_argsByName = optl.get_argsByName
 end
 local sayHtml_ext = optl.sayHtml_ext

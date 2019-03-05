@@ -46,7 +46,7 @@ function openresty(){
     tar zxvf openresty-${install_version}.tar.gz
 
     cd ${build_path}/openresty-${install_version}
-    ./configure --prefix=${install_path} --with-luajit --with-http_v2_module
+    ./configure --prefix=${install_path} --with-http_realip_module --with-http_v2_module
     gmake
     gmake install
 
