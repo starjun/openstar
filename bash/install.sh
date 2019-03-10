@@ -46,7 +46,7 @@ function openresty(){
     tar zxvf openresty-${install_version}.tar.gz
 
     cd ${build_path}/openresty-${install_version}
-    ./configure --prefix=${install_path} --with-luajit --with-http_v2_module
+    ./configure --prefix=${install_path} --with-http_realip_module --with-http_v2_module
     gmake
     gmake install
 
@@ -85,7 +85,6 @@ function check(){
     ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
     ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
     cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || wget https://www.nginx.org/favicon.ico)
-    cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile && export PATH)
     echo "check Done~!"
 }
 

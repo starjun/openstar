@@ -11,7 +11,7 @@ local optl = require("optl")
 local get_argsByName
 if ngx.var.request_method == "POST" then
     get_argsByName = optl.get_postByName
-elseif ngx.var.request_method == "GET" then
+else
     get_argsByName = optl.get_argsByName
 end
 
@@ -77,15 +77,18 @@ elseif _action == "set" then
     if _id == "" then -- id 参数不存在 （整体set）
         local tmp_value = cjson_safe.decode(_value)--将value参数的值 转换成table
         if type(tmp_value) == "table" then
-            local _old_value = _tb
+            if stool.table_compare(_tb,tmp_value) then
+                optl.sayHtml_ext({code="ok",msg="no change!"})
+            end
             config[_mod] = tmp_value
             local re = config_dict:replace("config",cjson_safe.encode(config))--将对应mod整体进行替换
-            if re ~= true then
+            if re then
+                config_dict:incr("config_version",1)
+                optl.sayHtml_ext({code=_code,old_value=_tb,new_value=tmp_value})
+            else
                 _code = "error"
                 optl.sayHtml_ext({code=_code,msg="replace error"})
             end
-            config_dict:incr("config_version",1)
-            optl.sayHtml_ext({code=_code,old_value=_old_value,new_value=tmp_value})
         else
             optl.sayHtml_ext({code="error",msg="value to json error"})
         end

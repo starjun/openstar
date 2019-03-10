@@ -3,6 +3,7 @@ local ngx_var = ngx.var
 local ngx_unescape_uri = ngx.unescape_uri
 local next_ctx = ngx.ctx.next_ctx or {}
 local type = type
+local ipairs = ipairs
 
 if type(next_ctx.replace_Mod) ~= "table" then
     return
@@ -30,7 +31,7 @@ local token_tmp = next_ctx.request_guid
 
 if ngx.arg[1] ~= '' then -- 请求正常
     local chunk = token_dict:get(token_tmp)
-    if chunk == nil then
+    if not chunk then
         chunk = ngx.arg[1]
         token_dict:set(token_tmp,chunk,15)
     else

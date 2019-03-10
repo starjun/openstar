@@ -13,7 +13,7 @@ local JSON = require("JSON")
 local get_argsByName
 if ngx.var.request_method == "POST" then
     get_argsByName = optl.get_postByName
-elseif ngx.var.request_method == "GET" then
+else
     get_argsByName = optl.get_argsByName
 end
 local sayHtml_ext = optl.sayHtml_ext
@@ -39,17 +39,24 @@ local function list_to_str(_list)
     return re
 end
 
-local function config_save()
-    local re
-    for k,v in pairs(config) do
-        if _debug == "no" then
-            re = optl.writefile(config_base.jsonPath..k..".json",JSON:encode_pretty(v),"w+")
-        else
-            re = optl.writefile(config_base.jsonPath..k.."_bak.json",JSON:encode_pretty(v),"w+")
-        end
-        if not re then break end
+local function config_save(_mod)
+    _mod = _mod or ""
+    if _mod ~= "" and config[_mod] == nil then
+        return false,"config[".._mod.."] is Non-existent"
     end
-    return re
+    local suffix = ".json.bak"
+    if _debug == "no" then
+        suffix = ".json"
+    end
+    for k,v in pairs(config) do
+        if _mod == "" or _mod == k then
+            local re = optl.writefile(config_base.jsonPath..k..suffix,JSON:encode_pretty(v),"w+")
+            if not re then return
+                false,k.." save error!"
+            end
+        end
+    end
+    return true
 end
 
 local function hostMod_save(_hostname)
@@ -70,32 +77,19 @@ local function hostMod_save(_hostname)
         end
     end
 
-    local json_host_Mod = JSON:encode_pretty(_host_Mod)
-
-    local re
+    local suffix = ".json.bak"
     if _debug == "no" then
-        re = optl.writefile(config_base.jsonPath.."host_json/host_Mod.json",json_host_Mod,"w+")
+        suffix = ".json"
+    end
+    local re = optl.writefile(config_base.jsonPath.."host_json/host_Mod"..suffix,JSON:encode_pretty(_host_Mod),"w+")
+    if not re then
+        return false
+    end
+    for k,v in pairs(tb_host_mod) do
+        local tmp_v = optl.stringTojson(v)
+        local re = optl.writefile(config_base.jsonPath.."host_json/"..k..suffix,JSON:encode_pretty(tmp_v),"w+")
         if not re then
             return false
-        end
-        for k,v in pairs(tb_host_mod) do
-            local tmp_v = optl.stringTojson(v)
-            re = optl.writefile(config_base.jsonPath.."host_json/"..k..".json",JSON:encode_pretty(tmp_v),"w+")
-            if not re then
-                return false
-            end
-        end
-    else
-        re = optl.writefile(config_base.jsonPath.."host_json/host_Mod_bak.json",json_host_Mod,"w+")
-        if not re then
-            return false
-        end
-        for k,v in pairs(tb_host_mod) do
-            local tmp_v = optl.stringTojson(v)
-            re = optl.writefile(config_base.jsonPath.."host_json/"..k.."_bak.json",JSON:encode_pretty(tmp_v),"w+")
-            if not re then
-                return false
-            end
         end
     end
     return true
@@ -107,6 +101,7 @@ local function ip_dict_save()
     for _,v in ipairs(_tb_ip_name) do
         local ip_value = ip_dict:get(v)
         --- init 中，永久ip只有这3个value
+        --  后续可以通过 ttl 进行判断
         if ip_value == "allow" then
             table.insert(allowIp,v)
         elseif ip_value == "deny" then
@@ -115,46 +110,41 @@ local function ip_dict_save()
             table.insert(logIp,v)
         end
     end
-    local _str_ending = ".ip.bak"
+    local suffix = ".ip.bak"
     if _debug == "no" then
-        _str_ending = ".ip"
+        suffix = ".ip"
     end
     -- 保存3个文件 暂时不检查每次的保存情况
     local re
-    re = optl.writefile(config_base.jsonPath.."ip/allow".._str_ending,list_to_str(allowIp),"w+")
-    re = optl.writefile(config_base.jsonPath.."ip/deny".._str_ending,list_to_str(denyIp),"w+")
-    re = optl.writefile(config_base.jsonPath.."ip/log".._str_ending,list_to_str(logIp),"w+")
+    re = optl.writefile(config_base.jsonPath.."ip/allow"..suffix,list_to_str(allowIp),"w+")
+    re = optl.writefile(config_base.jsonPath.."ip/deny"..suffix,list_to_str(denyIp),"w+")
+    re = optl.writefile(config_base.jsonPath.."ip/log"..suffix,list_to_str(logIp),"w+")
     return re
 end
 
 if _action == "save" then
-
     if _mod == "all_Mod" then
 
         local _code = "ok"
         local _msg = "save ok"
-
         local re = config_save()
         if not re then
             _code = "error"
             _msg = "config_dic save error"
             sayHtml_ext({code=_code,msg=_msg,debug=_debug})
         end
-
         re = hostMod_save()
         if not re then
             _code = "error"
             _msg = "host_dict save error"
+            sayHtml_ext({code=_code,msg=_msg,debug=_debug})
         end
-
         re = ip_dict_save()
         if not re then
             _code = "error"
             _msg = "ip_dict save error"
+            sayHtml_ext({code=_code,msg=_msg,debug=_debug})
         end
-
-        sayHtml_ext({code=_code,msg=_msg,debug=_debug})
-
     elseif _mod == "host_Mod" then
         local re = hostMod_save(_host)
         if re then
@@ -162,7 +152,6 @@ if _action == "save" then
         else
             sayHtml_ext({code="error",msg="host_dict save error",debug=_debug})
         end
-
     elseif _mod == "ip_Mod" then
         local  re = ip_dict_save()
         if re then
@@ -172,34 +161,18 @@ if _action == "save" then
             local _msg = "ip_dict save error"
             optl.sayHtml_ext({code="error",msg=_msg,debug=_debug})
         end
-
     else
-        local _msg = config[_mod]
-        local re
-        local _code = "ok"
-        if not _msg then
-            sayHtml_ext({code="error",msg="mod is Non-existent",debug=_debug})
-        end
-
-        if _debug == "no" then
-            re = optl.writefile(config_base.jsonPath.._mod..".json",JSON:encode_pretty(_msg),"w+")
-        else
-            re = optl.writefile(config_base.jsonPath.._mod.."_bak.json",JSON:encode_pretty(_msg),"w+")
-        end
-
+        local _code,_msg = "ok",_mod.." save ok"
+        local re,err = config_save(_mod)
         if not re then
             _code = "error"
+            _msg = err
         end
         optl.sayHtml_ext({code=_code,msg=_msg,debug=_debug})
-
     end
-
 elseif _action =="reload" then
-
     loadConfig()
-    --ngx.say("it is ok")
     sayHtml_ext({code="ok",msg="reload ok"})
-
 else
     sayHtml_ext({code="error",msg="action is Non-existent"})
 end
