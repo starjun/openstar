@@ -1,0 +1,22 @@
+
+# path: /lib/systemd/system/redis.service && chmod 754
+# 配置开机启动： systemctl enable redis.service
+# 启动：systemctl start redis.service
+# 查看状态：systemctl status redis.service
+
+[Unit]
+Description=Redis Server Manager
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=redis
+Group=redis
+PIDFile=/var/run/redis_6379.pid
+ExecStart=/opt/redis/redis-5.0.3/src/redis-server /opt/redis/redis-5.0.3/redis.conf
+ExecStop=/opt/redis/redis-5.0.3/src/redis-cli shutdown
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
