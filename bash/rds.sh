@@ -4,7 +4,7 @@
 version=0.4
 
 down_path_redis=/opt/redis
-redis_version=3.2.1
+redis_version=5.0.3
 down_url=http://download.redis.io/releases/redis-${redis_version}.tar.gz
 
 install_path_redis=/opt/redis/redis-${redis_version}

@@ -353,8 +353,10 @@ local function action_remath(_modName,_modRule,_base_Msg)
             end
         end
     else
-        if remath_Invert(_base_Msg[_modName],_modRule[1],_modRule[2],_modRule[3]) then
-            return true
+        if _modRule[2] == "rein_list" then
+            return remath_Invert(string.upper(_base_Msg[_modName]),_modRule[1],_modRule[2],_modRule[3])
+        else
+            return remath_Invert(_base_Msg[_modName],_modRule[1],_modRule[2],_modRule[3])
         end
     end
 end
@@ -370,47 +372,6 @@ local function or_remath(_or_list,_basemsg)
         end
     end
     return false
-end
-
--- 对自定义规则列表进行判断
--- 传入一个规则列表 和 base_msg
--- _app_list = ["uri",["admin","in"],"and"]
--- _app_list = ["cookie",["\\w{5}","jio",true],"or"]
--- _app_list = ["referer",["baidu","in",true]]
---  table 类型
--- _app_list = ["args",["^[\\w]{6}$","jio",["cc",3],true],"and"]
--- _app_list = ["args",["true","@token@",["cctoken"],true]]
--- _app_list = ["headers",["^[\\w]{6}$","jio",["sign"],true]]
---  post_form 表单
-local function re_app_ext(_app_list,_basemsg)
-    if type(_app_list) ~= "table" then return false end
-    local list_cnt = #_app_list
-    local tmp_or = {}
-    for i,v in ipairs(_app_list) do
-        if v[3] == "or" then
-            table.insert(tmp_or,v)
-            if i == list_cnt then
-                return or_remath(tmp_or,_basemsg)
-            end
-        else
-            if #tmp_or == 0 then -- 前面没 or
-                if action_remath(v[1],v[2],_basemsg) then -- 真
-                    -- continue
-                else -- 假 跳出
-                    return false
-                end
-            else -- 一组 or 计算
-                table.insert(tmp_or, v)
-                if or_remath(tmp_or,_basemsg) then -- 真
-                    -- continue
-                else
-                    return false
-                end
-                tmp_or = {} -- 清空 or 列表
-            end
-        end
-    end
-    return true
 end
 
 --- 拦截计数
@@ -541,6 +502,50 @@ end
         end
         return table.concat(tb_args,",")
     end
+
+-- 对自定义规则列表进行判断
+-- 传入一个规则列表 和 base_msg
+-- _app_list = ["uri",["admin","in"],"and"]
+-- _app_list = ["cookie",["\\w{5}","jio",true],"or"]
+-- _app_list = ["referer",["baidu","in",true]]
+--  table 类型
+-- _app_list = ["args",["^[\\w]{6}$","jio",["cc",3],true],"and"]
+-- _app_list = ["args",["true","@token@",["cctoken"],true]]
+-- _app_list = ["headers",["^[\\w]{6}$","jio",["sign"],true]]
+--  post_form 表单
+local function re_app_ext(_app_list,_basemsg)
+    if type(_app_list) ~= "table" then return false end
+    local list_cnt = #_app_list
+    local tmp_or = {}
+    for i,v in ipairs(_app_list) do
+        if v[1] == "posts_all" and _basemsg.posts_all == nil then
+            _basemsg.posts_all = get_post_all()
+        end
+        if v[3] == "or" then
+            table.insert(tmp_or,v)
+            if i == list_cnt then
+                return or_remath(tmp_or,_basemsg)
+            end
+        else
+            if #tmp_or == 0 then -- 前面没 or
+                if action_remath(v[1],v[2],_basemsg) then -- 真
+                    -- continue
+                else -- 假 跳出
+                    return false
+                end
+            else -- 一组 or 计算
+                table.insert(tmp_or, v)
+                if or_remath(tmp_or,_basemsg) then -- 真
+                    -- continue
+                else
+                    return false
+                end
+                tmp_or = {} -- 清空 or 列表
+            end
+        end
+    end
+    return true
+end
 
 local optl={}
 

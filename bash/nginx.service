@@ -1,0 +1,19 @@
+
+# path: /lib/systemd/system/nginx.service && chmod 754
+# 配置开机启动： systemctl enable nginx.service
+# 启动：systemctl start nginx.service
+# 查看状态：systemctl status nginx.service
+
+[Unit]
+Description=nginx
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/opt/openresty/nginx/sbin/nginx
+ExecReload=/opt/openresty/nginx/sbin/nginx -s reload
+ExecStop=/opt/openresty/nginx/sbin/nginx -s quit
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
