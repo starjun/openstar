@@ -119,12 +119,12 @@ local function getDict_Config(_Config_jsonName)
 end
 
 --- remath_ext 是 remath_Invert(str,re_str,options,true) 的扩展
-local function remath_ext(str,remath_rule)
-    if type(remath_rule) ~= "table" then return false end
-    if remath_rule[2] == "rein_list" then
-        return optl.remath_Invert(string_upper(str),remath_rule[1],remath_rule[2],remath_rule[3])
+local function remath_ext(str,_modRule)
+    if type(_modRule) ~= "table" then return false end
+    if _modRule[2] == "rein_list" then
+        return optl.remath_Invert(string_upper(str),_modRule[1],_modRule[2],_modRule[3])
     else
-        return optl.remath_Invert(str,remath_rule[1],remath_rule[2],remath_rule[3])
+        return optl.remath_Invert(str,_modRule[1],_modRule[2],_modRule[3])
     end
 end
 
@@ -204,8 +204,10 @@ end
 -- 获取post_form表单数据
 local function get_post_form(_len)
     if _len <= 0 then _len = nil end
-    posts_all = posts_all or optl.get_post_all()
-    base_msg.posts_all = posts_all
+    if posts_all == nil then
+        posts_all = optl.get_post_all()
+        base_msg.posts_all = posts_all
+    end
     local parser = require "bodyparser"
     local p, err = parser.new(posts_all, http_content_type,_len)
     if p then
@@ -406,8 +408,8 @@ if config_is_on("app_Mod") and action_tag == "" then
                     return
 
                 elseif v.action[1] == "log" then
-                    if method == "POST" then
-                        posts_all = posts_all or optl.get_post_all()
+                    if method == "POST" and posts_all == nil then
+                        posts_all = optl.get_post_all()
                         base_msg.posts_all = posts_all
                     end
                     optl.writefile(config_base.logPath.."app.log","log Msg : \n"..optl.tableTojson(base_msg))
