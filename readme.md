@@ -31,6 +31,8 @@ EG：
 "referer":[[0,150],"len"]   --- referer 长度 在 0~150 之间
 ```
 
+# 商业版本
+https://www.kancloud.cn/openstar/install/1136671
 
 
 # 变更历史
