@@ -33,7 +33,7 @@ EG：
 
 # 商业版本
 https://www.kancloud.cn/openstar/install/1136671
-
+<个人免费 ^_^>
 
 # 变更历史
 
