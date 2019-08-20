@@ -61,7 +61,7 @@ ngx_ctx.next_ctx = next_ctx
         -- multipart/form-data; boundary=----WebKitForm...
         local from,to = string_find(http_content_type,"x-www-form-urlencoded",1,true)
         if from then
-            posts = ngx.req.get_post_args()
+            posts = ngx.req.get_post_args() or posts
             posts_data = optl.get_table(posts)
         end
     end
