@@ -9,7 +9,7 @@
              "owasp","Nikto","fimap","havij","PycURL","zmeu",
              "BabyKrokodil","netsparker","httperf","bench"
             ],
-            "rein_list"
+            "uin_list"
         ],
         "hostname": ["*",""]
     }

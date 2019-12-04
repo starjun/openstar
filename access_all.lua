@@ -121,11 +121,7 @@ end
 --- remath_ext 是 remath_Invert(str,re_str,options,true) 的扩展
 local function remath_ext(str,_modRule)
     if type(_modRule) ~= "table" then return false end
-    if _modRule[2] == "rein_list" then
-        return optl.remath_Invert(string_upper(str),_modRule[1],_modRule[2],_modRule[3])
-    else
-        return optl.remath_Invert(str,_modRule[1],_modRule[2],_modRule[3])
-    end
+    return optl.remath_Invert(str,_modRule[1],_modRule[2],_modRule[3])
 end
 
 --- 访问频率检查 并且计数

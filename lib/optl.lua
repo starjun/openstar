@@ -152,10 +152,26 @@ local function remath(_str,_re_str,_options)
                 return true
             end
         end
+    elseif _options == "ustart_list" then
+        if type(_re_str) ~= "table" then return false end
+        local u_str = string.upper(_str)
+        for _,v in ipairs(_re_str) do
+            if stool.stringStarts(u_str,string.upper(v)) then
+                return true
+            end
+        end
     elseif _options == "end_list" then
         if type(_re_str) ~= "table" then return false end
         for _,v in ipairs(_re_str) do
             if stool.stringEnds(_str,v) then
+                return true
+            end
+        end
+    elseif _options == "uend_list" then
+        if type(_re_str) ~= "table" then return false end
+        local u_str = string.upper(_str)
+        for _,v in ipairs(_re_str) do
+            if stool.stringEnds(u_str,string.upper(v)) then
                 return true
             end
         end
@@ -166,10 +182,11 @@ local function remath(_str,_re_str,_options)
                 return true
             end
         end
-    elseif _options == "rein_list" then
+    elseif _options == "uin_list" then
         if type(_re_str) ~= "table" then return false end
+        local u_str = string.upper(_str)
         for _,v in ipairs(_re_str) do
-            if stool.stringIn(_str,string.upper(v)) then
+            if stool.stringIn(u_str,string.upper(v)) then
                 return true
             end
         end
@@ -353,11 +370,7 @@ local function action_remath(_modName,_modRule,_base_Msg)
             end
         end
     else
-        if _modRule[2] == "rein_list" then
-            return remath_Invert(string.upper(_base_Msg[_modName]),_modRule[1],_modRule[2],_modRule[3])
-        else
-            return remath_Invert(_base_Msg[_modName],_modRule[1],_modRule[2],_modRule[3])
-        end
+        return remath_Invert(_base_Msg[_modName],_modRule[1],_modRule[2],_modRule[3])
     end
 end
 

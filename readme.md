@@ -16,9 +16,11 @@ grammar_cjkRuby: true
 ```
 现有：等于("") 包含("in") 列表("list") 字典("dict") 正则("jio|jo|***")
 增加：开头列表("start_list") -- 以什么什么开头列表
+      不区分大小写 开头列表("ustart_list")
       结尾列表("end_list")  -- 以什么什么结尾列表
+      不区分大小写 结尾列表("uend_list")
       包含列表("in_list")   -- 包含的列表形式
-      不区分大小写包含列表("rein_list")  --in_list扩展(不区分大小写)
+      不区分大小写包含列表("uin_list")  --in_list扩展(不区分大小写)
       【json 同 list 一样】
 增加：长度("len") [Min,Max] 表示大于等于 Min,且小于等于 Max
 EG：
