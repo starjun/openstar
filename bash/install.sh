@@ -16,11 +16,14 @@ openstar_uri=https://codeload.github.com/starjun/openstar/zip/master
 # centos 6 = remi-release-6.rpm ; centos 7 = remi-release-7.rpm
 rpm_uri=http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
 
+luarocks_version=3.2.1
+luarocks_uri=http://luarocks.org/releases/luarocks-${luarocks_version}.tar.gz
+
 function YUM_start(){
     yum install -y htop goaccess epel-release
     rpm -Uvh ${rpm_uri}
     yum groupinstall -y "Development tools"
-    yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip
+    yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip libmaxminddb-devel
 }
 
 function openstar(){
@@ -40,27 +43,46 @@ function openstar(){
 
 #安装jemalloc最新版本
 jemalloc_install(){
-    if [[ -f /etc/ld.so.conf.d/local.conf ]]; then
-        echo "jemalloc install !" && return
+    if [[ ! -f /usr/local/lib/libjemalloc.so ]]; then
+        cd ${build_path}
+        wget https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2 || (echo "wget jemalloc Error" && exit 1)
+        tar -xvf jemalloc-5.2.1.tar.bz2 || (echo "tar -xvf jemalloc-xxx.tar.bz2 Error" && exit 1)
+        cd jemalloc-5.2.1
+        ./configure || (echo "configure jemalloc Error" && exit 1)
+        make && make install
+        echo '/usr/local/lib' > /etc/ld.so.conf.d/local.conf
+        ldconfig
     fi
-    cd ${build_path}
-    wget https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2 || (echo "wget jemalloc Error" && exit 1)
-    tar -xvf jemalloc-5.2.1.tar.bz2 || (echo "tar -xvf jemalloc-xxx.tar.bz2 Error" && exit 1)
-    cd jemalloc-5.2.1
-    ./configure || (echo "configure jemalloc Error" && exit 1)
-    make && make install
-    echo '/usr/local/lib' > /etc/ld.so.conf.d/local.conf
-    ldconfig
+    echo "jemalloc install !"
+}
+
+luarocks_install(){
+    if [[ ! -f ${install_path}/luarocks/bin/luarocks ]]; then
+        cd ${build_path} && rm -rf luarocks-${luarocks_version}.tar.gz
+        wget ${luarocks_uri} || (echo "wget luarocks Error" && exit 1)
+        rm -rf luarocks-${luarocks_version} && tar xvzf luarocks-${luarocks_version}.tar.gz
+        cd luarocks-${luarocks_version}
+        ./configure --prefix=${install_path}/luarocks \
+                    --with-lua=${install_path}/luajit/ \
+                    --with-lua-include=${install_path}/luajit/include/luajit-2.1 \
+                    --lua-suffix='jit' || (echo "configure luarocks Error" && exit 1)
+        make
+        make install
+        ln -sf ${install_path}/luarocks/bin/luarocks /usr/bin/luarocks
+    fi
+    echo "luarocks install"
 }
 
 function openresty(){
     jemalloc_install
     cd ${build_path}
-    wget ${openresty_uri}
-    tar zxvf openresty-${install_version}.tar.gz
-
-    cd ${build_path}/openresty-${install_version}
+    git clone https://github.com/leev/ngx_http_geoip2_module.git || (echo "git clone ngx_http_geoip2_module Error" && exit 1)
+    rm -rf openresty-${install_or_version}.tar.gz
+    wget ${openresty_uri} || (echo "wget openresty Error" && exit 1)
+    rm -rf openresty-${install_or_version} && tar zxvf openresty-${install_or_version}.tar.gz
+    cd openresty-${install_version}
     ./configure --prefix=${install_path} \
+                --add-module=${build_path}/ngx_http_geoip2_module \
                 --with-http_realip_module \
                 --with-http_v2_module \
                 --with-ld-opt='-ljemalloc' || (echo "configure openresty Error!!" && exit 1)
@@ -140,6 +162,9 @@ elif [ "$1" = "check" ]; then
 
     check
     cat /etc/profile |grep "openresty" ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile && export PATH)
+elif [[ "$1" = "luarocks" ]]; then
+    luarocks_install
+
 else
     echo_ServerMsg
 fi
