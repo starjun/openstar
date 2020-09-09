@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # bash 版本
-version=0.8
+version=0.9
 
 build_path=/opt/down
 install_path=/opt/openresty
 mkdir -p ${build_path}
 mkdir -p ${install_path}
 
-install_version=1.15.8.2
+install_or_version=1.17.8.2
 #1.11.2.2 nginx 1.11.2 , 1.11.2.1 nginx 1.11.2 , 1.9.15.1 nginx 1.9.15
-openresty_uri=https://openresty.org/download/openresty-${install_version}.tar.gz
+openresty_uri=https://openresty.org/download/openresty-${install_or_version}.tar.gz
 openstar_uri=https://codeload.github.com/starjun/openstar/zip/master
 
 # centos 6 = remi-release-6.rpm ; centos 7 = remi-release-7.rpm
@@ -23,7 +23,7 @@ function YUM_start(){
     yum install -y htop goaccess epel-release
     rpm -Uvh ${rpm_uri}
     yum groupinstall -y "Development tools"
-    yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip libmaxminddb-devel
+    yum install -y sysstat wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip libmaxminddb-devel
 }
 
 function openstar(){
@@ -80,7 +80,7 @@ function openresty(){
     rm -rf openresty-${install_or_version}.tar.gz
     wget ${openresty_uri} || (echo "wget openresty Error" && exit 1)
     rm -rf openresty-${install_or_version} && tar zxvf openresty-${install_or_version}.tar.gz
-    cd openresty-${install_version}
+    cd openresty-${install_or_version}
     ./configure --prefix=${install_path} \
                 --add-module=${build_path}/ngx_http_geoip2_module \
                 --with-http_realip_module \
