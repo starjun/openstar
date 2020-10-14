@@ -3,6 +3,7 @@
 local random = require "resty-random"
 local stool = require "stool"
 local cjson_safe = require "cjson.safe"
+local ac = require "ahocorasick"
 local ngx_re_find = ngx.re.find
 local ngx_re_gsub = ngx.re.gsub
 local ngx_unescape_uri = ngx.unescape_uri
@@ -133,6 +134,16 @@ local function remath(_str,_re_str,_options)
         -- 纯字符串匹配 * 表示任意
         if _str == _re_str or _re_str == "*" then
             return true
+        end
+    elseif _options == "aho" then
+        if not stool.isArrayTable(_re_str) then return false end
+        -- local dict = {"string1", "string", "etc"}
+        local acinst = ac.create(_re_str)
+        local r = ac.match(acinst, _str)
+        if r then
+            return true,r
+        else
+            return false
         end
     elseif _options == "list" then
         return stool.isInArrayTb(_str,_re_str)

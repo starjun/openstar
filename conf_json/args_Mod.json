@@ -8,6 +8,12 @@
     {
         "state": "on",
         "hostname": ["*",""],
+        "args_data": [["aaa","bbb","ccc"],"aho"],
+        "action": "deny"
+    },
+    {
+        "state": "on",
+        "hostname": ["*",""],
         "args_data": ["\\:\\$","jio"],
         "action": "deny"
     },
