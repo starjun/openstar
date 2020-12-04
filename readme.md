@@ -14,6 +14,18 @@ grammar_cjkRuby: true
 
 更新：规则支持方式
 ```
+支持并行正则匹配(使用 https://github.com/cloudflare/lua-aho-corasick 实现)
+增加：并行正则("aho") -- 列表
+"host":[[
+          "^www.baidu",
+          ".*.baidu.com$"
+        ],
+            "aho"
+        ]
+```
+
+更新：规则支持方式
+```
 现有：等于("") 包含("in") 列表("list") 字典("dict") 正则("jio|jo|***")
 增加：开头列表("start_list") -- 以什么什么开头列表
       不区分大小写 开头列表("ustart_list")

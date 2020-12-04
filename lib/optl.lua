@@ -4,6 +4,7 @@ local random = require "resty-random"
 local stool = require "stool"
 local cjson_safe = require "cjson.safe"
 local ac = require "ahocorasick"
+local ipmatcher = require("resty.ipmatcher")
 local ngx_re_find = ngx.re.find
 local ngx_re_gsub = ngx.re.gsub
 local ngx_unescape_uri = ngx.unescape_uri
@@ -218,20 +219,21 @@ local function remath(_str,_re_str,_options)
     elseif _options == "cidr" then
         --- 基于cidr，用于匹配ip 是否在 ip段中
         if type(_re_str) ~= "table" then return false end
-        for _,v in ipairs(_re_str) do
+        local _ip = ipmatcher.new(_re_str)
+        return _ip:match(_str)
+        -- for _,v in ipairs(_re_str) do
+            -- local cidr = require "cidr"
+            -- local first_address, last_address = cidr.parse_cidr(v)
+            -- --ip_cidr formats like 192.168.10.10/24
 
-            local cidr = require "cidr"
-            local first_address, last_address = cidr.parse_cidr(v)
-            --ip_cidr formats like 192.168.10.10/24
+            -- local ip_num = cidr.ip_2_number(_str)
+            -- --// get the ip to decimal.
 
-            local ip_num = cidr.ip_2_number(_str)
-            --// get the ip to decimal.
-
-            if ip_num >= first_address and ip_num <= last_address then
-            --// judge if ip lies between the cidr.
-                return true
-            end
-        end
+            -- if ip_num >= first_address and ip_num <= last_address then
+            -- --// judge if ip lies between the cidr.
+            --     return true
+            -- end
+        -- end
     else
         --- 正则匹配
         local from, to = ngx_re_find(_str, _re_str, _options)
