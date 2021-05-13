@@ -49,7 +49,7 @@ _M.isInArrayTb = isInArrayTb
 -- https://github.com/openresty/lua-resty-core/blob/master/lib/ngx/re.md#split
 local function split(inputstr, sep)
     sep = sep or "%s"
-    local t={} ; i=1
+    local t, i = {}, 1
     for str in string_gmatch(inputstr, "([^"..sep.."]+)") do
         t[i] = str
         i = i + 1
