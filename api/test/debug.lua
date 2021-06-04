@@ -12,7 +12,7 @@ local ngxVar = {}
 
 ngxVar.status=ngx_var.status
 ngxVar.scheme = ngx_var.scheme
-ngxVar.request_method = ngx_var.request_method
+ngxVar.request_method = ngx.req.get_method()
 ngxVar.uri = ngx_unescape_uri(ngx_var.uri)
 ngxVar.request_uri = ngx_unescape_uri(ngx_var.request_uri)
 ngxVar.document_uri = ngx_var.document_uri

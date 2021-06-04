@@ -31,7 +31,7 @@ local  function ngx_status()
     local gl_request_count = "global request count"
     optl.set_count_dict(gl_request_count)
 
-    local gl_request_method = "global request "..(ngx_var.request_method or "unknown method")
+    local gl_request_method = "global request "..(ngx.req.get_method() or "unknown method")
     optl.set_count_dict(gl_request_method)
 
     -- host - uri 计数

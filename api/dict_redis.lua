@@ -34,7 +34,7 @@ local redis_mod = config_base.redis_Mod or {}
 
 
 local get_argsByName
-if ngx.var.request_method == "POST" then
+if ngx.req.get_method() == "POST" then
     get_argsByName = optl.get_postByName
 else
     get_argsByName = optl.get_argsByName

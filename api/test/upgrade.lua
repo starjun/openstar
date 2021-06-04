@@ -7,9 +7,9 @@ local optl = require("optl")
 local config_base = optl.config.base or {}
 
 local get_argsByName
-if ngx.var.request_method == "POST" then
+if ngx.req.get_method() == "POST" then
     get_argsByName = optl.get_postByName
-elseif ngx.var.request_method == "GET" then
+elseif ngx.req.get_method() == "GET" then
     get_argsByName = optl.get_argsByName
 end
 
