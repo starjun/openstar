@@ -100,7 +100,7 @@ if ngxVar.request_method == "GET" then
     optl.sayHtml_ext(debug_tb)
 elseif ngxVar.request_method == "POST" then
     local post_all = optl.get_post_all()
-    local parser = require "bodyparser"
+    local parser = require "resty.bodyparser"
     local p, err = parser.new(post_all, ngx_var.http_content_type,100)
     if not p then
         debug_tb["_PostData_error"] = post_all

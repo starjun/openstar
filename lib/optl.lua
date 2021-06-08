@@ -1,6 +1,6 @@
 
 -- 用于生成唯一随机字符串
-local random = require "resty-random"
+local random = require "resty.resty-random"
 local stool = require "stool"
 local cjson_safe = require "cjson.safe"
 local ac = require "ahocorasick"
@@ -203,7 +203,7 @@ local function remath(_str,_re_str,_options)
             end
         end
     elseif _options == "dict" then
-        --- 字典(dict) 匹配，o(1) 比序列(list)要好些， 字符串完全匹配
+        --- 字典(dict) 匹配，o(1) 时间复杂度时比数组 o(n) 要好些
         if type(_re_str) ~= "table" then return false end
         local re = _re_str[_str]
         if re == true then -- 需要判断一下 有可能是值类型的值
@@ -221,19 +221,6 @@ local function remath(_str,_re_str,_options)
         if type(_re_str) ~= "table" then return false end
         local _ip = ipmatcher.new(_re_str)
         return _ip:match(_str)
-        -- for _,v in ipairs(_re_str) do
-            -- local cidr = require "cidr"
-            -- local first_address, last_address = cidr.parse_cidr(v)
-            -- --ip_cidr formats like 192.168.10.10/24
-
-            -- local ip_num = cidr.ip_2_number(_str)
-            -- --// get the ip to decimal.
-
-            -- if ip_num >= first_address and ip_num <= last_address then
-            -- --// judge if ip lies between the cidr.
-            --     return true
-            -- end
-        -- end
     else
         --- 正则匹配
         local from, to = ngx_re_find(_str, _re_str, _options)

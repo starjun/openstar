@@ -8,11 +8,12 @@ install_path=/opt/openresty
 mkdir -p ${build_path}
 mkdir -p ${install_path}
 
-install_or_version=1.17.8.2
+install_or_version=1.19.3.2
 #1.11.2.2 nginx 1.11.2 , 1.11.2.1 nginx 1.11.2 , 1.9.15.1 nginx 1.9.15
-# 1.15.8.3 819a31fa6e9cc8c5aa4838384a9717a7
+# 1.15.8.3 nginx 1.15.8  819a31fa6e9cc8c5aa4838384a9717a7
+# 1.19.3.2 nginx 1.19.8  e515e3f8c2015551bce076079630a3af
 openresty_uri=https://openresty.org/download/openresty-${install_or_version}.tar.gz
-openresty_md5=ae9cdb51cabe42b0e3f46313da003d51
+openresty_md5=e515e3f8c2015551bce076079630a3af
 down_openresty(){
     cd ${build_path}
     if [ ! -f "openresty-${install_or_version}.tar.gz" ]; then

@@ -205,7 +205,7 @@ local function get_post_form(_len)
         posts_all = optl.get_post_all()
         base_msg.posts_all = posts_all
     end
-    local parser = require "bodyparser"
+    local parser = require "resty.bodyparser"
     local p, err = parser.new(posts_all, http_content_type,_len)
     if p then
         local tmp_tb = {}

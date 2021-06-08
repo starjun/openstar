@@ -5,9 +5,10 @@ version=0.6
 
 down_path_redis=/opt/redis
 mkdir -p ${down_path_redis}
-redis_version=5.0.3
+redis_version=6.2.4
 down_url=http://download.redis.io/releases/redis-${redis_version}.tar.gz
-redis_md5=aee2e1d0e50f87d6c21abef1c45f9767
+redis_md5=c21b0efe38a5cbd58874c72c5bddc7e7
+## 5.0.3 c21b0efe38a5cbd58874c72c5bddc7e7
 down_redis(){
     cd ${down_path_redis}
     if [ ! -f "redis-${redis_version}.tar.gz" ]; then

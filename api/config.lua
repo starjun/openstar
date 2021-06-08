@@ -8,7 +8,7 @@
 
 local cjson_safe = require "cjson.safe"
 local optl = require("optl")
-local JSON = require("JSON")
+local JSON = require("resty.JSON")
 
 local get_argsByName
 if ngx.req.get_method() == "POST" then
