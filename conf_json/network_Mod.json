@@ -1,9 +1,9 @@
 [
     {
         "state": "on",
-        "network":{"maxReqs":10,"pTime":10,"blackTime":60,"guid":"cookie_userguid"},
+        "network":{"maxReqs":10,"pTime":10,"blackTime":60},
         "hostname": [["101.200.122.200","www.test.com"],"list"],
-        "uri": ["/api0/time",""]
+        "uri": ["/api/time",""]
     },
     {
         "state": "off",

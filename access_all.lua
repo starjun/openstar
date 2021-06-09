@@ -582,35 +582,22 @@ if config_is_on("network_Mod") and action_tag == "" then
     for i, v in ipairs( tb_networkMod ) do
         if v.state =="on" and host_uri_remath(v.hostname,v.uri) then
             local blacktime = v.network.blackTime or 10*60
-            -- 业务属性 计数
-            if v.network.guid and ngx_var[v.network.guid] then
-                local guid_value = ngx_var[v.network.guid]
-                local mod_host_guid = host..guid_value.." network_Mod No "..i
-                if network_ck(v.network,mod_host_guid) then
-                    host_dict:safe_set(host.."_guid",v.network.guid,blacktime)
-                    ip_dict:safe_set(host.."_"..guid_value,mod_host_guid,blacktime)
-                    next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny No: "..i
-                    action_deny()
-                    break
-                end
-            else
-                -- ip 属性 计数
-                local deny_guid = ip.." network_Mod No "..i
-                if network_ck(v.network,deny_guid) then
-                    if v.hostname[2] == "" then
-                        if v.hostname[1] == "*" then
-                            ip_dict:safe_set(ip,deny_guid,blacktime)
-                        else
-                            ip_dict:safe_set(host.."_"..ip,deny_guid,blacktime)
-                        end
+            -- ip 属性 计数 (v.id 也可作为唯一标识)
+            local deny_guid = ip.." network_Mod No "..i
+            if network_ck(v.network,deny_guid) then
+                if v.hostname[2] == "" then
+                    if v.hostname[1] == "*" then
+                        ip_dict:safe_set(ip,deny_guid,blacktime)
                     else
                         ip_dict:safe_set(host.."_"..ip,deny_guid,blacktime)
                     end
-                    next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
-                    action_deny()
-                    --ngx.say("frist network deny")
-                    break
+                else
+                    ip_dict:safe_set(host.."_"..ip,deny_guid,blacktime)
                 end
+                next_ctx.waf_log = next_ctx.waf_log or "[network_Mod] deny  No: "..i
+                action_deny()
+                --ngx.say("frist network deny")
+                break
             end
         end
     end

@@ -13,7 +13,7 @@
     {
         "state": "on",
         "action":"deny",
-        "network":{"maxReqs":5,"pTime":10,"blackTime":600,"guid":"cookie_userguid"},
+        "network":{"maxReqs":5,"pTime":10,"blackTime":600},
         "uri": ["/index.html",""]
     }
 ]
