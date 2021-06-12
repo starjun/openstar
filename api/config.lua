@@ -8,6 +8,7 @@
 
 local cjson_safe = require "cjson.safe"
 local optl = require("optl")
+local stool = require("stool")
 local JSON = require("resty.JSON")
 
 local get_argsByName
@@ -50,7 +51,7 @@ local function config_save(_mod)
     end
     for k,v in pairs(config) do
         if _mod == "" or _mod == k then
-            local re = optl.writefile(config_base.jsonPath..k..suffix,JSON:encode_pretty(v),"w+")
+            local re = stool.writefile(config_base.jsonPath..k..suffix,JSON:encode_pretty(v),"w+")
             if not re then return
                 false,k.." save error!"
             end
@@ -81,13 +82,13 @@ local function hostMod_save(_hostname)
     if _debug == "no" then
         suffix = ".json"
     end
-    local re = optl.writefile(config_base.jsonPath.."host_json/host_Mod"..suffix,JSON:encode_pretty(_host_Mod),"w+")
+    local re = stool.writefile(config_base.jsonPath.."host_json/host_Mod"..suffix,JSON:encode_pretty(_host_Mod),"w+")
     if not re then
         return false
     end
     for k,v in pairs(tb_host_mod) do
-        local tmp_v = optl.stringTojson(v)
-        local re = optl.writefile(config_base.jsonPath.."host_json/"..k..suffix,JSON:encode_pretty(tmp_v),"w+")
+        local tmp_v = stool.stringTojson(v)
+        local re = stool.writefile(config_base.jsonPath.."host_json/"..k..suffix,JSON:encode_pretty(tmp_v),"w+")
         if not re then
             return false
         end
@@ -116,9 +117,9 @@ local function ip_dict_save()
     end
     -- 保存3个文件 暂时不检查每次的保存情况
     local re
-    re = optl.writefile(config_base.jsonPath.."ip/allow"..suffix,list_to_str(allowIp),"w+")
-    re = optl.writefile(config_base.jsonPath.."ip/deny"..suffix,list_to_str(denyIp),"w+")
-    re = optl.writefile(config_base.jsonPath.."ip/log"..suffix,list_to_str(logIp),"w+")
+    re = stool.writefile(config_base.jsonPath.."ip/allow"..suffix,list_to_str(allowIp),"w+")
+    re = stool.writefile(config_base.jsonPath.."ip/deny"..suffix,list_to_str(denyIp),"w+")
+    re = stool.writefile(config_base.jsonPath.."ip/log"..suffix,list_to_str(logIp),"w+")
     return re
 end
 

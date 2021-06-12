@@ -22,6 +22,7 @@
 local redis = require "resty.redis"
 local cjson_safe = require "cjson.safe"
 local optl = require("optl")
+local stool = require("stool")
 
 local host_dict = ngx.shared.host_dict
 local count_dict = ngx.shared.count_dict
@@ -210,7 +211,7 @@ local function push_host_Mod(_isexit)
             tb_host_all[v.."_HostMod"] = host_dict:get(v.."_HostMod")
         end
     end
-    tb_host_all["host_Mod"] = optl.tableTojson(tb_host_name)
+    tb_host_all["host_Mod"] = stool.tableTojsonStr(tb_host_name)
 
     tb_host_name = {}
     -- 批量执行redis命令 set，结果集，同执行循序一致
@@ -267,7 +268,7 @@ local function pull_host_Mod(_isexit)
         return
     end
 
-    local tb_host_Mod = optl.stringTojson(res) or {}
+    local tb_host_Mod = stool.stringTojson(res) or {}
 
     -- 取出 host_Mod 中所有host 对应 _HostMod 数据
     -- redis 批量执行 get

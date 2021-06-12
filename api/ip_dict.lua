@@ -4,7 +4,7 @@
 -- 全局 ip 添加  ip=%ip%  不支持cidr
 -- 基于host 的ip 规则添加  %host%_ip 不支持cidr
 
-
+local stool = require("stool")
 local optl = require("optl")
 
 local get_argsByName
@@ -22,7 +22,7 @@ local _time = tonumber( get_argsByName("time")) or 0
 
 local ip_dict = ngx.shared["ip_dict"]
 local config_dict = ngx.shared.config_dict
-local config = optl.stringTojson(config_dict:get("config"))
+local config = stool.stringTojson(config_dict:get("config"))
 local config_base = config.base or {}
 
 -- 用于ip_dict操作接口  对ip列表进行增 删 改 查 操作

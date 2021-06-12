@@ -3,8 +3,8 @@
 ----  host_dict 存放的是基于host的过滤规则列表 和 host过滤开关
 --    host_dict 数据源  =  host_Host.json 和 conf_json/host_json/%host%.json 读取到内存的数据
 
-local optl = require("optl")
-
+local optl  = require("optl")
+local stool = require("stool")
 
 local get_argsByName
 if ngx.req.get_method() == "POST" then
@@ -47,15 +47,15 @@ if _action == "add" then
         optl.sayHtml_ext({code="error",msg="add host state first"})
     end
 
-    _value = optl.stringTojson(_value)
+    _value = stool.stringTojson(_value)
     if type(_value) ~= "table" then
         optl.sayHtml_ext({code="error",msg="value to json error"})
     end
 
-    local host_mod = optl.stringTojson(host_dict:get(_host.."_HostMod")) or {}
+    local host_mod = stool.stringTojson(host_dict:get(_host.."_HostMod")) or {}
 
     table.insert(host_mod,_value)
-    host_mod = optl.tableTojson(host_mod)
+    host_mod = stool.tableTojsonStr(host_mod)
     local re = host_dict:safe_set(_host.."_HostMod",host_mod,0)
 
     if re ~= true then
@@ -69,7 +69,7 @@ elseif _action == "del" then-- 需要增加删除 所有 host所有
         optl.sayHtml_ext({code="error",msg="host is Non-existent"})
     end
 
-    local host_mod = optl.stringTojson(host_dict:get(_host.."_HostMod")) or {}
+    local host_mod = stool.stringTojson(host_dict:get(_host.."_HostMod")) or {}
 
     _id = tonumber(_id)
     if _id == nil then
@@ -80,7 +80,7 @@ elseif _action == "del" then-- 需要增加删除 所有 host所有
     if rr == nil then
         optl.sayHtml_ext({code="error",msg="id is Non-existent"})
     else
-        local re = host_dict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
+        local re = host_dict:replace(_host.."_HostMod",stool.tableTojsonStr(host_mod))
         if re ~= true then
             optl.sayHtml_ext({code="error",msg="replace error"})
         end
@@ -108,12 +108,12 @@ elseif _action == "set" then
         optl.sayHtml_ext({code="error",msg="id is not number"})
     end
 
-    _value = optl.stringTojson(_value)
+    _value = stool.stringTojson(_value)
     if type(_value) ~= "table" then
         optl.sayHtml_ext({code="error",msg="value to json error"})
     end
 
-    local host_mod = optl.stringTojson(host_dict:get(_host.."_HostMod")) or {}
+    local host_mod = stool.stringTojson(host_dict:get(_host.."_HostMod")) or {}
 
     local old_host_id_mod = host_mod[_id]
     if old_host_id_mod == nil then
@@ -121,7 +121,7 @@ elseif _action == "set" then
     end
 
     host_mod[_id] = _value
-    local re = host_dict:replace(_host.."_HostMod",optl.tableTojson(host_mod))
+    local re = host_dict:replace(_host.."_HostMod",stool.tableTojsonStr(host_mod))
     if re ~= true then
         optl.sayHtml_ext({code="error",msg="replace error"})
     end
@@ -154,18 +154,18 @@ elseif _action == "get" then
 
         if _id == "" then
             local host_mod = host_dict:get(_host.."_HostMod")
-            host_mod = optl.stringTojson(host_mod)
+            host_mod = stool.stringTojson(host_mod)
             host_mod.state = host_state
             host_mod.code = "ok"
             optl.sayHtml_ext(host_mod)
         elseif _id == "count_id" then
             local host_mod = host_dict:get(_host.."_HostMod")
-            host_mod = optl.stringTojson(host_mod)
+            host_mod = stool.stringTojson(host_mod)
             local cnt = table.maxn(host_mod)
             optl.sayHtml_ext({code="ok",state=host_state,count=cnt})
         else
             local host_mod = host_dict:get(_host.."_HostMod")
-            host_mod = optl.stringTojson(host_mod)
+            host_mod = stool.stringTojson(host_mod)
             _id = tonumber(_id)
             if _id == nil then
                 optl.sayHtml_ext({code="error",msg="id is not number"})

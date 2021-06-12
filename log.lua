@@ -1,5 +1,6 @@
 
-local optl = require("optl")
+local optl  = require("optl")
+local stool = require("stool")
 local ngx_var = ngx.var
 local next_ctx = ngx.ctx.next_ctx or {}
 local ngx_unescape_uri = ngx.unescape_uri
@@ -59,7 +60,7 @@ local function logformat(_basemsg,_log_conf)
     for _,v in ipairs(_log_conf.tb_formart) do
         local x = log_map[v] or v
         if type(x) == "table" then
-            x = optl.tableTojson(x)
+            x = stool.tableTojsonStr(x)
         end
         table_insert(re_log_tb,x)
     end

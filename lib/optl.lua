@@ -15,89 +15,6 @@ local config_dict = ngx.shared.config_dict
 local config = cjson_safe.decode(config_dict:get("config")) or {}
 local config_version = 0
 
---- 读取文件（全部读取/按行读取）
-local function readfile(_filepath,_ty)
-    local fd = io.open(_filepath,"r")
-    if not fd then return end
-    if not _ty then
-        local str = fd:read("*a") --- 全部内容读取
-        fd:close()
-        return str
-    else
-        local line_s = {}
-        for line in fd:lines() do
-            table.insert(line_s, line)
-        end
-        fd:close()
-        return line_s
-    end
-end
-
--- 默认写文件错误时，会将错误信息和_msg数据使用ngx.log写到错误日志中。
--- ngx.log对写入的信息进行了大小控制，一些大数据情况理论上不用担心
--- 自己调用时，_msg的内容大小需要自己进行控制
-local function writefile(_filepath,_msg,_ty)
-    _ty = _ty or "a+"
-    -- w+ 覆盖 写文件方式默认是追加方式
-    -- local fd = assert(io.open(_filepath,_ty),"writefile io.open error")
-    local fd,err = io.open(_filepath,_ty)
-    if fd == nil then
-        ngx.log(ngx.ERR,"writefile msg : "..tostring(_msg),err)
-        return
-    end -- 文件读取错误返回
-    fd:write(tostring(_msg))
-    fd:flush()
-    fd:close()
-    return true
-end
-
---- table/string转换
-local function tableTostring(_obj)
-    local lua = ""
-    local t = type(_obj)
-    if t == "number" then
-        lua = lua .. _obj
-    elseif t == "boolean" then
-        lua = lua .. tostring(_obj)
-    elseif t == "string" then
-        lua = lua .. string.format("%q", _obj)
-    elseif t == "table" then
-        lua = lua .. "{\n"
-        for k, v in pairs(_obj) do
-            lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"
-        end
-        local metatable = getmetatable(_obj)
-            if metatable ~= nil and type(metatable.__index) == "table" then
-            for k, v in pairs(metatable.__index) do
-                lua = lua .. "[" .. tableTostring(k) .. "]=" .. tableTostring(v) .. ",\n"
-            end
-        end
-        lua = lua .. "}"
-    elseif t == "nil" then
-        return nil
-    else
-        error("can not tableToString a " .. t .. " type.")
-    end
-    return lua
-end
-
-local function stringTotable(_str)
-    if not _str then return end
-    local ret = loadstring("return ".._str)()
-    return ret
-end
-
--- table转成json字符串
-local function tableTojson(_obj)
-    local json_text = cjson_safe.encode(_obj)
-    return json_text
-end
-
--- 字符串转成序列化后的json同时也可当table类型
-local function stringTojson(_obj)
-    local json = cjson_safe.decode(_obj) or {}
-    return json
-end
 
 local function guid(_num)
     _num = _num or 10
@@ -419,7 +336,7 @@ local function sayHtml_ext(_html,_find_type,_content_type)
     if _html == nil then
         _html = "_html is nil"
     elseif type(_html) == "table" then
-        _html = tableTojson(_html)
+        _html = stool.tableTojsonStr(_html)
     end
 
     if _find_type then
@@ -437,8 +354,8 @@ end
 --- ngx_find 无条件使用
 local function sayFile(_filename,_header)
     --ngx.header.content_type = "text/html"
-    --local str = readfile(Config.base.htmlPath..filename)
-    local str = readfile(_filename) or "filename error"
+    --local str = stool.readfile(Config.base.htmlPath..filename)
+    local str = stool.readfile(_filename) or "filename error"
     if _header then
         ngx.header.content_type = _header
     end
@@ -565,17 +482,6 @@ local optl={}
 -- 配置json
 optl.config = config
 optl.config_version = config_version
-
---- 文件读写
-optl.readfile = readfile
-optl.writefile = writefile
-
---- table转换
-optl.tableTostring = tableTostring
-optl.stringTotable = stringTotable
-
-optl.tableTojson = tableTojson
-optl.stringTojson = stringTojson
 
 --- ==
 optl.random = random

@@ -1,5 +1,6 @@
 -----  access_all by zj  -----
 local optl = require("optl")
+local stool = require("stool")
 local ngx_var = ngx.var
 local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
@@ -259,21 +260,6 @@ if config_is_on("ip_Mod") then
         set_count_dict(tmp_host_ip)
         action_deny()
     end
-    -- 基于 业务属性 进行拦截
-    local host_guid_name = host_dict:get(host.."_guid")
-    if host_guid_name then
-        -- 基于业务属性 拦截
-        -- 获取当前请求的业务属性 ngx.var[%guid%]
-        -- %host%..ngx.var[%guid_name%]
-        local tmp_gd = ngx_var[host_guid_name]
-        if tmp_gd then
-            local ip_dict_get_guid = ip_dict:get(host.."_"..tmp_gd)
-            if ip_dict_get_guid then
-                -- next_ctx.waf_log = "[ip_Mod：业务属性] deny"
-                action_deny()
-            end
-        end
-    end
 end
 
 ---  STEP 2
@@ -328,7 +314,7 @@ end
 -- 动作支持 （allow deny log）
 if  host_Mod_state == "on" and action_tag == "" then
     -- 后续 可能缓存起来，不用每次都进行 序列化操作
-    local tb = optl.stringTojson(host_dict:get(host.."_HostMod"))
+    local tb = stool.stringTojson(host_dict:get(host.."_HostMod"))
     for i,v in ipairs(tb) do
         if v.state == "on" and remath_ext(uri,v.uri) then
             if v.app_ext then
@@ -409,7 +395,7 @@ if config_is_on("app_Mod") and action_tag == "" then
                         posts_all = optl.get_post_all()
                         base_msg.posts_all = posts_all
                     end
-                    optl.writefile(config_base.logPath.."app.log","log Msg : \n"..optl.tableTojson(base_msg))
+                    stool.writefile(config_base.logPath.."app.log","log Msg : \n"..stool.tableTojsonStr(base_msg))
                     -- app_Mod的action=log单独记录，用于debug调试
 
                 elseif v.action[1] == "rehtml" then
