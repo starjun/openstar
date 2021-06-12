@@ -287,24 +287,28 @@ if config_is_on("rewrite_Mod") and action_tag == "" then
     local tb_mod = getDict_Config("rewrite_Mod")
     for _,v in ipairs(tb_mod) do
         if v.state == "on" and host_uri_remath(v.hostname,v.uri) then
-
-            if v.action == "set_cookie" then
-                local token = ngx.md5(v.set_cookie[1] .. ip)
-                local token_name = v.set_cookie[2] or "token"
-                -- 没有设置 tokenname 默认就是 token
-                if ngx_var["cookie_"..token_name] ~= token then
-                    ngx.header["Set-Cookie"] = {token_name.."=" .. token}
-                    if method == "POST" then
-                        return ngx.redirect(request_uri,307)
-                    else
-                        return ngx.redirect(request_uri)
-                    end
-                end
-            elseif v.action == "set_url" then
-            -- 备用 使用url尾巴跳转方式进行验证
-
+            local token_name = v.set_cookie[2] or "token" -- 默认去 cookie_token 这里值
+            local re_uri = request_uri
+            if type(v.set_cookie[3]) == "string" and v.set_cookie[3] ~= "" then
+                re_uri = v.set_cookie[3]
             end
-
+            if token_name == "" or v.set_cookie[1] == "" then
+                if method == "POST" then
+                    return ngx.redirect(re_uri , 307)
+                else
+                    return ngx.redirect(re_uri)
+                end
+            end
+            local token = ngx.md5(v.set_cookie[1] .. ip)
+            -- 没有设置 tokenname 默认就是 token
+            if ngx_var["cookie_"..token_name] ~= token then
+                ngx.header["Set-Cookie"] = {token_name.."=" .. token}
+                if method == "POST" then
+                    return ngx.redirect(re_uri,307)
+                else
+                    return ngx.redirect(re_uri)
+                end
+            end
         end
     end
 end
