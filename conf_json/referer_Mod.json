@@ -2,6 +2,7 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "uri": ["^/abc.do$","jio"],
         "hostname": ["pass.game.com",""],
         "referer": ["^.*/(www\\.hao123\\.com|www3\\.hao123\\.com)$","jio",true],
@@ -9,6 +10,7 @@
     },
     {
         "state": "on",
+        "id":"1001",
         "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
         "hostname": ["localhost",""],
         "referer": ["*",""],

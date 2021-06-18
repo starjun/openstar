@@ -1,6 +1,7 @@
 [
     {
         "state":"on",
+        "id":"1000",
         "method":[
             {
                 "POST":true,

@@ -1,12 +1,14 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "network":{"maxReqs":10,"pTime":10,"blackTime":60},
         "hostname": [["101.200.122.200","www.test.com"],"list"],
         "uri": ["/api/time",""]
     },
     {
         "state": "off",
+        "id":"1001",
         "network":{"maxReqs":20,"pTime":10,"blackTime":600},
         "hostname": ["id.game.com",""],
         "uri": ["^/2.html$","jio"]

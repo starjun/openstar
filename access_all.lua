@@ -1,6 +1,7 @@
 -----  access_all by zj  -----
 local optl = require("optl")
 local stool = require("stool")
+local parser = require "resty.bodyparser"
 local ngx_var = ngx.var
 local ngx_ctx = ngx.ctx
 local ngx_unescape_uri = ngx.unescape_uri
@@ -206,7 +207,6 @@ local function get_post_form(_len)
         posts_all = optl.get_post_all()
         base_msg.posts_all = posts_all
     end
-    local parser = require "resty.bodyparser"
     local p, err = parser.new(posts_all, http_content_type,_len)
     if p then
         local tmp_tb = {}
@@ -382,18 +382,14 @@ if config_is_on("app_Mod") and action_tag == "" then
                 get_post_form(post_form_n)
             end
             if v.app_ext == nil or optl.re_app_ext(v.app_ext,base_msg) then
-
                 if v.action[1] == "deny" then
-
                     set_count_dict("app deny count")
                     next_ctx.waf_log = next_ctx.waf_log or "[app_Mod] deny No: "..i
                     action_deny()
                     break
-
                 elseif v.action[1] == "allow" then
-
+                    -- 直接返回
                     return
-
                 elseif v.action[1] == "log" then
                     if method == "POST" and posts_all == nil then
                         posts_all = optl.get_post_all()
@@ -401,33 +397,25 @@ if config_is_on("app_Mod") and action_tag == "" then
                     end
                     stool.writefile(config_base.logPath.."app.log","log Msg : \n"..stool.tableTojsonStr(base_msg))
                     -- app_Mod的action=log单独记录，用于debug调试
-
                 elseif v.action[1] == "rehtml" then
                     optl.sayHtml_ext(v.rehtml,true)
                     break
-
                 elseif v.action[1] == "refile" then
                     optl.sayFile(config_base.htmlPath..v.refile[1],v.refile[2])
                     break
-
                 -- 2016年10月27日 新增 动态执行lua字符串
                 elseif v.action[1] == "relua_str" then
                     local re_lua_do = loadstring(v.relua_str)
                     if re_lua_do() == "break" then
                         ngx.exit(200)
                     end
-
                 elseif v.action[1] == "relua" then
                     local re_saylua = optl.sayLua(config_base.htmlPath..v.relua)
                     if re_saylua == "break" then
                         ngx.exit(200)
                     end
-
-                elseif v.action[1] == "set" then -- 预留
-
                 end
             end
-
         end
     end
 end
@@ -438,7 +426,8 @@ end
 if config_is_on("referer_Mod") and action_tag == "" then
     local ref_mod = getDict_Config("referer_Mod")
     for i, v in ipairs( ref_mod ) do
-        if v.state == "on" and host_uri_remath(v.hostname,v.uri) and remath_ext(referer,v.referer) then
+        if v.state == "on" and host_uri_remath(v.hostname,v.uri)
+            and remath_ext(referer,v.referer) then
             local _action = v.action or "deny"
             if do_action(_action,"uri_Mod",i) then
                 return

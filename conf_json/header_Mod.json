@@ -2,12 +2,14 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "uri": ["*",""],
         "hostname": ["*",""],
         "header": ["*","",["Acunetix_Aspect","end"]]
     },
     {
         "state": "on",
+        "id":"1001",
         "uri": ["*",""],
         "hostname": ["*",""],
         "header": ["*","",["X_Scan_Memo","all"]]

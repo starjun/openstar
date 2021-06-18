@@ -1,6 +1,7 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "action": "set_cookie",
         "set_cookie":["asjldisdafpopliu8909jk34jk","tokenYouname"],
         "hostname": ["101.200.122.200",""],

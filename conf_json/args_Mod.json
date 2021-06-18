@@ -1,132 +1,154 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "hostname": ["*",""],
         "args_data": ["\\.\\./","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1001",
         "hostname": ["*",""],
         "args_data": [["aaa","bbb","ccc"],"aho"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1002",
         "hostname": ["*",""],
         "args_data": ["\\:\\$","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1003",
         "hostname": ["*",""],
         "args_data": ["\\$\\{","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1004",
         "hostname": ["*",""],
         "args_data": ["select.+(from|limit)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1005",
         "hostname": ["*",""],
         "args_data": ["(?:(union(.*?)select))","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1006",
         "hostname": ["*",""],
         "args_data": ["having|rongjitest","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1007",
         "hostname": ["*",""],
         "args_data": ["sleep\\((\\s*)(\\d*)(\\s*)\\)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1008",
         "hostname": ["*",""],
         "args_data": ["benchmark\\((.*)\\,(.*)\\)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1009",
         "hostname": ["*",""],
         "args_data": ["base64_decode\\(","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1010",
         "hostname": ["*",""],
         "args_data": ["(?:from\\W+information_schema\\W)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1011",
         "hostname": ["*",""],
         "args_data": ["(?:(?:current_)user|database|schema|connection_id)\\s*\\(","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1011",
         "hostname": ["*",""],
         "args_data": ["(?:etc\\/\\W*passwd)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1012",
         "hostname": ["*",""],
         "args_data": ["into(\\s+)+(?:dump|out)file\\s*","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1013",
         "hostname": ["*",""],
         "args_data": ["group\\s+by.+\\(","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1014",
         "hostname": ["*",""],
         "args_data": ["(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1015",
         "hostname": ["*",""],
         "args_data": ["xwork\\.MethodAccessor","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1016",
         "hostname": ["*",""],
         "args_data": ["(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1017",
         "hostname": ["*",""],
         "args_data": ["java\\.lang","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1018",
         "hostname": ["*",""],
         "args_data": ["\\$_(GET|post|cookie|files|session|env|phplib|GLOBALS|SERVER)\\[","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1019",
         "hostname": ["*",""],
         "args_data": ["\\<(iframe|script|body|img|layer|div|meta|style|base|object|input)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1020",
         "hostname": ["*",""],
         "args_data": ["(onmouseover|onerror|onload)\\=\t","jio"],
         "action": "deny"

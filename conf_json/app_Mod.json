@@ -1,12 +1,14 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "action": ["deny"],
         "hostname": ["101.200.122.200",""],
         "uri": ["^/([\\w]{4}\\.html|deny\\.do|你好\\.html)$","jio"]
     },
     {
         "state": "on",
+        "id":"1001",
         "action": ["rehtml"],
         "rehtml": "<html>hi~!</html>",
         "hostname": ["101.200.122.200",""],
@@ -14,6 +16,7 @@
     },
     {
         "state": "on",
+        "id":"1002",
         "action": ["refile"],
         "refile": "2.txt",
         "hostname": ["101.200.122.200",""],
@@ -21,6 +24,7 @@
     },
     {
         "state": "on",
+        "id":"1003",
         "action": ["deny"],
         "hostname": [["101.200.122.200","127.0.0.1"],"list"],
         "uri": ["/api/.*","jio"],
@@ -30,6 +34,7 @@
     },
     {
         "state": "on",
+        "id":"1004",
         "action": ["relua"],
         "relua":"1.lua",
         "hostname": ["127.0.0.1:5460",""],
@@ -37,6 +42,7 @@
     },
     {
         "state": "on",
+        "id":"1005",
         "action": ["relua_str"],
         "relua_str":"local a = 1 if a<1 then ngx.say(1) end return 2",
         "hostname": ["127.0.0.1:5460",""],
@@ -44,12 +50,14 @@
     },
     {
         "state": "on",
+        "id":"1006",
         "action": ["log"],
         "hostname": ["127.0.0.1:5460",""],
         "uri": ["/log",""]
     },
     {
         "state": "on",
+        "id":"1007",
         "action": ["deny"],
         "hostname": [["101.200.122.200","127.0.0.1"],"list"],
         "uri": ["/api/.*","jio"],
@@ -61,6 +69,7 @@
     },
     {
         "state": "on",
+        "id":"1008",
         "action": ["refile"],
         "refile": ["js_debug.txt","text/html"],
         "hostname": ["localhost5460",""],
@@ -71,6 +80,7 @@
     },
     {
         "state": "on",
+        "id":"1009",
         "action": ["refile"],
         "refile": ["js_time.txt","text/html"],
         "hostname": ["localhost5460",""],
@@ -81,6 +91,7 @@
     },
     {
         "state": "on",
+        "id":"1010",
         "action": ["deny"],
         "hostname": ["localhost5460",""],
         "uri": ["/len",""],
@@ -90,6 +101,7 @@
     },
     {
         "state": "on",
+        "id":"1011",
         "action": ["deny"],
         "post_form":1024,
         "hostname": ["localhost5460",""],

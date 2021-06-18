@@ -1,6 +1,7 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "uri": ["/replace.html",""],
         "hostname": ["101.200.122.200",""],
         "replace_list":

@@ -1,7 +1,7 @@
 [
     {
         "state": "on",
-        "id":"1-scan",
+        "id":"1000",
         "useragent": [
             ["HTTrack","harvest","audit","dirbuster",
              "pangolin","nmap","sqln","-scan","hydra",

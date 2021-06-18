@@ -1,48 +1,56 @@
 [
     {
         "state": "on",
+        "id":"1000",
         "hostname": ["*",""],
         "uri": ["\\.(css|js|flv|swf|woff|txt)$","jio"],
         "action": "allow"
     },
     {
         "state": "on",
+        "id":"1001",
         "hostname": ["*",""],
         "uri": ["\\.(gif|jpg|png|jpeg|bmp|ico)$","jio"],
         "action": "allow"
     },
     {
         "state": "on",
+        "id":"1002",
         "hostname": ["*",""],
         "uri": ["\\.(svn|git|htaccess|bash_history)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1003",
         "hostname": ["*",""],
         "uri": ["\\.(bak|inc|old|mdb|sql|backup|java|class)$","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1004",
         "hostname": ["*",""],
         "uri": ["(vhost|bbs|hostname|wwwroot|www|site|root|hytop|flashfxp).*.rar","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1005",
         "hostname": ["*",""],
         "uri": ["(phpmyadmin|jmx-console|jmxinvokerservlet)","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1006",
         "hostname": ["*",""],
         "uri": ["java\\.lang","jio"],
         "action": "deny"
     },
     {
         "state": "on",
+        "id":"1007",
         "hostname": ["*",""],
         "uri": [
             "/(attachments|upimg|images|css|uploadfiles|html|uploads|templets|static|template|data|inc|forumdata|upload|includes|cache|avatar)/(\\w+).(php|jsp)",
