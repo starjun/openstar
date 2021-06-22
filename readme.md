@@ -743,6 +743,9 @@ OpenStar测试服务器：
 
  总的来说，启用规则后，性能损失可以接受，根据自身的业务进行调整，还可以有所优化。
 
+# 404StarLink 2.0 - Galaxy
+![404log][25]
+Elkeid has joined 404Team [404StarLink 2.0 - Galaxy][26]
 
 # 关于
 
@@ -777,3 +780,5 @@ Copyright (C) 2011-2016, by zj
   [22]: https://github.com/starjun/openstar/wiki/12-post_Mod
   [23]: https://github.com/starjun/openstar/wiki/13-network_Mod
   [24]: https://github.com/starjun/openstar/wiki/14-replace_Mod
+  [25]: https://github.com/knownsec/404StarLink-Project/raw/master/logo.png "404.png"
+  [26]: https://github.com/knownsec/404StarLink2.0-Galaxy
