@@ -744,7 +744,9 @@ OpenStar测试服务器：
  总的来说，启用规则后，性能损失可以接受，根据自身的业务进行调整，还可以有所优化。
 
 # 404StarLink 2.0 - Galaxy
+
 ![404log][25]
+
 Elkeid has joined 404Team [404StarLink 2.0 - Galaxy][26]
 
 # 关于
