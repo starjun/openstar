@@ -750,7 +750,7 @@ https://github.com/knownsec/404StarLink2.0-Galaxy#community
 
 ![404log][25]
 
-Elkeid has joined 404Team [404StarLink 2.0 - Galaxy][26]
+openstar has joined 404Team [404StarLink 2.0 - Galaxy][26]
 
 # 关于
 
