@@ -745,6 +745,9 @@ OpenStar测试服务器：
 
 # 404StarLink 2.0 - Galaxy
 
+openstar 是 404Team 星链计划2.0 中的一环，如果对 openstar 有任何疑问又或是想要找小伙伴交流，可以参考星链计划的加群方式。
+https://github.com/knownsec/404StarLink2.0-Galaxy#community
+
 ![404log][25]
 
 Elkeid has joined 404Team [404StarLink 2.0 - Galaxy][26]
