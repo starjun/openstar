@@ -337,30 +337,15 @@ if  host_Mod_state == "on" and action_tag == "" then
                 end
             elseif v.network then
                 local blacktime = v.network["blacktime"] or 600
-                if v.network.guid and ngx_var[v.network.guid] then
-                    -- 业务属性 计数
-                    local guid_value = ngx_var[v.network.guid]
-                    local mod_host_guid = host..guid_value.." host_network No "..i
-                    if network_ck(v.network,mod_host_guid) then
-                        host_dict:safe_set(host.."_guid",v.network.guid,blacktime)
-                        ip_dict:safe_set(host.."_"..guid_value,mod_host_guid,blacktime)
-                        next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
-                        -- network 触发直接拦截
-                        set_count_dict(host.." deny count")
-                        action_deny()
-                        break
-                    end
-                else
-                    -- ip 计数
-                    local mod_host_ip = host.."_"..ip.." host_network No "..i
-                    if network_ck(v.network,mod_host_ip) then
-                        ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
-                        next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
-                        -- network 触发直接拦截
-                        set_count_dict(host.." deny count")
-                        action_deny()
-                        break
-                    end
+                -- ip 计数
+                local mod_host_ip = host.."_"..ip.." host_network No "..i
+                if network_ck(v.network,mod_host_ip) then
+                    ip_dict:safe_set(host.."_"..ip,mod_host_ip,blacktime)
+                    next_ctx.waf_log = next_ctx.waf_log or "[host_Mod] deny No: "..i
+                    -- network 触发直接拦截
+                    set_count_dict(host.." deny count")
+                    action_deny()
+                    break
                 end
             end
         end
