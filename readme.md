@@ -9,6 +9,8 @@ grammar_cjkRuby: true
 注意：使用版本一定要大于 1.11.0 因为使用了ngx.var.request_id
 **代码写的比较好理解，肯定不优雅  哈~**
 
+个人的一些开发实践，有需要的朋友可以加入下
+![xq][27]
 
 正在更新说明WIKI篇,已经更新了安装篇，请自行查阅。
 
@@ -787,3 +789,4 @@ Copyright (C) 2011-2016, by zj
   [24]: https://github.com/starjun/openstar/wiki/14-replace_Mod
   [25]: https://github.com/knownsec/404StarLink-Project/raw/master/logo.png "404.png"
   [26]: https://github.com/knownsec/404StarLink2.0-Galaxy
+  [27]: ./doc/xq.jpg "xq.jpg"
