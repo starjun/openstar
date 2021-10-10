@@ -47,9 +47,9 @@ EG：
 "referer":[[0,150],"len"]   --- referer 长度 在 0~150 之间
 ```
 
-# 商业版本
+# 非开源版本 【带后台、带 4 层防护模块等...】完全免费！！！
 https://www.kancloud.cn/openstar/install/1136671
-<个人免费 ^_^>
+
 
 # 变更历史
 
